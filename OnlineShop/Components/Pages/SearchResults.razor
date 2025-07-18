@@ -1,0 +1,16 @@
+﻿@page "/search-results"
+@inject NavigationManager Navigation
+
+<h3>Search Results</h3>
+
+<p>Showing results for: <strong>@SearchTerm</strong></p>
+
+@code {
+    private string? SearchTerm;
+
+    protected override void OnInitialized()
+    {
+        var uri = new Uri(Navigation.Uri);
+        SearchTerm = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("searchTerm");
+    }
+}

@@ -1,0 +1,33 @@
+﻿@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<EditForm FormName="SearchForm" Model="@SearchModel" OnSubmit="HandleSearch" class="d-flex ms-3 me-auto">
+    <DataAnnotationsValidator />
+    <InputText 
+    id="searchTerm" 
+    class="form-control me-2"
+    @bind-Value="SearchModel.SearchTerm"
+    placeholder="Search..." />
+    <ValidationMessage For="@(() => SearchModel.SearchTerm)" />
+    <button class="btn btn-outline-light" type="submit">Search</button>
+</EditForm>
+
+@code {
+    private SearchInputModel SearchModel = new();
+
+    private void HandleSearch()
+    {
+        if (!string.IsNullOrWhiteSpace(SearchModel.SearchTerm))
+        {
+            var encoded = Uri.EscapeDataString(SearchModel.SearchTerm);
+            Navigation.NavigateTo($"/search-results?searchTerm={encoded}");
+        }
+    }
+
+    public class SearchInputModel
+    {
+        [Required(ErrorMessage = "Search term is required.")]
+        public string SearchTerm { get; set; } = string.Empty;
+    }
+}
