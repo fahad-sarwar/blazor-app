@@ -1,16 +1,109 @@
-﻿@page "/search-results"
-@inject NavigationManager Navigation
+﻿@page "/search-results/{SearchTerm}"
+
+@using OnlineShopUI.Components.Shared
+@using OnlineShopUI.ViewModels
+@inject HttpClient HttpClient
+@rendermode InteractiveServer
 
 <h3>Search Results</h3>
 
-<p>Showing results for: <strong>@SearchTerm</strong></p>
+@if (!string.IsNullOrEmpty(SearchTerm))
+{
+	<p>Showing results for "<strong>@SearchTerm</strong>"</p>
+}
+
+@if (products is not null && products.Any())
+{
+	<!-- Sort Dropdown at the top -->
+	<div class="d-flex justify-content-between align-items-center mb-3">
+		<p class="mb-0">Found <strong>@totalProducts</strong> products</p>
+
+		<div>
+			<label for="sortSelect" class="me-2">Sort by:</label>
+			<select id="sortSelect" class="form-select d-inline w-auto" @onchange="HandleSortChange">
+				<option value="name-asc">Name (A-Z)</option>
+				<option value="name-desc">Name (Z-A)</option>
+				<option value="price-asc">Price (Low to High)</option>
+				<option value="price-desc">Price (High to Low)</option>
+			</select>
+		</div>
+	</div>
+
+	<!-- Sorted Products -->
+	<div class="row row-cols-1 row-cols-md-3 g-4">
+		@foreach (var product in products)
+		{
+			<ProductSummaryItem Product="product" />
+		}
+	</div>
+
+	@if (hasMore)
+	{
+		<div class="text-center mt-4">
+			<button class="btn btn-outline-primary" @onclick="LoadMore">Load More</button>
+		</div>
+	}
+}
+else if (!string.IsNullOrEmpty(SearchTerm))
+{
+	<p>No products found.</p>
+}
+else
+{
+	<p>No search term provided.</p>
+}
 
 @code {
-    private string? SearchTerm;
+	[Parameter] public string? SearchTerm { get; set; }
+	private List<ProductViewModel> products = new();
+	private int currentPage = 1;
+	private int pageSize = 9;
+	private int totalProducts = 0;
+	private string selectedSort = "name-asc";
+	private bool hasMore => (currentPage * pageSize) < totalProducts;
 
-    protected override void OnInitialized()
-    {
-        var uri = new Uri(Navigation.Uri);
-        SearchTerm = System.Web.HttpUtility.ParseQueryString(uri.Query).Get("searchTerm");
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		Reset();
+		await GetProducts();
+	}
+
+	private async Task HandleSortChange(ChangeEventArgs e)
+	{
+		selectedSort = e.Value?.ToString() ?? "name-asc";
+		Reset();
+		await GetProducts();
+	}
+
+	private void Reset()
+	{
+		products = new List<ProductViewModel>();
+		currentPage = 1;
+		pageSize = 9;
+		totalProducts = 0;
+	}
+
+	private async Task GetProducts()
+	{
+		try
+		{
+			var pagedProductResult = await HttpClient.GetFromJsonAsync<PagedProductResultViewModel>(
+					$"https://localhost:7179/api/products?searchTerm={SearchTerm}&sort={selectedSort}&page={currentPage}&pageSize={pageSize}");
+
+			products.AddRange(pagedProductResult.Products);
+			totalProducts = pagedProductResult.TotalCount;
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine($"Error fetching products: {ex.Message}");
+			products = new List<ProductViewModel>();
+			totalProducts = 0;
+		}
+	}
+
+	private async Task LoadMore()
+	{
+		currentPage += 1;
+		await GetProducts();
+	}
 }

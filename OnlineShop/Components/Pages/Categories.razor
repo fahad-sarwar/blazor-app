@@ -1,0 +1,42 @@
+﻿@page "/categories"
+@using OnlineShopUI.ViewModels
+@inject HttpClient HttpClient
+
+<h3>Categories</h3>
+
+@if (categories == null)
+{
+    <p><em>Loading...</em></p>
+}
+else if (categories.Count == 0)
+{
+    <p>No categories found.</p>
+}
+else
+{
+    <ul>
+        @foreach (var category in categories)
+        {
+            <li>
+                <strong>@category.Name</strong>: @category.Description
+            </li>
+        }
+    </ul>
+}
+
+@code {
+    private List<CategoryViewModel>? categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            categories = await HttpClient.GetFromJsonAsync<List<CategoryViewModel>>("https://localhost:7179/api/categories");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching categories: {ex.Message}");
+            categories = new List<CategoryViewModel>();
+        }
+    }
+}

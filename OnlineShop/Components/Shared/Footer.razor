@@ -1,0 +1,58 @@
+﻿@using OnlineShopUI.ViewModels
+
+<footer class="bg-dark text-white mt-5 py-4">
+    <div class="container">
+        <div class="row text-center text-md-start">
+            @foreach (var footerSection in FooterSections)
+            {
+                <div class="col-md-4">
+                    <h5>@footerSection.Key</h5>
+                    <ul class="list-unstyled">
+                        @foreach (var link in footerSection.Value)
+                        {
+                            @if (link.IsExternal)
+                            {
+                                <li><NavLink class="text-white" href="@link.Url" target="_blank" rel="noopener noreferrer">@link.Text</NavLink></li>
+                            }
+                            else 
+                            {
+                                <li><NavLink class="text-white" href="@link.Url">@link.Text</NavLink></li>
+                            }
+                        }
+                    </ul>
+                </div>
+            }
+        </div>
+        <div class="text-center mt-3">
+            <small>© @DateTime.Now.Year Bob Shop. All rights reserved.</small>
+        </div>
+    </div>
+</footer>
+
+@code {
+
+    private Dictionary<string, List<NavLinkItemViewModel>> FooterSections = new()
+    {
+        ["Customer Service"] = new()
+        {
+            new() { Text = "Contact Us", Url = "/contact" },
+            new() { Text = "Orders and Payments", Url = "/orders-and-payments" },
+            new() { Text = "FAQs", Url = "/faqs" },
+            new() { Text = "Delivery and Returns", Url = "/delivery-and-returns" },
+            new() { Text = "Track Order", Url = "/track-order" }
+        },
+        ["About us"] = new()
+        {
+            new() { Text = "Careers", Url = "/careers" },
+            new() { Text = "Terms and Conditions", Url = "/terms-and-conditions" },
+            new() { Text = "Site Map", Url = "/site-map" }
+        },
+        ["Follow us"] = new()
+        {
+            new() { Text = "Instagram", Url = "https://www.instagram.com/dawoodf_08", IsExternal = true },
+            new() { Text = "TikTok", Url = "https://www.tiktok.com/@dawoodf_8", IsExternal = true },
+            new() { Text = "Twitter", Url = "https://twitter.com/dawoodf_08", IsExternal = true }
+        }
+    };
+
+}

@@ -1,0 +1,37 @@
+﻿@page "/track-order"
+
+<div class="container py-5">
+    <h2 class="text-center mb-4 pb-2 border-bottom border-3">Track Your Order</h2>
+
+    <p class="text-center mb-4">Enter your order number and email address to check the status of your delivery.</p>
+
+    <!-- Tracking Form -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-6">
+            <form>
+                <div class="mb-3">
+                    <label for="orderNumber" class="form-label">Order Number</label>
+                    <input type="text" class="form-control" id="orderNumber" placeholder="e.g. BK123456">
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="email" placeholder="you@example.com">
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Track Order</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Placeholder: Order Status -->
+    <div class="text-center">
+        <h5>🔍 Order Status</h5>
+        <p class="text-muted">Once submitted, your order details will appear here.</p>
+    </div>
+
+    <!-- Help Section -->
+    <div class="text-center mt-5">
+        <p>
+            Need help? <a href="/contact" class="link-primary text-decoration-underline">Contact our support team</a> and we’ll be happy to assist you.
+        </p>
+    </div>
+</div>

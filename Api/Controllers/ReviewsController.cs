@@ -7,47 +7,49 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CustomersController : ControllerBase
+    public class ReviewsController : ControllerBase
     {
         private readonly OnlineShopContext _context;
 
-        public CustomersController(OnlineShopContext context)
+        public ReviewsController(OnlineShopContext context)
         {
             _context = context;
         }
 
-        // GET: api/Customers
+        // GET: api/Reviews
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Customer>>> GetCustomer()
+        public async Task<ActionResult<IEnumerable<Review>>> GetReviews([FromQuery] int productId)
         {
-            return await _context.Customer.ToListAsync();
+            return await _context.Review
+                .Where(r => r.Product.Id == productId)
+                .ToListAsync();
         }
 
-        // GET: api/Customers/5
+        // GET: api/Reviews/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Customer>> GetCustomer(int id)
+        public async Task<ActionResult<Review>> GetReview([FromRoute] int id)
         {
-            var customer = await _context.Customer.FindAsync(id);
+            var review = await _context.Review.FindAsync(id);
 
-            if (customer == null)
+            if (review == null)
             {
                 return NotFound();
             }
 
-            return customer;
+            return review;
         }
 
-        // PUT: api/Customers/5
+        // PUT: api/Reviews/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCustomer(int id, Customer customer)
+        public async Task<IActionResult> PutReview(int id, Review review)
         {
-            if (id != customer.Id)
+            if (id != review.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(customer).State = EntityState.Modified;
+            _context.Entry(review).State = EntityState.Modified;
 
             try
             {
@@ -55,7 +57,7 @@ namespace Api.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!CustomerExists(id))
+                if (!ReviewExists(id))
                 {
                     return NotFound();
                 }
@@ -68,36 +70,36 @@ namespace Api.Controllers
             return NoContent();
         }
 
-        // POST: api/Customers
+        // POST: api/Reviews
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Customer>> PostCustomer(Customer customer)
+        public async Task<ActionResult<Review>> PostReview(Review review)
         {
-            _context.Customer.Add(customer);
+            _context.Review.Add(review);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCustomer", new { id = customer.Id }, customer);
+            return CreatedAtAction("GetReview", new { id = review.Id }, review);
         }
 
-        // DELETE: api/Customers/5
+        // DELETE: api/Reviews/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCustomer(int id)
+        public async Task<IActionResult> DeleteReview(int id)
         {
-            var customer = await _context.Customer.FindAsync(id);
-            if (customer == null)
+            var review = await _context.Review.FindAsync(id);
+            if (review == null)
             {
                 return NotFound();
             }
 
-            _context.Customer.Remove(customer);
+            _context.Review.Remove(review);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool CustomerExists(int id)
+        private bool ReviewExists(int id)
         {
-            return _context.Customer.Any(e => e.Id == id);
+            return _context.Review.Any(e => e.Id == id);
         }
     }
 }

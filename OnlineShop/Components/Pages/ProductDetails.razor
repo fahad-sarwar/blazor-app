@@ -1,0 +1,78 @@
+﻿@page "/product/{Id:int}"
+
+@using OnlineShopUI.Components.Shared
+@using OnlineShopUI.ViewModels
+@inject HttpClient Http
+@inject NavigationManager NavManager
+
+<h3>Product Details</h3>
+
+@if (product == null)
+{
+	<p>Loading...</p>
+}
+else
+{
+	<div class="card mb-4">
+		<div class="row g-0">
+			<div class="col-md-4">
+				<img src="@GetImageUrl(product)" class="img-fluid rounded-start" alt="@product.Name" />
+			</div>
+			<div class="col-md-8">
+				<div class="card-body">
+					<h5 class="card-title">@product.Name</h5>
+					<p class="card-text">@product.Description</p>
+					<p class="card-text"><strong>Price:</strong> £@product.Price.ToString("0.00")</p>
+
+					<div class="d-flex gap-2 mt-4">
+						<button class="btn btn-primary" @onclick="AddToBasket">Add to Basket</button>
+						<button class="btn btn-success" @onclick="BuyNow">Buy Now</button>
+					</div>
+				</div>
+			</div>
+			<ProductReviews ProductId="@Id" />
+		</div>
+	</div>
+}
+
+@code {
+	[Parameter] public int Id { get; set; }
+	private ProductViewModel? product;
+
+	protected override async Task OnInitializedAsync()
+	{
+		product = await Http.GetFromJsonAsync<ProductViewModel>($"https://localhost:7179/api/products/{Id}");
+	}
+
+	private string GetImageUrl(ProductViewModel p) =>
+	!string.IsNullOrWhiteSpace(p.ImageURL) ? p.ImageURL : "https://via.placeholder.com/300x200?text=No+Image";
+
+	private async Task AddToBasket()
+	{
+		// Replace with your basket service or API call
+		Console.WriteLine($"Product {product?.Id} added to basket.");
+		// Show toast / alert etc.
+	}
+
+	private void BuyNow()
+	{
+		// Navigate to checkout with product ID or prefill basket
+		NavManager.NavigateTo($"/checkout?productId={product?.Id}");
+	}
+
+	// / private async Task SubmitReview()
+	// // {
+	// //     var response = await Http.PostAsJsonAsync($"https://localhost:7179/api/reviews", newReview);
+	// //     if (response.IsSuccessStatusCode)
+	// //     {
+	// //         var addedReview = await response.Content.ReadFromJsonAsync<Review>();
+	// //         product?.Reviews.Add(addedReview!);
+	// //         newReview = new Review { ProductId = Id }; // reset form
+	// //         StateHasChanged();
+	// //     }
+	// //     else
+	// //     {
+	// //         Console.WriteLine("Failed to submit review.");
+	// //     }
+	// // }
+}

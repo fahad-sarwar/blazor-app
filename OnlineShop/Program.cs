@@ -1,6 +1,11 @@
-using OnlineShop.Components;
+using OnlineShopUI.Components;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddHttpClient("Api", client =>
+{
+    client.BaseAddress = new Uri("https://localhost:7179/");
+});
 
 // Add services to the container.
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();

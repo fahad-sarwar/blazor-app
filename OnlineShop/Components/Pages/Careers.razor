@@ -1,0 +1,101 @@
+﻿@page "/careers"
+
+@using OnlineShopUI.ViewModels
+
+<div class="container mt-5">
+    <h2 class="text-center mb-4">Join Our Online Team at Bob Kart</h2>
+    <p class="text-center mb-4">Browse available roles and apply by uploading your CV.</p>
+
+    <!-- Role Type Filter -->
+    <div class="mb-4 text-center">
+        <label for="roleFilter" class="form-label fw-bold">Filter by Role Type:</label>
+        <select class="form-select w-auto d-inline-block" id="roleFilter" @onchange="FilterRoles">
+            <option value="All">All</option>
+            <option value="Remote">Remote</option>
+            <option value="Part-time">Part-time</option>
+            <option value="Full-time">Full-time</option>
+            <option value="Project-based">Project-based</option>
+        </select>
+    </div>
+
+    <!-- Careers List -->
+    <div class="row g-4">
+        @foreach (var role in FilteredRoles)
+        {
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">@role.Title</h5>
+                        <p class="card-text">@role.Description</p>
+                        <p class="card-text"><strong>Type:</strong> @role.Type</p>
+                        <a href="#uploadCV" class="btn btn-dark">Apply Now</a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Upload CV Form -->
+    <div class="mt-5" id="uploadCV">
+        <h4 class="mb-3">Upload Your CV</h4>
+        <EditForm Model="@cvForm" OnValidSubmit="@HandleSubmit">
+            <DataAnnotationsValidator />
+            <div class="mb-3">
+                <label class="form-label">Full Name</label>
+                <InputText class="form-control" @bind-Value="cvForm.FullName" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Email Address</label>
+                <InputText type="email" class="form-control" @bind-Value="cvForm.Email" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Upload CV (PDF or DOC)</label>
+                <InputFile OnChange="@HandleFileSelected" />
+            </div>
+
+            <button class="btn btn-primary" type="submit">Submit Application</button>
+        </EditForm>
+        @if (!string.IsNullOrEmpty(uploadStatus))
+        {
+            <div class="mt-3 alert alert-success">@uploadStatus</div>
+        }
+    </div>
+</div>
+
+@code {
+    private string selectedFilter = "All";
+    private string uploadStatus = string.Empty;
+    private IBrowserFile? uploadedFile;
+    private List<JobRoleViewModel> allRoles = new()
+    {
+        new() { Title = "Customer Support Representative", Description = "Assist customers through live chat and email.", Type = "Remote" },
+        new() { Title = "Content Manager", Description = "Manage product listings and descriptions.", Type = "Flexible / Remote" },
+        new() { Title = "Social Media Assistant", Description = "Manage Instagram, TikTok, and Twitter posts.", Type = "Part-time" },
+        new() { Title = "Junior Web Developer", Description = "Work on improving our Blazor-based website.", Type = "Project-based" }
+    };
+
+    private List<JobRoleViewModel> FilteredRoles => selectedFilter == "All"
+        ? allRoles
+        : allRoles.Where(role => role.Type.Contains(selectedFilter, StringComparison.OrdinalIgnoreCase)).ToList();
+
+    private CVFormViewModel cvForm = new();
+
+    private void FilterRoles(ChangeEventArgs e)
+    {
+        selectedFilter = e.Value?.ToString() ?? "All";
+    }
+
+    private void HandleFileSelected(InputFileChangeEventArgs e)
+    {
+        uploadedFile = e.File;
+    }
+
+    private async Task HandleSubmit()
+    {
+        // Simulate file upload success
+        uploadStatus = $"Thanks, {cvForm.FullName}! Your application has been received.";
+        await Task.Delay(1000);
+    }
+}

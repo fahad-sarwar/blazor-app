@@ -1,0 +1,26 @@
+﻿@using OnlineShopUI.ViewModels
+
+<div class="col">
+    <div class="card h-100 shadow-sm">
+        <img src="@GetImageUrl(Product)"
+             class="card-img-top" alt="@Product.Name" style="height: 200px; object-fit: cover;" />
+
+        <div class="card-body">
+            <h5 class="card-title">@Product.Name</h5>
+            <p class="card-text text-muted">£@Product.Price.ToString("0.00")</p>
+            <a class="btn btn-primary" href="/product/@Product.Id">View</a>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public ProductViewModel Product { get; set; }
+
+    private string GetImageUrl(ProductViewModel product)
+    {
+        return !string.IsNullOrWhiteSpace(product.ImageURL)
+            ? product.ImageURL
+            : "https://via.placeholder.com/300x200?text=No+Image";
+    }
+
+}

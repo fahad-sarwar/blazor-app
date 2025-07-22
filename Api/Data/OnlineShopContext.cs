@@ -13,5 +13,6 @@ namespace Api.Data
         public DbSet<Api.Models.Db.Product> Product { get; set; } = default!;
         public DbSet<Api.Models.Db.Customer> Customer { get; set; } = default!;
         public DbSet<Api.Models.Db.Address> Address { get; set; } = default!;
+        public DbSet<Api.Models.Db.Review> Review { get; set; } = default!;
     }
 }

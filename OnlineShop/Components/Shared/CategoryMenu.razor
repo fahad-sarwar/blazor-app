@@ -1,0 +1,46 @@
+﻿@using OnlineShopUI.ViewModels
+﻿@using OnlineShopUI.ViewModels
+@inject HttpClient HttpClient
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom px-3">
+    <ul class="navbar-nav me-auto">
+        @if (CategoryLinks == null)
+        {
+            <li class="nav-item"><span class="nav-link">Loading...</span></li>
+        }
+        else
+        {
+            @foreach (var category in CategoryLinks)
+            {
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="@category.Url">@category.Text</NavLink>
+                </li>
+            }
+        }
+    </ul>
+</nav>
+
+@code {
+    private List<NavLinkItemViewModel>? CategoryLinks;
+    private List<CategoryViewModel>? categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            categories = await HttpClient.GetFromJsonAsync<List<CategoryViewModel>>("https://localhost:7179/api/categories");
+
+            CategoryLinks = categories?.Select(c => new NavLinkItemViewModel
+                {
+                    Text = c.Name,
+                    Url = $"/categories/{c.Id}"
+                })
+                .ToList() ?? new List<NavLinkItemViewModel>();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching categories: {ex.Message}");
+            categories = new List<CategoryViewModel>();
+        }
+    }
+}

@@ -1,6 +1,6 @@
 ﻿using Api.Data;
+using Api.Models;
 using Api.Models.Db;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,21 +19,46 @@ namespace Api.Controllers
 
         // GET: api/Products
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Product>>> GetProduct([FromQuery] string searchTerm)
+        public async Task<ActionResult<PagedProductResult>> GetProduct(
+            [FromQuery] string searchTerm,
+            [FromQuery] string? sort = "name-asc",
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 9)
         {
-            // If searchTerm is null or empty, return all products
             if (string.IsNullOrWhiteSpace(searchTerm))
-            {
                 return BadRequest("Search term cannot be empty.");
-            }
 
-            var normalised = searchTerm?.ToLower();
+            var normalised = searchTerm.ToLower();
 
-            return await _context.Product
-                .Where(p => p.Name.ToLower().Contains(normalised)
-                            || p.Description.ToLower().Contains(normalised))
+            var query = _context.Product
+                .Where(p => p.Name.ToLower().Contains(normalised) ||
+                            p.Description.ToLower().Contains(normalised));
+
+            // Total before paging
+            var totalCount = await query.CountAsync();
+
+            // Apply sorting
+            query = sort switch
+            {
+                "name-asc" => query.OrderBy(p => p.Name),
+                "name-desc" => query.OrderByDescending(p => p.Name),
+                "price-asc" => query.OrderBy(p => p.Price),
+                "price-desc" => query.OrderByDescending(p => p.Price),
+                _ => query.OrderBy(p => p.Name)
+            };
+
+            var paged = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            return new PagedProductResult
+            {
+                Products = paged,
+                TotalCount = totalCount
+            };
         }
+
 
         // GET: api/Products/5
         [HttpGet("{id}")]
