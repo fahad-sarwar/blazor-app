@@ -28,7 +28,7 @@
     {
         try
         {
-            categories = await HttpClient.GetFromJsonAsync<List<CategoryViewModel>>("https://localhost:7179/api/categories");
+            categories = await HttpClient.GetFromJsonAsync<List<CategoryViewModel>>("http://localhost:5110/api/categories");
 
             CategoryLinks = categories?.Select(c => new NavLinkItemViewModel
                 {

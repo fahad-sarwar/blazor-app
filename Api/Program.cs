@@ -27,7 +27,7 @@ if (app.Environment.IsDevelopment())
     TestDataSeeder.Seed(dbContext);
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseAuthorization();
 

@@ -88,7 +88,7 @@ else
 		try
 		{
 			var pagedProductResult = await HttpClient.GetFromJsonAsync<PagedProductResultViewModel>(
-					$"https://localhost:7179/api/products?searchTerm={SearchTerm}&sort={selectedSort}&page={currentPage}&pageSize={pageSize}");
+					$"http://localhost:5110/api/products?searchTerm={SearchTerm}&sort={selectedSort}&page={currentPage}&pageSize={pageSize}");
 
 			products.AddRange(pagedProductResult.Products);
 			totalProducts = pagedProductResult.TotalCount;

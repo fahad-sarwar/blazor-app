@@ -41,7 +41,7 @@ else
 
 	protected override async Task OnInitializedAsync()
 	{
-		product = await Http.GetFromJsonAsync<ProductViewModel>($"https://localhost:7179/api/products/{Id}");
+		product = await Http.GetFromJsonAsync<ProductViewModel>($"http://localhost:5110/api/products/{Id}");
 	}
 
 	private string GetImageUrl(ProductViewModel p) =>
@@ -62,7 +62,7 @@ else
 
 	// / private async Task SubmitReview()
 	// // {
-	// //     var response = await Http.PostAsJsonAsync($"https://localhost:7179/api/reviews", newReview);
+	// //     var response = await Http.PostAsJsonAsync($"http://localhost:5110/api/reviews", newReview);
 	// //     if (response.IsSuccessStatusCode)
 	// //     {
 	// //         var addedReview = await response.Content.ReadFromJsonAsync<Review>();
