@@ -1,0 +1,53 @@
+﻿@page "/account/register"
+
+@using OnlineShopUI.ViewModels
+@inject HttpClient HttpClient
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<h3 class="mb-4">Create an Account</h3>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+
+<EditForm Model="@registerViewModel" OnValidSubmit="HandleRegister">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <InputText class="form-control" @bind-Value="registerViewModel.Email" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <InputText class="form-control" @bind-Value="registerViewModel.Password" type="password" />
+    </div>
+
+    <button class="btn btn-success">Register</button>
+    <a class="btn btn-link" href="/account/login">Already have an account?</a>
+</EditForm>
+
+@code {
+    private RegisterViewModel registerViewModel = new();
+    private string ErrorMessage = string.Empty;
+
+    private async Task HandleRegister()
+    {
+        var result = await HttpClient.PostAsJsonAsync("http://localhost:5110/api/auth/register", registerViewModel);
+
+        if (result.IsSuccessStatusCode)
+            Nav.NavigateTo("/");
+        else
+        {
+            // Attempt to read error message from response
+            var error = await result.Content.ReadAsStringAsync();
+
+            // Fallback if error content is empty or unhelpful
+            ErrorMessage = string.IsNullOrWhiteSpace(error)
+                ? "Registration failed. Please check your details and try again."
+                : error;
+        }
+    }
+}

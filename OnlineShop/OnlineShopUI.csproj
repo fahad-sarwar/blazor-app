@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="Jenin.FontAwesome.Blazor" Version="1.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.0.18" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,0 +1,39 @@
+﻿@page "/account/login"
+
+@using OnlineShopUI.ViewModels
+@inject HttpClient HttpClient
+@inject NavigationManager Nav
+@rendermode InteractiveServer
+
+<h3 class="mb-4">Sign In</h3>
+
+<EditForm Model="@loginViewModel" OnValidSubmit="HandleLogin">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <InputText class="form-control" @bind-Value="loginViewModel.Email" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Password</label>
+        <InputText class="form-control" @bind-Value="loginViewModel.Password" type="password" />
+    </div>
+
+    <button class="btn btn-primary">Login</button>
+    <a class="btn btn-link" href="/account/register">Need an account?</a>
+</EditForm>
+
+@code {
+    private LoginViewModel loginViewModel = new();
+
+    private async Task HandleLogin()
+    {
+        var result = await HttpClient.PostAsJsonAsync("http://localhost:5110/api/auth/login", loginViewModel);
+
+        if (result.IsSuccessStatusCode)
+            Nav.NavigateTo("/");
+        else
+            Console.WriteLine("Login failed");
+    }
+}

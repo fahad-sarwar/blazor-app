@@ -1,7 +1,8 @@
 ﻿﻿@using OnlineShopUI.ViewModels
+
 @inject NavigationManager Navigation
-@using Microsoft.AspNetCore.Components.Forms
 @using OnlineShopUI.ViewModels
+@using Microsoft.AspNetCore.Components.Authorization
 @rendermode InteractiveServer
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3">
@@ -13,13 +14,39 @@
     </form>
 
     <ul class="navbar-nav d-flex flex-row gap-3">
-        @foreach (var link in HeaderLinks)
-        {
-            <li class="nav-item">
-                <NavLink class="nav-link" href="@link.Url">@link.Text</NavLink>
-            </li>
-        }
+        <li class="nav-item">
+            <NavLink class="nav-link" href="/wishlist">Wish List</NavLink>
+        </li>
+        <li class="nav-item">
+            <NavLink class="nav-link" href="/cart">Basket</NavLink>
+        </li>
+
+        <CascadingAuthenticationState>
+            <AuthorizeView>
+                <Authorized Context="auth">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            @auth.User.Identity?.Name ?? "Account"
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><NavLink class="dropdown-item" href="/account">My Account</NavLink></li>
+                            <li><NavLink class="dropdown-item" href="/admin">Admin</NavLink></li>
+                            <li><NavLink class="dropdown-item" href="/account/logout">Logout</NavLink></li>
+                        </ul>
+                    </li>
+                </Authorized>
+                <NotAuthorized>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/account/login">Login</NavLink>
+                    </li>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="/account/register">Register</NavLink>
+                    </li>
+                </NotAuthorized>
+            </AuthorizeView>
+        </CascadingAuthenticationState>
     </ul>
+
 </nav>
 
 @code {

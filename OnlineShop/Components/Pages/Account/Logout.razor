@@ -1,0 +1,17 @@
+﻿@page "/account/logout"
+
+@inject HttpClient HttpClient
+@inject NavigationManager Nav
+
+<h3>Signing you out...</h3>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await HttpClient.PostAsync("http://localhost:5110/api/auth/logout", null); // Or any logout endpoint you have
+
+        // Optional: clear any local storage or cached data
+
+        Nav.NavigateTo("/");
+    }
+}

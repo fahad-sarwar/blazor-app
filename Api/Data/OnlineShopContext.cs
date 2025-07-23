@@ -1,8 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Api.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace Api.Data
 {
-    public class OnlineShopContext : DbContext
+    public class OnlineShopContext : IdentityDbContext<ApplicationUser>
     {
         public OnlineShopContext(DbContextOptions<OnlineShopContext> options)
             : base(options)
