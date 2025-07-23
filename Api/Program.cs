@@ -5,9 +5,8 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<OnlineShopContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("OnlineShopContext") ?? throw new InvalidOperationException("Connection string 'OnlineShopContext' not found.")));
-
+builder.Services.AddDbContext<OnlineShopContext>(options => 
+    options.UseSqlite(builder.Configuration.GetConnectionString("OnlineShopContext" ?? throw new InvalidOperationException("Connection string 'OnlineShopContext' not found."))));
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

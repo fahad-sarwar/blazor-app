@@ -10,4 +10,8 @@
     <PackageReference Include="Jenin.FontAwesome.Blazor" Version="1.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+
 </Project>
