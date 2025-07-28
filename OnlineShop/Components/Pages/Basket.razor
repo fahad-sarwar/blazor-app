@@ -1,21 +1,176 @@
 ﻿@page "/basket"
 
 @using OnlineShopUI.Services
+@using OnlineShopUI.ViewModels
+@rendermode InteractiveServer
 @inject AnonymousUserService AnonymousUserService
+@inject HttpClient HttpClient
 
 <h3>Basket</h3>
 
-<p>Load basket for @UserId</p>
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @ErrorMessage
+    </div>
+}
+else if (!_loaded)
+{
+    <p>Loading basket...</p>
+}
+else if (BasketViewModel == null || !BasketViewModel.Items.Any())
+{
+    <p>Your basket is empty.</p>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Product</th>
+                    <th class="text-end">Price</th>
+                    <th class="text-end">Quantity</th>
+                    <th class="text-end">Line Total</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in BasketViewModel.Items)
+                {
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                @if (!string.IsNullOrWhiteSpace(item.Product.ImageURL))
+                                {
+                                    <img src="@item.Product.ImageURL" width="50" height="50" class="img-thumbnail" />
+                                }
+                                <span>@item.Product.Name</span>
+                            </div>
+                        </td>
+                        <td class="text-end">@item.Price.ToString("C")</td>
+                        <td class="text-end">
+                            <div class="btn-group" role="group">
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => UpdateQuantity(item, item.Quantity - 1)">–</button>
+                                <span class="px-2">@item.Quantity</span>
+                                <button class="btn btn-sm btn-outline-secondary" @onclick="() => UpdateQuantity(item, item.Quantity + 1)">+</button>
+                            </div>
+                        </td>
+                        <td class="text-end">@item.LineTotal.ToString("C")</td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveItem(item)">Remove</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot class="table-group-divider">
+                <tr>
+                    <td colspan="3" class="text-end fw-bold">Subtotal</td>
+                    <td class="text-end">@BasketViewModel.Subtotal.ToString("C")</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="text-end fw-bold">VAT (20%)</td>
+                    <td class="text-end">@BasketViewModel.Vat.ToString("C")</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td colspan="3" class="text-end fw-bold">Total</td>
+                    <td class="text-end">@BasketViewModel.Total.ToString("C")</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+}
 
 @code {
+    public BasketViewModel? BasketViewModel { get; set; }
+    private string? ErrorMessage;
     private string UserId;
+    private bool _loaded = false;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             UserId = await AnonymousUserService.GetOrCreateAnonymousIdAsync();
-            StateHasChanged();
+            await LoadBasketAsync();
         }
+    }
+
+    private async Task LoadBasketAsync()
+    {
+        try
+        {
+            BasketViewModel = await HttpClient.GetFromJsonAsync<BasketViewModel>($"http://localhost:5110/api/Baskets?anonymousUserId={UserId}");
+
+            ErrorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Failed to load basket.";
+            BasketViewModel = new BasketViewModel();
+        }
+
+        _loaded = true;
+        StateHasChanged();
+    }
+
+    private async Task UpdateQuantity(BasketItemViewModel item, int newQuantity)
+    {
+        if (newQuantity < 1)
+        {
+            await RemoveItem(item);
+            return;
+        }
+
+        var updatedItem = new
+        {
+            Quantity = newQuantity
+        };
+
+        try
+        {
+            var response = await HttpClient.PutAsJsonAsync($"http://localhost:5110/api/BasketItems/{item.Id}", updatedItem);
+
+            if (response.IsSuccessStatusCode)
+            {
+                item.Quantity = newQuantity;
+            }
+            else
+            {
+                ErrorMessage = "Failed to update quantity.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Failed to update quantity.";
+        }        
+
+        StateHasChanged();
+    }
+
+    private async Task RemoveItem(BasketItemViewModel item)
+    {
+        try
+        {
+            var response = await HttpClient.DeleteAsync($"http://localhost:5110/api/BasketItems/{item.Id}");
+
+            if (response.IsSuccessStatusCode)
+            {
+                BasketViewModel!.Items.Remove(item);
+            }
+            else
+            {
+                ErrorMessage = "Failed to remove item.";
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Failed to remove item.";
+        }
+
+        StateHasChanged();
     }
 }

@@ -41,12 +41,16 @@ namespace Api.Controllers
         // PUT: api/BasketItems/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutBasketItem(int id, BasketItem basketItem)
+        public async Task<IActionResult> PutBasketItem(int id, UpdateBasketItemQuantity updateBasketItemQuantity)
         {
-            if (id != basketItem.Id)
+            var basketItem = await _context.BasketItem.FindAsync(id);
+
+            if (basketItem == null)
             {
-                return BadRequest();
+                return NotFound();
             }
+
+            basketItem.Quantity = updateBasketItemQuantity.Quantity;
 
             _context.Entry(basketItem).State = EntityState.Modified;
 
@@ -132,6 +136,7 @@ namespace Api.Controllers
         public async Task<IActionResult> DeleteBasketItem(int id)
         {
             var basketItem = await _context.BasketItem.FindAsync(id);
+
             if (basketItem == null)
             {
                 return NotFound();

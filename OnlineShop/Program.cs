@@ -2,6 +2,7 @@ using System.Net;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using OnlineShopUI.Components;
 using OnlineShopUI.Services;
 
@@ -29,6 +30,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStat
 
 // Add services to the container.
 builder.Services.AddScoped<AnonymousUserService>();
+builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
 var app = builder.Build();

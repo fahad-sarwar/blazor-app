@@ -2,6 +2,7 @@
 using Api.Models.Db;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace Api.Controllers
 {
@@ -18,11 +19,15 @@ namespace Api.Controllers
 
         // GET: api/Baskets
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Basket>>> GetBasket()
+        public async Task<ActionResult<Basket>> GetBasket([FromQuery] string anonymousUserId)
         {
-            return await _context.Basket
+            var basket = await _context.Basket
                 .Include(b => b.Items)
-                .ToListAsync();
+                .ThenInclude(bi => bi.Product)
+                .Where(b => b.AnonymousId == anonymousUserId)
+                .SingleOrDefaultAsync();
+            
+            return basket;
         }
 
         // GET: api/Baskets/5

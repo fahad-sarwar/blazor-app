@@ -1,26 +1,21 @@
-﻿using Microsoft.JSInterop;
+﻿using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 
 namespace OnlineShopUI.Services
 {
-    public class AnonymousUserService
+    public class AnonymousUserService(ProtectedSessionStorage protectedSessionStorage)
     {
-        private readonly IJSRuntime _js;
         private const string AnonymousUserIdKey = "anonymous_user_id";
-
-        public AnonymousUserService(IJSRuntime js)
-        {
-            _js = js;
-        }
 
         public async Task<string> GetOrCreateAnonymousIdAsync()
         {
-            var AnonymousUserId = await _js.InvokeAsync<string>("localStorage.getItem", AnonymousUserIdKey);
-            if (string.IsNullOrEmpty(AnonymousUserId))
-            {
-                AnonymousUserId = Guid.NewGuid().ToString();
-                await _js.InvokeVoidAsync("localStorage.setItem", AnonymousUserIdKey, AnonymousUserId);
-            }
-            return AnonymousUserId;
+            var result = await protectedSessionStorage.GetAsync<string>(AnonymousUserIdKey);
+
+            if (result.Success)
+                return result.Value;
+
+            var anonymousUserIdValue = Guid.NewGuid().ToString();
+            await protectedSessionStorage.SetAsync(AnonymousUserIdKey, anonymousUserIdValue);
+            return anonymousUserIdValue;
         }
     }
 }
