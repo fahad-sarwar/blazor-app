@@ -1,9 +1,13 @@
 ﻿@page "/product/{Id:int}"
 
 @using OnlineShopUI.Components.Shared
+@using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
+@using System.Text.Json
 @inject HttpClient Http
-@inject NavigationManager NavManager
+@inject NavigationManager Navigation
+@inject AnonymousUserService AnonymousUserService
+@rendermode InteractiveServer
 
 <h3>Product Details</h3>
 
@@ -26,7 +30,9 @@ else
 
 					<div class="d-flex gap-2 mt-4">
 						<button class="btn btn-primary" @onclick="AddToBasket">Add to Basket</button>
-						<button class="btn btn-success" @onclick="BuyNow">Buy Now</button>
+						<button class="btn btn-outline-danger" @onclick="AddToWishlist">
+							<i class="bi bi-heart"></i> Add to Wishlist
+						</button>
 					</div>
 				</div>
 			</div>
@@ -49,16 +55,49 @@ else
 
 	private async Task AddToBasket()
 	{
-		// Replace with your basket service or API call
-		Console.WriteLine($"Product {product?.Id} added to basket.");
-		// Show toast / alert etc.
+		var anonymousUserId = await AnonymousUserService.GetOrCreateAnonymousIdAsync();
+
+		var basketItem = new
+		{
+			AnonymousId = anonymousUserId,
+			ProductId = product.Id,
+			Quantity = 1
+		};
+
+		var response = await Http.PostAsJsonAsync($"http://localhost:5110/api/BasketItems", basketItem);
+
+		if (response.IsSuccessStatusCode)
+		{
+			Navigation.NavigateTo($"/basket");
+		}
 	}
 
-	private void BuyNow()
+	public int ProductId { get; set; }
+
+	private async Task AddToWishlist()
 	{
-		// Navigate to checkout with product ID or prefill basket
-		NavManager.NavigateTo($"/checkout?productId={product?.Id}");
+		var wishlist = await GetWishlistAsync();
+		if (!wishlist.Contains(ProductId))
+		{
+			wishlist.Add(ProductId);
+			await SaveWishlistAsync(wishlist);
+		}
 	}
+
+	private async Task<List<int>> GetWishlistAsync()
+	{
+		var json = await JS.InvokeAsync<string>("localStorage.getItem", "wishlist");
+		return string.IsNullOrEmpty(json) ? new List<int>() : JsonSerializer.Deserialize<List<int>>(json);
+	}
+
+	private async Task SaveWishlistAsync(List<int> wishlist)
+	{
+		var json = JsonSerializer.Serialize(wishlist);
+		await JS.InvokeVoidAsync("localStorage.setItem", "wishlist", json);
+	}
+
+	[Inject] IJSRuntime JS { get; set; }
+	
 
 	// / private async Task SubmitReview()
 	// // {

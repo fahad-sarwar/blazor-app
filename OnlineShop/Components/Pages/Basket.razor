@@ -1,0 +1,21 @@
+﻿@page "/basket"
+
+@using OnlineShopUI.Services
+@inject AnonymousUserService AnonymousUserService
+
+<h3>Basket</h3>
+
+<p>Load basket for @UserId</p>
+
+@code {
+    private string UserId;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            UserId = await AnonymousUserService.GetOrCreateAnonymousIdAsync();
+            StateHasChanged();
+        }
+    }
+}
