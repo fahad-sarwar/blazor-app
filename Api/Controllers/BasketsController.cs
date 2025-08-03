@@ -21,13 +21,20 @@ namespace Api.Controllers
         [HttpGet]
         public async Task<ActionResult<Basket>> GetBasket([FromQuery] string anonymousUserId)
         {
-            var basket = await _context.Basket
-                .Include(b => b.Items)
-                .ThenInclude(bi => bi.Product)
-                .Where(b => b.AnonymousId == anonymousUserId)
-                .SingleOrDefaultAsync();
-            
-            return basket;
+            try
+            {
+                var basket = await _context.Basket
+                    .Include(b => b.Items)
+                    .ThenInclude(bi => bi.Product)
+                    .Where(b => b.AnonymousId == anonymousUserId)
+                    .SingleOrDefaultAsync();
+
+                return basket ?? new Basket();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Error processing request: {ex.Message}");
+            }
         }
 
         // GET: api/Baskets/5
