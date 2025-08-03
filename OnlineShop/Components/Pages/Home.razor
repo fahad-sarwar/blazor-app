@@ -1,18 +1,22 @@
 ﻿@page "/"
+@using OnlineShopUI.Components.Shared
+@using OnlineShopUI.ViewModels
+@inject HttpClient HttpClient
+@rendermode InteractiveServer
 
 <style>
-  .carousel-inner {
+    .carousel-inner {
     height: 400px;
-  }
+    }
 
-  .carousel-item img {
+    .carousel-item img {
     height: 100%;
     object-fit: cover;
     width: 100%;
-  }
+    }
 </style>
 
-<div id="carouselExampleIndicators" class="carousel slide" data-bs-ride="carousel">
+<div id="carouselExampleIndicators" class="carousel slide mb-5" data-bs-ride="carousel">
     <div class="carousel-indicators">
         <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
         <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
@@ -38,3 +42,41 @@
         <span class="visually-hidden">Next</span>
     </button>
 </div>
+
+<h3>Sale Items</h3>
+
+@if (products == null)
+{
+    <p>Loading...</p>
+}
+
+@if (products is not null && products.Any())
+{
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (var product in products)
+        {
+            <ProductSummaryItem Product="product" />
+        }
+    </div>
+}
+
+@code {
+    private List<ProductViewModel> products = new();
+    private string selectedSort = "name-asc";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var pagedProductResult = await HttpClient.GetFromJsonAsync<PagedProductResultViewModel>(
+                $"http://localhost:5110/api/products?forSale=true&sort={selectedSort}&page={1}&pageSize={6}");
+
+            products.AddRange(pagedProductResult.Products);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching products on sale : {ex.Message}");
+            products = new List<ProductViewModel>();
+        }
+    }
+}

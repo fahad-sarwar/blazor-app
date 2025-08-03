@@ -20,19 +20,40 @@ namespace Api.Controllers
         // GET: api/Products
         [HttpGet]
         public async Task<ActionResult<PagedProductResult>> GetProduct(
-            [FromQuery] string searchTerm,
+            [FromQuery] int? categoryId,
+            [FromQuery] bool? forSale,
+            [FromQuery] string? searchTerm,
             [FromQuery] string? sort = "name-asc",
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 9)
         {
-            if (string.IsNullOrWhiteSpace(searchTerm))
-                return BadRequest("Search term cannot be empty.");
+            if (!categoryId.HasValue && !forSale.HasValue && string.IsNullOrWhiteSpace(searchTerm))
+                return BadRequest("At least one filter must be provided: category, forSale, or searchTerm.");
 
-            var normalised = searchTerm.ToLower();
+            if (page < 1 || pageSize < 1)
+                return BadRequest("Page and pageSize must be greater than 0.");
 
-            var query = _context.Product
-                .Where(p => p.Name.ToLower().Contains(normalised) ||
-                            p.Description.ToLower().Contains(normalised));
+            if(categoryId.HasValue && categoryId < 0)
+                return BadRequest("Category ID must be a positive integer.");
+
+            var query = _context.Product.AsQueryable();
+
+            if (categoryId.HasValue)
+            {
+                query = query.Where(p => p.Category.Id == categoryId.Value);
+            }
+
+            if (forSale.HasValue)
+            {
+                query = query.Where(p => p.ForSale == forSale.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                var normalised = searchTerm.ToLower();
+                query = query.Where(p => p.Name.ToLower().Contains(normalised) ||
+                                         p.Description.ToLower().Contains(normalised));
+            }
 
             // Total before paging
             var totalCount = await query.CountAsync();
