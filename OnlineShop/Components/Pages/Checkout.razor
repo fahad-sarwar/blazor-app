@@ -1,0 +1,218 @@
+﻿@page "/checkout"
+
+@using OnlineShopUI.ViewModels
+@using OnlineShopUI.Services
+@using OnlineShopUI.Components.Shared
+@rendermode InteractiveServer
+@inject HttpClient HttpClient
+@inject NavigationManager Navigation
+@inject AnonymousUserService AnonymousUserService
+
+<h3>Checkout</h3>
+
+@if (ErrorMessage != null)
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+
+@if (!_loaded)
+{
+    <p>Loading basket...</p>
+}
+else if (Basket == null || !Basket.Items.Any())
+{
+    <div class="alert alert-warning">Your basket is empty.</div>
+}
+else
+{
+    <div class="row g-5">
+        <div class="col-md-7">
+            <EditForm Model="@CheckoutModel" OnValidSubmit="SubmitOrder">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <fieldset class="mb-4">
+                    <legend class="h5">Customer Details</legend>
+                    <InputText class="form-control mb-3" @bind-Value="CheckoutModel.FirstName" placeholder="First Name" />
+                    <InputText class="form-control mb-3" @bind-Value="CheckoutModel.LastName" placeholder="Last Name" />
+                    <InputText class="form-control mb-3" @bind-Value="CheckoutModel.Email" placeholder="Email" />
+                    <InputText class="form-control mb-3" @bind-Value="CheckoutModel.PhoneNumber" placeholder="Phone Number" />
+                </fieldset>
+
+                <fieldset class="mb-4">
+                    <legend class="h5">Billing Address</legend>
+                    <InputText class="form-control mb-3" @bind-Value="CheckoutModel.BillingAddressLineOne" placeholder="Address Line 1" />
+                    <InputText class="form-control mb-3" @bind-Value="CheckoutModel.BillingAddressLineTwo" placeholder="Address Line 2" />
+                    <InputText class="form-control mb-3" @bind-Value="CheckoutModel.BillingTown" placeholder="Town" />
+                    <InputText class="form-control mb-3" @bind-Value="CheckoutModel.BillingCounty" placeholder="County" />
+                    <InputText class="form-control mb-3" @bind-Value="CheckoutModel.BillingPostCode" placeholder="Postcode" />
+                    <InputText class="form-control mb-3" @bind-Value="CheckoutModel.BillingCountry" placeholder="Country" />
+                </fieldset>
+
+                <fieldset class="mb-4">
+                    <legend class="h5">Shipping Address</legend>
+                    <InputText class="form-control mb-3" @bind-Value="CheckoutModel.ShippingAddressLineOne" placeholder="Address Line 1" />
+                    <InputText class="form-control mb-3" @bind-Value="CheckoutModel.ShippingAddressLineTwo" placeholder="Address Line 2" />
+                    <InputText class="form-control mb-3" @bind-Value="CheckoutModel.ShippingTown" placeholder="Town" />
+                    <InputText class="form-control mb-3" @bind-Value="CheckoutModel.ShippingCounty" placeholder="County" />
+                    <InputText class="form-control mb-3" @bind-Value="CheckoutModel.ShippingPostCode" placeholder="Postcode" />
+                    <InputText class="form-control mb-3" @bind-Value="CheckoutModel.ShippingCountry" placeholder="Country" />
+                </fieldset>
+
+                <fieldset class="mb-4">
+                    <legend class="h5">Payment Details</legend>
+                    <div class="card p-3 shadow-sm border">
+                        <InputText class="form-control mb-3" @bind-Value="CheckoutModel.CardNumber" placeholder="Card Number" />
+                        <InputText class="form-control mb-3" @bind-Value="CheckoutModel.CardName" placeholder="Name on Card" />
+
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <InputText class="form-control" @bind-Value="CheckoutModel.Expiry" placeholder="MM/YY" />
+                            </div>
+                            <div class="col-md-6">
+                                <InputText class="form-control" @bind-Value="CheckoutModel.CVV" placeholder="CVV" />
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+
+                <button class="btn btn-primary btn-lg mt-3" type="submit">Place Order</button>
+            </EditForm>
+        </div>
+
+        <div class="col-md-5">
+            <h4 class="mb-3">Order Summary</h4>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product</th>
+                            <th class="text-end">Qty</th>
+                            <th class="text-end">Price</th>
+                            <th class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Basket.Items)
+                        {
+                            <tr>
+                                <td>@item.Product.Name</td>
+                                <td class="text-end">@item.Quantity</td>
+                                <td class="text-end">£@item.Price.ToString("0.00")</td>
+                                <td class="text-end">£@item.LineTotal.ToString("0.00")</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot class="table-group-divider">
+                        <tr>
+                            <td colspan="3" class="text-end fw-semibold">Subtotal</td>
+                            <td class="text-end">@Basket.Subtotal.ToString("C")</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end fw-semibold">VAT (20%)</td>
+                            <td class="text-end">@Basket.Vat.ToString("C")</td>
+                        </tr>
+                        <tr class="table-primary">
+                            <td colspan="3" class="text-end fw-bold">Total</td>
+                            <td class="text-end fw-bold">@Basket.Total.ToString("C")</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private BasketViewModel? Basket;
+    private string? UserId;
+    private bool _loaded = false;
+    private string? ErrorMessage;
+
+    private CheckoutViewModel CheckoutModel = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            UserId = await AnonymousUserService.GetOrCreateAnonymousIdAsync();
+            await LoadBasketAsync();
+        }
+    }
+
+    private async Task LoadBasketAsync()
+    {
+        try
+        {
+            Basket = await HttpClient.GetFromJsonAsync<BasketViewModel>($"http://localhost:5110/api/Baskets?anonymousUserId={UserId}");
+
+            ErrorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Failed to load basket.";
+            Basket = new BasketViewModel();
+        }
+
+        _loaded = true;
+        StateHasChanged();
+    }
+
+    private async Task SubmitOrder()
+    {
+        try
+        {
+            var orderRequest = new CreateOrderRequest
+                {
+                    Customer = new CustomerViewModel
+                    {
+                        FirstName = CheckoutModel.FirstName,
+                        LastName = CheckoutModel.LastName,
+                        Email = CheckoutModel.Email,
+                        PhoneNumber = CheckoutModel.PhoneNumber,
+                        BillingAddress = new AddressViewModel
+                        {
+                            AddressLineOne = CheckoutModel.BillingAddressLineOne,
+                            AddressLineTwo = CheckoutModel.BillingAddressLineTwo,
+                            Town = CheckoutModel.BillingTown,
+                            County = CheckoutModel.BillingCounty,
+                            PostCode = CheckoutModel.BillingPostCode,
+                            Country = CheckoutModel.BillingCountry
+                        },
+                        ShippingAddress = new AddressViewModel
+                        {
+                            AddressLineOne = CheckoutModel.ShippingAddressLineOne,
+                            AddressLineTwo = CheckoutModel.ShippingAddressLineTwo,
+                            Town = CheckoutModel.ShippingTown,
+                            County = CheckoutModel.ShippingCounty,
+                            PostCode = CheckoutModel.ShippingPostCode,
+                            Country = CheckoutModel.ShippingCountry
+                        }
+                    },
+                    BasketId = Basket!.Id,
+                    Payment = new PaymentDetails
+                    {
+                        CardNumber = CheckoutModel.CardNumber,
+                        CardName = CheckoutModel.CardName,
+                        Expiry = CheckoutModel.Expiry,
+                        CVV = CheckoutModel.CVV
+                    }
+                };
+
+            var response = await HttpClient.PostAsJsonAsync($"http://localhost:5110/api/Orders", orderRequest);
+
+            if (response.IsSuccessStatusCode)
+            {
+                Navigation.NavigateTo("/order-confirmation");
+            }
+            else
+            {
+                ErrorMessage = "Failed to place order.";
+            }
+        }
+        catch
+        {
+            ErrorMessage = "Unexpected error during order placement.";
+        }
+    }
+}
