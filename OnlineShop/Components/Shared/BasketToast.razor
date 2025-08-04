@@ -1,0 +1,34 @@
+﻿@if (show)
+{
+    <div class="toast show position-fixed bottom-0 end-0 m-4" style="z-index: 2000;">
+        <div class="toast-header bg-success text-white">
+            <strong class="me-auto">Basket Updated</strong>
+            <button type="button" class="btn-close" @onclick="Hide"></button>
+        </div>
+        <div class="toast-body">
+            @Message
+        </div>
+    </div>
+}
+
+@code {
+    private bool show;
+    [Parameter] public string Message { get; set; } = "Item added to basket";
+
+    public void Show(string message)
+    {
+        Message = message;
+        show = true;
+        StateHasChanged();
+        _ = AutoHide();
+    }
+
+    private void Hide() => show = false;
+
+    private async Task AutoHide()
+    {
+        await Task.Delay(3000);
+        Hide();
+        StateHasChanged();
+    }
+}

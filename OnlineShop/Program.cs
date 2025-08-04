@@ -30,6 +30,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStat
 
 // Add services to the container.
 builder.Services.AddScoped<AnonymousUserService>();
+builder.Services.AddScoped<BasketService>();
 builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 

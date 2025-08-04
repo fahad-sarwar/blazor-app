@@ -3,6 +3,9 @@
 @inject NavigationManager Navigation
 @using OnlineShopUI.ViewModels
 @using Microsoft.AspNetCore.Components.Authorization
+@using OnlineShopUI.Services
+@inject BasketService BasketService
+@implements IDisposable
 @rendermode InteractiveServer
 
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-3 sticky-top">
@@ -18,7 +21,10 @@
             <NavLink class="nav-link" href="/wishlist">Wish List</NavLink>
         </li>
         <li class="nav-item">
-            <NavLink class="nav-link" href="/basket">Basket</NavLink>
+            <NavLink class="nav-link" href="/basket">
+                Basket
+                <span class="badge bg-danger">@basketCount</span>
+            </NavLink>
         </li>
 
         <CascadingAuthenticationState>
@@ -59,6 +65,24 @@
     };
 
     private string SearchTerm = string.Empty;
+    private int basketCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        BasketService.OnChange += UpdateCount;
+        basketCount = BasketService.ItemCount;
+    }
+
+    private void UpdateCount()
+    {
+        basketCount = BasketService.ItemCount;
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        BasketService.OnChange -= UpdateCount;
+    }
 
     private Task HandleSearch()
     {

@@ -4,9 +4,11 @@
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
 @using System.Text.Json
+@using OnlineShopUI.Components.Layout
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject AnonymousUserService AnonymousUserService
+@inject BasketService BasketService
 @rendermode InteractiveServer
 
 <h3>Product Details</h3>
@@ -42,6 +44,7 @@ else
 }
 
 @code {
+    [CascadingParameter] public MainLayout? MainLayout { get; set; }
 	[Parameter] public int Id { get; set; }
 	private ProductViewModel? product;
 
@@ -68,6 +71,8 @@ else
 
 		if (response.IsSuccessStatusCode)
 		{
+			BasketService.Increment(1);
+			MainLayout?.ShowBasketPopup("Item added to basket!");
 			Navigation.NavigateTo($"/basket");
 		}
 	}
@@ -97,21 +102,4 @@ else
 	}
 
 	[Inject] IJSRuntime JS { get; set; }
-	
-
-	// / private async Task SubmitReview()
-	// // {
-	// //     var response = await Http.PostAsJsonAsync($"http://localhost:5110/api/reviews", newReview);
-	// //     if (response.IsSuccessStatusCode)
-	// //     {
-	// //         var addedReview = await response.Content.ReadFromJsonAsync<Review>();
-	// //         product?.Reviews.Add(addedReview!);
-	// //         newReview = new Review { ProductId = Id }; // reset form
-	// //         StateHasChanged();
-	// //     }
-	// //     else
-	// //     {
-	// //         Console.WriteLine("Failed to submit review.");
-	// //     }
-	// // }
 }

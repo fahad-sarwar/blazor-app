@@ -43,8 +43,6 @@
     </button>
 </div>
 
-<h3>Sale Items</h3>
-
 @if (products == null)
 {
     <p>Loading...</p>
@@ -52,6 +50,8 @@
 
 @if (products is not null && products.Any())
 {
+    <h3>Sale Items</h3>
+
     <div class="row row-cols-1 row-cols-md-3 g-4">
         @foreach (var product in products)
         {

@@ -1,10 +1,12 @@
 ﻿@page "/basket"
 
+@using OnlineShopUI.Components.Layout
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
 @rendermode InteractiveServer
 @inject AnonymousUserService AnonymousUserService
 @inject HttpClient HttpClient
+@inject BasketService BasketService
 
 <h3>Basket</h3>
 
@@ -88,6 +90,7 @@ else
 }
 
 @code {
+    [CascadingParameter] public MainLayout? MainLayout { get; set; }
     public BasketViewModel? BasketViewModel { get; set; }
     private string? ErrorMessage;
     private string UserId;
@@ -162,6 +165,7 @@ else
 
             if (response.IsSuccessStatusCode)
             {
+                BasketService.Decrement(1);
                 BasketViewModel!.Items.Remove(item);
             }
             else
