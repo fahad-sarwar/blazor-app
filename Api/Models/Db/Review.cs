@@ -8,6 +8,6 @@
         public string Comment { get; set; } = string.Empty;
         public Product Product { get; set; } = null!;
         public Customer Customer { get; set; } = null!;
-        public DateTime DateCreated { get; internal set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

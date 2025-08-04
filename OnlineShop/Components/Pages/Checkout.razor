@@ -129,7 +129,25 @@ else
     private bool _loaded = false;
     private string? ErrorMessage;
 
-    private CheckoutViewModel CheckoutModel = new();
+    private CheckoutViewModel CheckoutModel = new CheckoutViewModel
+        {
+            FirstName = "Joe",
+            LastName = "Bloggs",
+            Email = "joe@email.com",
+            PhoneNumber = "01234567890",
+            BillingAddressLineOne = "123 Main St",
+            BillingTown = "London",
+            BillingCounty = "Greater London",
+            BillingPostCode = "E1 6AN",
+            ShippingAddressLineOne = "123 Main St",
+            ShippingTown = "London",
+            ShippingCounty = "Greater London",
+            ShippingPostCode = "E1 6AN",
+            CardName = "Joe Bloggs",
+            CardNumber = "4111111111111111", // Test card number
+            Expiry = "12/25",
+            CVV = "123",
+        };
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -203,7 +221,8 @@ else
 
             if (response.IsSuccessStatusCode)
             {
-                Navigation.NavigateTo("/order-confirmation");
+                var orderResponse = await response.Content.ReadFromJsonAsync<OrderViewModel>();
+                Navigation.NavigateTo($"/order-confirmation/{orderResponse.Id}");
             }
             else
             {

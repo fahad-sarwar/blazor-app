@@ -1,7 +1,69 @@
-﻿@page "/order-confirmation"
+﻿@page "/order-confirmation/{OrderId:int}"
+
+@using OnlineShopUI.ViewModels
+@inject HttpClient Http
+@rendermode InteractiveServer
 
 <h3>Order Confirmation</h3>
 
-@code {
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+else if (Order == null)
+{
+    <div class="alert alert-success">
+        <p>Thank you for your order!</p>
+        <p>Your order has been successfully placed.</p>
+        @if (OrderId > 0)
+        {
+            <p><strong>Order ID:</strong> @OrderId</p>
+        }
+    </div>
+}
+else
+{
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Order #@Order.OrderNumber</h5>
+            <p><strong>Status:</strong> @Order.Status</p>
+            <p><strong>Placed on:</strong> @Order.CreatedAt.ToLocalTime().ToString("f")</p>
+            <p><strong>Total:</strong> £@Order.TotalPrice.ToString("0.00")</p>
+        </div>
+    </div>
 
+    <h5>Items</h5>
+    <ul class="list-group mb-4">
+        @foreach (var item in Order.OrderItems)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                <span>@item.Product.Name (x @item.Quantity)</span>
+                <span>£@(item.TotalPrice.ToString("0.00"))</span>
+            </li>
+        }
+    </ul>
+}
+
+<div class="mt-4">
+    
+    <a class="btn btn-primary me-2" href="/">Continue Shopping</a>
+    <a class="btn btn-secondary" href="/orders">View Order History (SIGNIN FIRST)</a>
+</div>
+
+@code {
+    [Parameter] public int OrderId { get; set; }
+    private OrderViewModel? Order;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Order = await Http.GetFromJsonAsync<OrderViewModel>($"http://localhost:5110/api/Orders/{OrderId}");        
+        }
+        catch(Exception ex)
+        {
+            ErrorMessage = "We couldn't load your order details.";
+        }
+    }
 }

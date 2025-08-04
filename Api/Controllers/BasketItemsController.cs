@@ -122,7 +122,7 @@ namespace Api.Controllers
                 Product = product,
                 Quantity = addBasketItem.Quantity,
                 Price = product.Price,
-                AddedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow
             };
 
             _context.BasketItem.Add(basketItem);
