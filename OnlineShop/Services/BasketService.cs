@@ -1,37 +1,96 @@
-﻿namespace OnlineShopUI.Services
+﻿using OnlineShopUI.ViewModels;
+
+namespace OnlineShopUI.Services
 {
-    public class BasketService
+    public class BasketService(IHttpClientFactory httpClientFactory, AnonymousUserService anonymousUserService, BasketCountService basketCountService)
     {
-        public event Action? OnChange;
-        public int ItemCount { get; private set; }
+        private readonly HttpClient _httpClient = httpClientFactory.CreateClient("Api");
 
-        public void SetCount(int count)
+        public async Task<BasketViewModel> GetBasket()
         {
-            ItemCount = count;
-            NotifyStateChanged();
-        }
-
-        public void Increment(int by = 1)
-        {
-            ItemCount += by;
-            NotifyStateChanged();
-        }
-
-        public void Decrement(int by = 1)
-        {
-            if (ItemCount - by < 0)
+            try
             {
-                ItemCount = 0;
-                NotifyStateChanged();
-                return;
+                var anonymousUserId = await anonymousUserService.GetOrCreateAnonymousIdAsync();
+
+                var basketViewModel = await _httpClient.GetFromJsonAsync<BasketViewModel>($"api/Baskets?anonymousUserId={anonymousUserId}");
+
+                return basketViewModel ?? new BasketViewModel();
             }
-            else
+            catch (Exception ex)
             {
-                ItemCount -= by;
-                NotifyStateChanged();
+                Console.WriteLine($"Error loading basket: {ex.Message}");
+                throw new Exception("Failed to load basket", ex);
             }
         }
 
-        private void NotifyStateChanged() => OnChange?.Invoke();
+        public async Task<bool> AddToBasketAsync(int productId, int quantity)
+        {
+            try
+            {
+                var anonymousUserId = await anonymousUserService.GetOrCreateAnonymousIdAsync();
+
+                var basketItem = new
+                {
+                    AnonymousId = anonymousUserId,
+                    ProductId = productId,
+                    Quantity = quantity
+                };
+
+                var response = await _httpClient.PostAsJsonAsync("api/BasketItems", basketItem);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    basketCountService.Increment(1);
+                    return true;
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Error adding to basket: {ex.Message}");
+            }
+
+            return false;
+        }
+
+        public async Task<bool> UpdateBasketQuantity(int basketItemId, int newQuantity)
+        {
+            try
+            {
+                var updatedItem = new
+                {
+                    Quantity = newQuantity
+                };
+
+                var response = await _httpClient.PutAsJsonAsync($"api/BasketItems/{basketItemId}", updatedItem);
+
+                return response.IsSuccessStatusCode;
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Error updating basket quantity: {ex.Message}");
+            }
+
+            return false;
+        }
+
+        public async Task<bool> RemoveItemFromBasket(int basketItemId)
+        {
+            try
+            {
+                var response = await _httpClient.DeleteAsync($"api/BasketItems/{basketItemId}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    basketCountService.Decrement(1);
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error removing item from basket: {ex.Message}");
+            }
+
+            return false;
+        }
     }
 }

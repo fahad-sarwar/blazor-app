@@ -4,8 +4,6 @@
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
 @rendermode InteractiveServer
-@inject AnonymousUserService AnonymousUserService
-@inject HttpClient HttpClient
 @inject BasketService BasketService
 
 <h3>Basket</h3>
@@ -93,14 +91,12 @@ else
     [CascadingParameter] public MainLayout? MainLayout { get; set; }
     public BasketViewModel? BasketViewModel { get; set; }
     private string? ErrorMessage;
-    private string UserId;
-    private bool _loaded = false;
+    private bool _loaded;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            UserId = await AnonymousUserService.GetOrCreateAnonymousIdAsync();
             await LoadBasketAsync();
         }
     }
@@ -109,8 +105,7 @@ else
     {
         try
         {
-            BasketViewModel = await HttpClient.GetFromJsonAsync<BasketViewModel>($"http://localhost:5110/api/Baskets?anonymousUserId={UserId}");
-
+            BasketViewModel = await BasketService.GetBasket();
             ErrorMessage = null;
         }
         catch (Exception ex)
@@ -131,49 +126,35 @@ else
             return;
         }
 
-        var updatedItem = new
+        if (newQuantity == item.Quantity)
         {
-            Quantity = newQuantity
-        };
-
-        try
-        {
-            var response = await HttpClient.PutAsJsonAsync($"http://localhost:5110/api/BasketItems/{item.Id}", updatedItem);
-
-            if (response.IsSuccessStatusCode)
-            {
-                item.Quantity = newQuantity;
-            }
-            else
-            {
-                ErrorMessage = "Failed to update quantity.";
-            }
+            return; // No change needed
         }
-        catch (Exception ex)
+
+        var result = await BasketService.UpdateBasketQuantity(item.Id, newQuantity);
+
+        if (result)
+        {
+            item.Quantity = newQuantity;
+        }
+        else
         {
             ErrorMessage = "Failed to update quantity.";
-        }        
+            return;
+        }
 
         StateHasChanged();
     }
 
     private async Task RemoveItem(BasketItemViewModel item)
     {
-        try
-        {
-            var response = await HttpClient.DeleteAsync($"http://localhost:5110/api/BasketItems/{item.Id}");
+        var result = await BasketService.RemoveItemFromBasket(item.Id);
 
-            if (response.IsSuccessStatusCode)
-            {
-                BasketService.Decrement(1);
-                BasketViewModel!.Items.Remove(item);
-            }
-            else
-            {
-                ErrorMessage = "Failed to remove item.";
-            }
+        if (result)
+        {
+            BasketViewModel!.Items.Remove(item);
         }
-        catch (Exception ex)
+        else
         {
             ErrorMessage = "Failed to remove item.";
         }

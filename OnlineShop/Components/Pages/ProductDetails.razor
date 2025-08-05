@@ -6,8 +6,6 @@
 @using System.Text.Json
 @using OnlineShopUI.Components.Layout
 @inject HttpClient Http
-@inject NavigationManager Navigation
-@inject AnonymousUserService AnonymousUserService
 @inject BasketService BasketService
 @rendermode InteractiveServer
 
@@ -16,6 +14,12 @@
 @if (product == null)
 {
 	<p>Loading...</p>
+}
+else if (!string.IsNullOrEmpty(ErrorMessage))
+{
+	<div class="alert alert-danger" role="alert">
+		@ErrorMessage
+	</div>
 }
 else
 {
@@ -44,9 +48,10 @@ else
 }
 
 @code {
-    [CascadingParameter] public MainLayout? MainLayout { get; set; }
+	[CascadingParameter] public MainLayout? MainLayout { get; set; }
 	[Parameter] public int Id { get; set; }
 	private ProductViewModel? product;
+	private string? ErrorMessage;
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -54,26 +59,19 @@ else
 	}
 
 	private string GetImageUrl(ProductViewModel p) =>
-	!string.IsNullOrWhiteSpace(p.ImageURL) ? p.ImageURL : "https://via.placeholder.com/300x200?text=No+Image";
+		!string.IsNullOrWhiteSpace(p.ImageURL) ? p.ImageURL : "https://via.placeholder.com/300x200?text=No+Image";
 
 	private async Task AddToBasket()
 	{
-		var anonymousUserId = await AnonymousUserService.GetOrCreateAnonymousIdAsync();
+		var result = await BasketService.AddToBasketAsync(product.Id, 1);
 
-		var basketItem = new
+		if(result)
 		{
-			AnonymousId = anonymousUserId,
-			ProductId = product.Id,
-			Quantity = 1
-		};
-
-		var response = await Http.PostAsJsonAsync($"http://localhost:5110/api/BasketItems", basketItem);
-
-		if (response.IsSuccessStatusCode)
-		{
-			BasketService.Increment(1);
 			MainLayout?.ShowBasketPopup("Item added to basket!");
-			Navigation.NavigateTo($"/basket");
+		}
+		else
+		{
+            ErrorMessage = "Failed to add item to basket. Please try again.";
 		}
 	}
 

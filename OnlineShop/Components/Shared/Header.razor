@@ -4,7 +4,7 @@
 @using OnlineShopUI.ViewModels
 @using Microsoft.AspNetCore.Components.Authorization
 @using OnlineShopUI.Services
-@inject BasketService BasketService
+@inject BasketCountService BasketCountService
 @implements IDisposable
 @rendermode InteractiveServer
 
@@ -69,19 +69,19 @@
 
     protected override async Task OnInitializedAsync()
     {
-        BasketService.OnChange += UpdateCount;
-        basketCount = BasketService.ItemCount;
+        BasketCountService.OnChange += UpdateCount;
+        basketCount = BasketCountService.ItemCount;
     }
 
     private void UpdateCount()
     {
-        basketCount = BasketService.ItemCount;
+        basketCount = BasketCountService.ItemCount;
         InvokeAsync(StateHasChanged);
     }
 
     public void Dispose()
     {
-        BasketService.OnChange -= UpdateCount;
+        BasketCountService.OnChange -= UpdateCount;
     }
 
     private Task HandleSearch()

@@ -29,8 +29,9 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<AuthenticationStateProvider, ServerAuthenticationStateProvider>();
 
 // Add services to the container.
+builder.Services.AddTransient<BasketService>();
 builder.Services.AddScoped<AnonymousUserService>();
-builder.Services.AddScoped<BasketService>();
+builder.Services.AddScoped<BasketCountService>();
 builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 

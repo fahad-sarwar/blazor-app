@@ -1,4 +1,7 @@
-﻿@using OnlineShopUI.ViewModels
+﻿@using OnlineShopUI.Components.Layout
+@using OnlineShopUI.Services
+@using OnlineShopUI.ViewModels
+@inject BasketService BasketService
 
 <div class="col">
     <div class="card h-100 shadow-sm">
@@ -9,12 +12,19 @@
             <h5 class="card-title">@Product.Name</h5>
             <p class="card-text text-muted">£@Product.Price.ToString("0.00")</p>
             <a class="btn btn-primary" href="/product/@Product.Id">View</a>
+            <button class="btn btn-secondary" @onclick="AddToBasket">Add to Basket</button>
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <div class="text-danger mt-2">@ErrorMessage</div>
+            }
         </div>
     </div>
 </div>
 
 @code {
     [Parameter] public ProductViewModel Product { get; set; }
+    [CascadingParameter] public MainLayout? MainLayout { get; set; }
+    private string? ErrorMessage;
 
     private string GetImageUrl(ProductViewModel product)
     {
@@ -23,4 +33,18 @@
             : "https://via.placeholder.com/300x200?text=No+Image";
     }
 
+    private async Task AddToBasket()
+    {
+        var result = await BasketService.AddToBasketAsync(Product.Id, 1);
+
+        if(result)
+        {
+            MainLayout?.ShowBasketPopup("Item added to basket!");
+            ErrorMessage = null; // Clear any previous error message
+        }
+        else
+        {
+            ErrorMessage = "Failed to add item to basket. Please try again.";
+        }
+    }
 }
