@@ -1,7 +1,9 @@
 ﻿@page "/order-confirmation/{OrderId:int}"
 
+@using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
 @inject HttpClient Http
+@inject BasketCountService BasketCountService
 @rendermode InteractiveServer
 
 <h3>Order Confirmation</h3>
@@ -60,6 +62,7 @@ else
         try
         {
             Order = await Http.GetFromJsonAsync<OrderViewModel>($"http://localhost:5110/api/Orders/{OrderId}");        
+            BasketCountService.SetCount(0); // Reset basket count after order confirmation
         }
         catch(Exception ex)
         {
