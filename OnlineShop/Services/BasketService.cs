@@ -29,6 +29,17 @@ namespace OnlineShopUI.Services
             {
                 var anonymousUserId = await anonymousUserService.GetOrCreateAnonymousIdAsync();
 
+                // Check if product exists in the basket
+                var existingBasket = await GetBasket();
+
+                var existingItem = existingBasket.Items.FirstOrDefault(item => item.Product.Id == productId);
+
+                if (existingItem != null)
+                {
+                    // Update quantity if item already exists
+                    return await UpdateBasketQuantity(existingItem.Id, existingItem.Quantity + quantity);
+                }
+
                 var basketItem = new
                 {
                     AnonymousId = anonymousUserId,
