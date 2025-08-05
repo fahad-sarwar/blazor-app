@@ -6,6 +6,7 @@
 @inject HttpClient HttpClient
 @inject NavigationManager Navigation
 @inject BasketService BasketService
+@inject CheckoutDummyDataService CheckoutDummyDataService
 
 <h3>Checkout</h3>
 
@@ -121,7 +122,44 @@ else
         </div>
 
         <div class="col-md-5">
-            @* Order Summary Code Unchanged *@
+            <h4 class="mb-3">Order Summary</h4>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Product</th>
+                        <th class="text-end">Qty</th>
+                        <th class="text-end">Price</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var item in _basket.Items)
+                    {
+                        <tr>
+                            <td>@item.Product.Name</td>
+                            <td class="text-end">@item.Quantity</td>
+                            <td class="text-end">£@item.Price.ToString("0.00")</td>
+                            <td class="text-end">£@item.LineTotal.ToString("0.00")</td>
+                        </tr>
+                    }
+                    </tbody>
+                    <tfoot class="table-group-divider">
+                    <tr>
+                        <td colspan="3" class="text-end fw-semibold">Subtotal</td>
+                        <td class="text-end">@_basket.Subtotal.ToString("C")</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3" class="text-end fw-semibold">VAT (20%)</td>
+                            <td class="text-end">@_basket.Vat.ToString("C")</td>
+                    </tr>
+                    <tr class="table-primary">
+                        <td colspan="3" class="text-end fw-bold">Total</td>
+                            <td class="text-end fw-bold">@_basket.Total.ToString("C")</td>
+                    </tr>
+                    </tfoot>
+                </table>
+            </div>
         </div>
     </div>
 }
@@ -151,27 +189,7 @@ else
 
     private void CreateDummyCheckoutModel()
     {
-
-        _checkoutModel = new CheckoutViewModel
-            {
-                FirstName = "Joe",
-                LastName = "Bloggs",
-                Email = "joe@email.com",
-                PhoneNumber = "01234567890",
-                BillingAddressLineOne = "123 Main St",
-                BillingTown = "London",
-                BillingCounty = "Greater London",
-                BillingPostCode = "E1 6AN",
-                ShippingAddressLineOne = "123 Main St",
-                ShippingTown = "London",
-                ShippingCounty = "Greater London",
-                ShippingPostCode = "E1 6AN",
-                CardName = "Joe Bloggs",
-                CardNumber = "4111111111111111", // Test card number
-                Expiry = "12/25",
-                CVV = "123",
-            }
-        ;
+        _checkoutModel = CheckoutDummyDataService.GetDummyCheckoutModel();
     }
 
     private async Task LoadBasketAsync()

@@ -2,22 +2,24 @@
 @using OnlineShopUI.Components.Shared
 @inherits LayoutComponentBase
 
-<div class="page-layout">
-    <Header />
+<CascadingValue Value="this">
+    <div class="page-layout">
+        <Header />
 
-    <div class="main-content">
-        <BasketToast @ref="toast" />
-        <CategoryMenu />
+        <div class="main-content">
+            <BasketToast @ref="toast" />
+            <CategoryMenu />
 
-        <main>
-            <article class="content px-4">
-                @Body
-            </article>
-        </main>
+            <main>
+                <article class="content px-4">
+                    @Body
+                </article>
+            </main>
+        </div>
+
+        <Footer />
     </div>
-
-    <Footer />
-</div>
+</CascadingValue>
 
 <div id="blazor-error-ui">
     An unhandled error has occurred.
