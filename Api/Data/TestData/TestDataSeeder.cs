@@ -7,6 +7,7 @@ namespace Api.Data.TestData
         public static void Seed(OnlineShopContext context)
         {
             context.Payment.RemoveRange(context.Payment);
+            context.OrderTrackingUpdate.RemoveRange(context.OrderTrackingUpdate);
             context.OrderItem.RemoveRange(context.OrderItem);
             context.Order.RemoveRange(context.Order);
             context.BasketItem.RemoveRange(context.BasketItem);

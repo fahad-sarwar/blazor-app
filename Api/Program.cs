@@ -1,6 +1,7 @@
 using Api.Data;
 using Api.Data.TestData;
 using Api.Models;
+using Api.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +25,8 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddAuthorization();
-
+builder.Services.AddSingleton<BackgroundOrderQueue>();
+builder.Services.AddHostedService<BackgroundOrderUpdateService>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

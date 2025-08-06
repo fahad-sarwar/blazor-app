@@ -1,6 +1,7 @@
 ﻿using Api.Data;
 using Api.Models;
 using Api.Models.Db;
+using Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,10 +12,12 @@ namespace Api.Controllers
     public class OrdersController : ControllerBase
     {
         private readonly OnlineShopContext _context;
+        private readonly BackgroundOrderQueue _queue;
 
-        public OrdersController(OnlineShopContext context)
+        public OrdersController(OnlineShopContext context, BackgroundOrderQueue queue)
         {
             _context = context;
+            _queue = queue;
         }
 
         // GET: api/Orders/5
@@ -158,6 +161,8 @@ namespace Api.Controllers
                 _context.BasketItem.RemoveRange(basket.Items); // Clear the basket items
                 _context.Basket.Remove(basket); // Clear the basket after order creation
                 await _context.SaveChangesAsync();
+
+                _queue.Enqueue(order.Id); // Enqueue the order for background processing
 
                 return CreatedAtAction("GetOrder", new { id = order.Id }, order);
             }

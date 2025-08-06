@@ -13,6 +13,7 @@
         public Payment Payment { get; set; } = new Payment();
         public string DeliveryMethod { get; set; } = string.Empty;
         public DateTime? EstimatedDelivery { get; set; }
+        public List<OrderTrackingUpdate> TrackingUpdates { get; set; } = new List<OrderTrackingUpdate>();
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     }
