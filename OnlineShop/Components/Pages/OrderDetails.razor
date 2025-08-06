@@ -1,0 +1,245 @@
+﻿@page "/order-details/{OrderId:int}"
+
+@using OnlineShopUI.ViewModels
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+@if (Order == null)
+{
+    <p>Loading order...</p>
+}
+else
+{
+    <h2 class="my-4">Order Tracking - @Order.OrderNumber</h2>
+
+    <!-- Status Milestones -->
+    <div class="d-flex gap-3 justify-content-between mb-5">
+        @foreach (var status in StatusMilestones)
+        {
+            <div class="text-center flex-fill">
+                <div class="p-2 rounded text-white fw-semibold @GetMilestoneClass(status)">
+                    @status
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Order Tracking Timeline -->
+    <div class="card mb-5 p-4">
+        <h5 class="mb-3">Tracking History</h5>
+        @if (Order.TrackingUpdates == null || !Order.TrackingUpdates.Any())
+        {
+            <p class="text-muted">No tracking updates yet.</p>
+        }
+        else
+        {
+            <ul class="timeline list-unstyled">
+                @foreach (var update in Order.TrackingUpdates.OrderByDescending(u => u.CreatedAt))
+                {
+                    <li class="mb-4">
+                        <div class="fw-bold">@update.Status</div>
+                        <small class="text-muted">@update.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm") by @update.UpdatedBy</small>
+                        @if (!string.IsNullOrWhiteSpace(update.Note))
+                        {
+                            <div class="mt-1">@update.Note</div>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    </div>
+
+    <style>
+        .timeline li {
+            border-left: 3px solid #0d6efd;
+            padding-left: 1rem;
+            position: relative;
+        }
+
+            .timeline li::before {
+                content: '';
+                position: absolute;
+                left: -9px;
+                top: 6px;
+                width: 12px;
+                height: 12px;
+                background-color: #0d6efd;
+                border-radius: 50%;
+            }
+    </style>
+
+    <!-- Order Summary Cards -->
+    <div class="row g-3 mb-4">
+        <!-- Order & Payment Info -->
+        <div class="col-md-6">
+            <div class="card p-3">
+                <h5>Order & Payment</h5>
+                <p><strong>Order Number:</strong> @Order.OrderNumber</p>
+                <p><strong>Status:</strong> @Order.Status</p>
+                <p><strong>Total:</strong> £@Order.TotalPrice</p>
+                <p><strong>Paid With:</strong> @Order.Payment.PaymentMethod</p>
+                <p><strong>Card:</strong> @Order.Payment.MaskedCardNumber</p>
+                <p><strong>Cardholder:</strong> @Order.Payment.CardName</p>
+                <p><strong>Estimated Delivery:</strong> @Order.EstimatedDelivery?.ToString("dd MMM yyyy")</p>
+            </div>
+        </div>
+
+        <!-- Customer Info -->
+        <div class="col-md-6">
+            <div class="card p-3">
+                <h5>Customer Info</h5>
+                <p><strong>Name:</strong> @Order.Customer.FirstName @Order.Customer.LastName</p>
+                <p><strong>Email:</strong> @Order.Customer.Email</p>
+                <p><strong>Phone:</strong> @Order.Customer.PhoneNumber</p>
+                <p><strong>Username:</strong> @Order.Customer.UserName</p>
+            </div>
+        </div>
+
+        <!-- Billing Address -->
+        <div class="col-md-6">
+            <div class="card p-3">
+                <h5>Billing Address</h5>
+                <p>@Order.Customer.BillingAddress.AddressLineOne</p>
+                <p>@Order.Customer.BillingAddress.AddressLineTwo</p>
+                <p>@Order.Customer.BillingAddress.Town, @Order.Customer.BillingAddress.County</p>
+                <p>@Order.Customer.BillingAddress.PostCode, @Order.Customer.BillingAddress.Country</p>
+            </div>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="col-md-6">
+            <div class="card p-3">
+                <h5>Shipping Address</h5>
+                <p>@Order.Customer.ShippingAddress.AddressLineOne</p>
+                <p>@Order.Customer.ShippingAddress.AddressLineTwo</p>
+                <p>@Order.Customer.ShippingAddress.Town, @Order.Customer.ShippingAddress.County</p>
+                <p>@Order.Customer.ShippingAddress.PostCode, @Order.Customer.ShippingAddress.Country</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Summary -->
+    <div class="mt-5">
+        <h4 class="mb-3">Order Summary</h4>
+        <div class="table-responsive">
+            <table class="table table-striped align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Product</th>
+                        <th class="text-end">Qty</th>
+                        <th class="text-end">Price</th>
+                        <th class="text-end">Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Order.OrderItems)
+                    {
+                        <tr>
+                            <td>@item.Product.Name</td>
+                            <td class="text-end">@item.Quantity</td>
+                            <td class="text-end">£@item.Product.Price.ToString("0.00")</td>
+                            <td class="text-end">£@item.TotalPrice.ToString("0.00")</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot class="table-group-divider">
+                    <tr>
+                        <td colspan="3" class="text-end fw-semibold">Subtotal</td>
+                        <td class="text-end">@Order.TotalPrice.ToString("C")</td>
+                    </tr>
+                    @* <tr>
+                    <td colspan="3" class="text-end fw-semibold">VAT (20%)</td>
+                    <td class="text-end">@_basket.Vat.ToString("C")</td>
+                </tr>
+                <tr class="table-primary">
+                    <td colspan="3" class="text-end fw-bold">Total</td>
+                    <td class="text-end fw-bold">@_basket.Total.ToString("C")</td>
+                </tr> *@
+                </tfoot>
+            </table>
+        </div>
+    </div>
+
+
+    <div class="mt-5 border-top pt-4">
+        <h5 class="mb-4">Need Help?</h5>
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title">Contact Us</h6>
+                        <p class="card-text">Get in touch with our support team for any questions or issues you have.</p>
+                        <a href="/contact" class="btn btn-outline-primary btn-sm">Go to Contact Page</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title">Orders and Payments</h6>
+                        <p class="card-text">Learn about how we process orders and handle payment securely.</p>
+                        <a href="/orders-and-payments" class="btn btn-outline-primary btn-sm">View Details</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title">FAQs</h6>
+                        <p class="card-text">Find answers to frequently asked questions about our products and services.</p>
+                        <a href="/faqs" class="btn btn-outline-primary btn-sm">Read FAQs</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title">Delivery and Returns</h6>
+                        <p class="card-text">Understand our delivery times, options, and how to return an item.</p>
+                        <a href="/delivery-and-returns" class="btn btn-outline-primary btn-sm">Delivery Info</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <h6 class="card-title">Track Order</h6>
+                        <p class="card-text">Track the status of your recent orders in real-time.</p>
+                        <a href="/track-order" class="btn btn-outline-primary btn-sm">Track Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+@code {
+    [Parameter] public int orderId { get; set; }
+
+    private OrderViewModel? Order;
+    private readonly string[] StatusMilestones = new[] { "Pending", "Processing", "Packed", "Shipped", "Out for Delivery", "Delivered" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        Order = await Http.GetFromJsonAsync<OrderViewModel>($"http://localhost:5110/api/Orders/{orderId}");
+    }
+
+    private string GetMilestoneClass(string status)
+    {
+        if (Order == null) return "";
+
+        var currentIndex = Array.IndexOf(StatusMilestones, Order.Status);
+        var statusIndex = Array.IndexOf(StatusMilestones, status);
+
+        if (statusIndex < currentIndex || Order.Status == "Delivered")
+        {
+            return "bg-success text-white"; // Completed - green
+        }
+
+        return statusIndex == currentIndex 
+            ? "bg-warning text-dark" // Current - orange
+            : "bg-light text-muted"; // Upcoming - light gray
+    }
+}

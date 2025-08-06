@@ -4,17 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Services
 {
-    public class BackgroundOrderUpdateService : BackgroundService
+    public class BackgroundOrderUpdateService(IServiceProvider serviceProvider, BackgroundOrderQueue queue)
+        : BackgroundService
     {
-        private readonly IServiceProvider _serviceProvider;
-        private readonly BackgroundOrderQueue _queue;
-
-        public BackgroundOrderUpdateService(IServiceProvider serviceProvider, BackgroundOrderQueue queue)
-        {
-            _serviceProvider = serviceProvider;
-            _queue = queue;
-        }
-
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             Console.WriteLine("Background order processor started.");
@@ -23,7 +15,7 @@ namespace Api.Services
             {
                 try
                 {
-                    var orderId = await _queue.DequeueAsync(stoppingToken);
+                    var orderId = await queue.DequeueAsync(stoppingToken);
 
                     Console.WriteLine($"Processing order: {orderId}");
 
@@ -52,7 +44,7 @@ namespace Api.Services
                     Console.WriteLine($"Order {orderId} status updated to: {status}");
 
                     // Create scope to get scoped services like DbContext
-                    using var scope = _serviceProvider.CreateScope();
+                    using var scope = serviceProvider.CreateScope();
                     var dbContext = scope.ServiceProvider.GetRequiredService<OnlineShopContext>();
 
                     var order = await dbContext.Order.FindAsync(orderId);
@@ -76,6 +68,7 @@ namespace Api.Services
 
                     var orderTrackingUpdate = new OrderTrackingUpdate
                     {
+                        OrderId = orderId,
                         Status = status,
                         UpdatedBy = updatedBy[rnd.Next(updatedBy.Length)],
                         CreatedAt = DateTime.UtcNow

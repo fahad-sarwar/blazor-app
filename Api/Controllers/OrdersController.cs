@@ -25,8 +25,14 @@ namespace Api.Controllers
         public async Task<ActionResult<Order>> GetOrder(int id)
         {
             var order = await _context.Order
+                .Include(o => o.Customer)
+                    .ThenInclude(c => c.ShippingAddress)
+                .Include(o => o.Customer)
+                    .ThenInclude(c => c.BillingAddress)
                 .Include(o => o.OrderItems)
-                .ThenInclude(oi => oi.Product)
+                    .ThenInclude(oi => oi.Product)
+                .Include(o => o.Payment)
+                .Include(o => o.TrackingUpdates)
                 .SingleOrDefaultAsync(o => o.Id == id);
 
             if (order == null)
