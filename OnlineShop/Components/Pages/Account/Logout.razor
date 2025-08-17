@@ -1,10 +1,8 @@
 ﻿@page "/account/logout"
 
 @using OnlineShopUI.Services
-@using Microsoft.AspNetCore.Components.Authorization
-@inject IHttpClientFactory HttpClientFactory
+@inject IAuthService AuthService
 @inject NavigationManager Nav
-@inject AuthenticationStateProvider AuthStateProvider
 @rendermode InteractiveServer
 
 <div class="container mt-4">
@@ -51,26 +49,12 @@
 
         try
         {
-            // Call API logout
-            var httpClient = HttpClientFactory.CreateClient("Api");
-            await httpClient.PostAsync("api/auth/logout", null);
-
-            // Clear local authentication state
-            if (AuthStateProvider is ApiAuthenticationStateProvider apiProvider)
-            {
-                await apiProvider.SetAuthenticationStateAsync(null);
-            }
-
-            // Navigate to home page
+            await AuthService.LogoutAsync();
             Nav.NavigateTo("/");
         }
         catch (Exception ex)
         {
-            // Even if API call fails, clear local state
-            if (AuthStateProvider is ApiAuthenticationStateProvider apiProvider)
-            {
-                await apiProvider.SetAuthenticationStateAsync(null);
-            }
+            // AuthService handles the error and clears state
             Nav.NavigateTo("/");
         }
         finally

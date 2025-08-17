@@ -2,9 +2,8 @@
 
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
-@inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Nav
-@inject AuthenticationStateProvider AuthStateProvider
+@inject IAuthService AuthService
 @rendermode InteractiveServer
 
 <h3 class="mb-4">Sign In</h3>
@@ -52,26 +51,10 @@
 
         try
         {
-            var httpClient = HttpClientFactory.CreateClient("Api"); 
-            var result = await httpClient.PostAsJsonAsync("api/auth/login", loginViewModel);
+            var success = await AuthService.LoginAsync(loginViewModel);
 
-            if (result.IsSuccessStatusCode)
+            if (success)
             {
-                var userResponse = await httpClient.GetAsync("api/auth/user");
-
-                if (userResponse.IsSuccessStatusCode)
-                {
-                    var userJson = await userResponse.Content.ReadAsStringAsync();
-                    var user = System.Text.Json.JsonSerializer.Deserialize<UserInfo>(userJson,
-                        new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                    // Store user info locally
-                    if (AuthStateProvider is ApiAuthenticationStateProvider apiProvider)
-                    {
-                        await apiProvider.SetAuthenticationStateAsync(user);
-                    }
-                }
-
                 Nav.NavigateTo(ReturnUrl ?? "/");
             }
             else
