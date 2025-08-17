@@ -1,8 +1,7 @@
 ﻿﻿@using OnlineShopUI.ViewModels
 
 @inject NavigationManager Navigation
-@using OnlineShopUI.ViewModels
-@using Microsoft.AspNetCore.Components.Authorization
+@using System.Security.Claims
 @using OnlineShopUI.Services
 @inject BasketCountService BasketCountService
 @implements IDisposable
@@ -18,6 +17,9 @@
 
     <ul class="navbar-nav d-flex flex-row gap-3">
         <li class="nav-item">
+            <NavLink class="nav-link" href="/auth">Auth</NavLink>
+        </li>
+        <li class="nav-item">
             <NavLink class="nav-link" href="/wishlist">Wish List</NavLink>
         </li>
         <li class="nav-item">
@@ -26,44 +28,33 @@
                 <span class="badge bg-danger">@basketCount</span>
             </NavLink>
         </li>
-
-        <CascadingAuthenticationState>
-            <AuthorizeView>
-                <Authorized Context="auth">
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            @auth.User.Identity?.Name ?? "Account"
-                        </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><NavLink class="dropdown-item" href="/account">My Account</NavLink></li>
-                            <li><NavLink class="dropdown-item" href="/admin">Admin</NavLink></li>
-                            <li><NavLink class="dropdown-item" href="/account/logout">Logout</NavLink></li>
-                        </ul>
-                    </li>
-                </Authorized>
-                <NotAuthorized>
-                    <li class="nav-item">
-                        <NavLink class="nav-link" href="/account/login">Login</NavLink>
-                    </li>
-                    <li class="nav-item">
-                        <NavLink class="nav-link" href="/account/register">Register</NavLink>
-                    </li>
-                </NotAuthorized>
-            </AuthorizeView>
-        </CascadingAuthenticationState>
+        <AuthorizeView>
+            <Authorized>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                        Hello, @GetFirstName(context)
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><NavLink class="dropdown-item" href="/account">My Account</NavLink></li>
+                        <li><NavLink class="dropdown-item" href="/admin">Admin</NavLink></li>
+                        <li><NavLink class="dropdown-item" href="/account/logout">Logout</NavLink></li>
+                    </ul>
+                </li>
+            </Authorized>
+            <NotAuthorized>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/account/login">Login</NavLink>
+                </li>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/account/register">Register</NavLink>
+                </li>
+            </NotAuthorized>
+        </AuthorizeView>
     </ul>
 
 </nav>
 
 @code {
-
-    private List<NavLinkItemViewModel> HeaderLinks = new()
-    {
-        new() { Text = "My Account", Url = "/account" },
-        new() { Text = "Wish List", Url = "/wishlist" },
-        new() { Text = "Basket", Url = "/basket" }
-    };
-
     private string SearchTerm = string.Empty;
     private int basketCount;
 
@@ -93,5 +84,13 @@
         }
 
         return Task.CompletedTask;
+    }
+
+    private string GetFirstName(AuthenticationState context)
+    {
+        var firstNameClaim = context.User.FindFirst(ClaimTypes.GivenName);
+        return !string.IsNullOrEmpty(firstNameClaim?.Value)
+            ? firstNameClaim.Value
+            : context.User.Identity?.Name ?? "User";
     }
 }

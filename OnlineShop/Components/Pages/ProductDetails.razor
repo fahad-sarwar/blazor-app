@@ -5,7 +5,7 @@
 @using OnlineShopUI.ViewModels
 @using System.Text.Json
 @using OnlineShopUI.Components.Layout
-@inject HttpClient Http
+@inject IHttpClientFactory HttpClientFactory
 @inject BasketService BasketService
 @rendermode InteractiveServer
 
@@ -55,7 +55,8 @@ else
 
 	protected override async Task OnInitializedAsync()
 	{
-		product = await Http.GetFromJsonAsync<ProductViewModel>($"http://localhost:5110/api/products/{Id}");
+		var httpClient = HttpClientFactory.CreateClient("Api");
+		product = await httpClient.GetFromJsonAsync<ProductViewModel>($"api/products/{Id}");
 	}
 
 	private string GetImageUrl(ProductViewModel p) =>

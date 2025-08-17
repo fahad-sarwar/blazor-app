@@ -24,6 +24,17 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/access-denied";
     });
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("BlazorApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5000", "https://localhost:5001") // Your Blazor app URLs
+            .AllowCredentials()
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 builder.Services.AddAuthorization();
 builder.Services.AddSingleton<BackgroundOrderQueue>();
 builder.Services.AddHostedService<BackgroundOrderUpdateService>();
@@ -46,7 +57,7 @@ if (app.Environment.IsDevelopment())
 }
 
 //app.UseHttpsRedirection();
-
+app.UseCors("BlazorApp");
 app.UseAuthentication();
 app.UseAuthorization();
 

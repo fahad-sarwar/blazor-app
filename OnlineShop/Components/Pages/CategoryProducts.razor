@@ -2,7 +2,7 @@
 
 @using OnlineShopUI.Components.Shared
 @using OnlineShopUI.ViewModels
-@inject HttpClient HttpClient
+@inject IHttpClientFactory HttpClientFactory
 @rendermode InteractiveServer
 
 @if (products == null && categoryViewModel == null)
@@ -91,7 +91,8 @@ else
 	{
 		try
 		{
-			categoryViewModel = await HttpClient.GetFromJsonAsync<CategoryViewModel>($"http://localhost:5110/api/Categories/{Id}");
+			var httpClient = HttpClientFactory.CreateClient("Api");
+			categoryViewModel = await httpClient.GetFromJsonAsync<CategoryViewModel>($"api/Categories/{Id}");
 		}
 		catch (Exception ex)
 		{
@@ -106,8 +107,9 @@ else
 	{
 		try
 		{
-			var pagedProductResult = await HttpClient.GetFromJsonAsync<PagedProductResultViewModel>(
-					$"http://localhost:5110/api/products?categoryId={Id}&sort={selectedSort}&page={currentPage}&pageSize={pageSize}");
+            var httpClient = HttpClientFactory.CreateClient("Api");
+			var pagedProductResult = await httpClient.GetFromJsonAsync<PagedProductResultViewModel>(
+                $"api/products?categoryId={Id}&sort={selectedSort}&page={currentPage}&pageSize={pageSize}");
 
 			products.AddRange(pagedProductResult.Products);
 			totalProducts = pagedProductResult.TotalCount;

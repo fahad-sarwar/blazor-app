@@ -2,7 +2,7 @@
 @using OnlineShopUI.Components.Layout
 @using OnlineShopUI.Components.Shared
 @using OnlineShopUI.ViewModels
-@inject HttpClient HttpClient
+@inject IHttpClientFactory HttpClientFactory
 @layout MainLayout
 @rendermode InteractiveServer
 
@@ -70,8 +70,9 @@
     {
         try
         {
-            var pagedProductResult = await HttpClient.GetFromJsonAsync<PagedProductResultViewModel>(
-                $"http://localhost:5110/api/products?forSale=true&sort={selectedSort}&page={1}&pageSize={6}");
+            var httpClient = HttpClientFactory.CreateClient("Api");
+            var pagedProductResult = await httpClient.GetFromJsonAsync<PagedProductResultViewModel>(
+                $"api/products?forSale=true&sort={selectedSort}&page={1}&pageSize={6}");
 
             products.AddRange(pagedProductResult.Products);
         }

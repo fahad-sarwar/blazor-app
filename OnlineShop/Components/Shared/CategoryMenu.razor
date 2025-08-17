@@ -1,6 +1,6 @@
 ﻿@using OnlineShopUI.ViewModels
 ﻿@using OnlineShopUI.ViewModels
-@inject HttpClient HttpClient
+@inject IHttpClientFactory HttpClientFactory
 @rendermode InteractiveServer
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom px-3">
@@ -29,7 +29,8 @@
     {
         try
         {
-            categories = await HttpClient.GetFromJsonAsync<List<CategoryViewModel>>("http://localhost:5110/api/categories");
+            var httpClient = HttpClientFactory.CreateClient("Api");
+            categories = await httpClient.GetFromJsonAsync<List<CategoryViewModel>>("api/categories");
 
             CategoryLinks = categories?.Select(c => new NavLinkItemViewModel
                 {

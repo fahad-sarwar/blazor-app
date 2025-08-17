@@ -1,6 +1,6 @@
 ﻿@page "/categories"
 @using OnlineShopUI.ViewModels
-@inject HttpClient HttpClient
+@inject IHttpClientFactory HttpClientFactory
 
 <h3>Categories</h3>
 
@@ -31,7 +31,8 @@ else
     {
         try
         {
-            categories = await HttpClient.GetFromJsonAsync<List<CategoryViewModel>>("http://localhost:5110/api/categories");
+            var httpClient = HttpClientFactory.CreateClient("Api");
+            categories = await httpClient.GetFromJsonAsync<List<CategoryViewModel>>("api/categories");
         }
         catch (Exception ex)
         {

@@ -1,8 +1,7 @@
 ﻿@page "/order-details/{OrderId:int}"
 
 @using OnlineShopUI.ViewModels
-@inject HttpClient Http
-@inject NavigationManager Navigation
+@inject IHttpClientFactory HttpClientFactory
 @rendermode InteractiveServer
 
 @if (Order == null)
@@ -223,7 +222,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        Order = await Http.GetFromJsonAsync<OrderViewModel>($"http://localhost:5110/api/Orders/{orderId}");
+        var httpClient = HttpClientFactory.CreateClient("Api");
+        Order = await httpClient.GetFromJsonAsync<OrderViewModel>($"api/Orders/{orderId}");
     }
 
     private string GetMilestoneClass(string status)

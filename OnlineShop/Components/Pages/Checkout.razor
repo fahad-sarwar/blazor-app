@@ -3,7 +3,7 @@
 @using OnlineShopUI.ViewModels
 @using OnlineShopUI.Services
 @rendermode InteractiveServer
-@inject HttpClient HttpClient
+@inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Navigation
 @inject BasketService BasketService
 @inject CheckoutDummyDataService CheckoutDummyDataService
@@ -283,7 +283,8 @@ else
                     }
                 };
 
-            var response = await HttpClient.PostAsJsonAsync($"http://localhost:5110/api/Orders", orderRequest);
+            var httpClient = HttpClientFactory.CreateClient("Api");
+            var response = await httpClient.PostAsJsonAsync($"api/Orders", orderRequest);
 
             if (response.IsSuccessStatusCode)
             {

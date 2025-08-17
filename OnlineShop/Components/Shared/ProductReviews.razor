@@ -1,5 +1,5 @@
 ﻿﻿@using OnlineShopUI.ViewModels
-@inject HttpClient Http
+@inject IHttpClientFactory HttpClientFactory
 @using OnlineShopUI.ViewModels
 
 @if (isLoading)
@@ -73,7 +73,8 @@ else
         try
         {
             isLoading = true;
-            Reviews = await Http.GetFromJsonAsync<List<ReviewViewModel>>($"https://localhost:7037/api/reviews?productId={ProductId}") ?? new();
+            var httpClient = HttpClientFactory.CreateClient("Api");
+            Reviews = await httpClient.GetFromJsonAsync<List<ReviewViewModel>>($"api/reviews?productId={ProductId}") ?? new();
         }
         catch (Exception ex)
         {
@@ -91,8 +92,9 @@ else
         try
         {
             // NewReview.ProductId = ProductId;
-
-            // var response = await Http.PostAsJsonAsync("https://localhost:7037/api/reviews", NewReview);
+            
+            //var httpClient = HttpClientFactory.CreateClient("Api");
+            // var response = await httpClient.PostAsJsonAsync("api/reviews", NewReview);
             // if (response.IsSuccessStatusCode)
             // {
             //     var addedReview = await response.Content.ReadFromJsonAsync<Review>();

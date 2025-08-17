@@ -17,10 +17,38 @@ namespace Api.Controllers
             _signInManager = signInManager;
         }
 
+        [HttpGet("user")]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                if (user != null)
+                {
+                    return Ok(new
+                    {
+                        Email = user.Email,
+                        Name = user.UserName,
+                        FirstName = user.FirstName,
+                        LastName = user.LastName
+                    });
+                }
+            }
+
+            return Unauthorized();
+        }
+
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] Register model)
         {
-            var user = new ApplicationUser { UserName = model.Email, Email = model.Email };
+            var user = new ApplicationUser
+            {
+                UserName = model.Email,
+                Email = model.Email,
+                FirstName = model.FirstName,
+                LastName = model.LastName
+            };
+
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
