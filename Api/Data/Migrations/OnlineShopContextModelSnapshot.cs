@@ -207,7 +207,7 @@ namespace Api.Data.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("BillingAddressId")
+                    b.Property<int?>("BillingAddressId")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime>("CreatedAt")
@@ -229,10 +229,10 @@ namespace Api.Data.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("ShippingAddressId")
+                    b.Property<int?>("ShippingAddressId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("UserName")
+                    b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -241,6 +241,8 @@ namespace Api.Data.Migrations
                     b.HasIndex("BillingAddressId");
 
                     b.HasIndex("ShippingAddressId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Customer");
                 });
@@ -657,19 +659,23 @@ namespace Api.Data.Migrations
                 {
                     b.HasOne("Api.Models.Db.Address", "BillingAddress")
                         .WithMany()
-                        .HasForeignKey("BillingAddressId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("BillingAddressId");
 
                     b.HasOne("Api.Models.Db.Address", "ShippingAddress")
                         .WithMany()
-                        .HasForeignKey("ShippingAddressId")
+                        .HasForeignKey("ShippingAddressId");
+
+                    b.HasOne("Api.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("BillingAddress");
 
                     b.Navigation("ShippingAddress");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Api.Models.Db.Order", b =>

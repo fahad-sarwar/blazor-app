@@ -60,6 +60,9 @@ namespace Api.Controllers
                 .OrderByDescending(t => t.EffectiveFrom)
                 .FirstOrDefaultAsync();
 
+            var customer = await _context.Customer
+                .SingleOrDefaultAsync(c => c.Id == createOrderRequest.Customer.Id);
+
             if (basket == null)
             {
                 return BadRequest("Basket not found");
@@ -73,6 +76,11 @@ namespace Api.Controllers
             if (basket.Items.Count == 0)
             {
                 return BadRequest("Basket is empty");
+            }
+
+            if (customer == null)
+            {
+                return BadRequest("Customer not found");
             }
 
             try
@@ -102,22 +110,13 @@ namespace Api.Controllers
                 _context.Address.Add(shippingAddress);
                 await _context.SaveChangesAsync();
 
-                // Create customer
-                var customer = new Customer
-                {
-                    UserName = createOrderRequest.Customer.Email,
-                    FirstName = createOrderRequest.Customer.FirstName,
-                    LastName = createOrderRequest.Customer.LastName,
-                    Email = createOrderRequest.Customer.Email,
-                    PhoneNumber = createOrderRequest.Customer.PhoneNumber,
-                    BillingAddress = billingAddress,
-                    ShippingAddress = shippingAddress,
-                    CreatedAt = DateTime.UtcNow,
-                };
+                customer.PhoneNumber = createOrderRequest.Customer.PhoneNumber;
+                customer.BillingAddress = billingAddress;
+                customer.ShippingAddress = shippingAddress;
 
-                _context.Customer.Add(customer);
+                _context.Entry(customer).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
-
+               
                 // Create order
                 var totalPrice = basket.Items.Sum(bi => bi.TotalPrice);
                 var totalVAT = totalPrice * taxRate.Rate / 100;

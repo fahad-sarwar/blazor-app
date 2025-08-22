@@ -1,12 +1,39 @@
 ﻿@page "/order-details/{OrderId:int}"
 
+@using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
 @inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Navigation
+@inject ApiAuthenticationStateProvider ApiAuthenticationStateProvider
 @rendermode InteractiveServer
 
-@if (Order == null)
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger">@ErrorMessage</div>
+}
+
+@if (!_authenticationChecked)
+{
+    <p>Loading...</p>
+}
+else if (!_isAuthenticated)
+{
+    <div class="alert alert-warning">
+        <p>You need to be logged in to view order details.</p>
+        <a href="/account/login?returnUrl=%2Forder-details%2F@OrderId" class="btn btn-primary">Login</a>
+        <a href="/account/register?returnUrl=%2Forder-details%2F@OrderId" class="btn btn-secondary">Register</a>
+    </div>
+}
+else if (!_orderLoaded)
 {
     <p>Loading order...</p>
+}
+else if (Order == null)
+{
+    <div class="alert alert-warning">
+        <p>Order not found or you don't have permission to view this order.</p>
+        <a href="/" class="btn btn-primary">Go Home</a>
+    </div>
 }
 else
 {
@@ -91,7 +118,6 @@ else
                 <p><strong>Name:</strong> @Order.Customer.FirstName @Order.Customer.LastName</p>
                 <p><strong>Email:</strong> @Order.Customer.Email</p>
                 <p><strong>Phone:</strong> @Order.Customer.PhoneNumber</p>
-                <p><strong>Username:</strong> @Order.Customer.UserName</p>
             </div>
         </div>
 
@@ -215,15 +241,66 @@ else
 
 
 @code {
-    [Parameter] public int orderId { get; set; }
+    [Parameter] public int OrderId { get; set; }
 
     private OrderViewModel? Order;
     private readonly string[] StatusMilestones = new[] { "Pending", "Processing", "Packed", "Shipped", "Out for Delivery", "Delivered" };
+    private string? ErrorMessage;
+    private bool _isAuthenticated = false;
+    private bool _authenticationChecked = false;
+    private bool _orderLoaded = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        var httpClient = HttpClientFactory.CreateClient("Api");
-        Order = await httpClient.GetFromJsonAsync<OrderViewModel>($"api/Orders/{orderId}");
+        if (firstRender)
+        {
+            var authState = await ApiAuthenticationStateProvider.GetAuthenticationStateAsync();
+            _isAuthenticated = authState.User?.Identity?.IsAuthenticated ?? false;
+            _authenticationChecked = true;
+
+            if (!_isAuthenticated)
+            {
+                Navigation.NavigateTo($"/account/login?returnUrl=%2Forder-details%2F{OrderId}");
+                return;
+            }
+
+            StateHasChanged();
+
+            try
+            {
+                var httpClient = HttpClientFactory.CreateClient("Api");
+                var response = await httpClient.GetAsync($"api/Orders/{OrderId}");
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Order = await response.Content.ReadFromJsonAsync<OrderViewModel>();
+
+                    var customerId = authState.User?.FindFirst("CustomerId")?.Value;
+                    if (!string.IsNullOrEmpty(customerId) && Order?.Customer?.Id.ToString() != customerId)
+                    {
+                        ErrorMessage = "You don't have permission to view this order.";
+                        Order = null;
+                    }
+                }
+                else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                {
+                    ErrorMessage = "Order not found.";
+                }
+                else
+                {
+                    ErrorMessage = "Failed to load order details.";
+                }
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage = "We couldn't load your order details.";
+            }
+            finally
+            {
+                _orderLoaded = true;
+                StateHasChanged();
+            }
+        }
     }
 
     private string GetMilestoneClass(string status)

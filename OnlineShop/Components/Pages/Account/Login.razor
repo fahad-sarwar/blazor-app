@@ -33,7 +33,7 @@
         }
         Login
     </button>
-    <a class="btn btn-link" href="/account/register">Need an account?</a>
+    <a class="btn btn-link" href="/account/register@(string.IsNullOrEmpty(ReturnUrl) ? "" : $"?returnUrl={Uri.EscapeDataString(ReturnUrl)}")">Need an account?</a>
 </EditForm>
 
 @code {

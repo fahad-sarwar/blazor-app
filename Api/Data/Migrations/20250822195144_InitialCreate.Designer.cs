@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Api.Data.Migrations
 {
     [DbContext(typeof(OnlineShopContext))]
-    [Migration("20250804195831_RemovedBasketFromOrder")]
-    partial class RemovedBasketFromOrder
+    [Migration("20250822195144_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -38,6 +38,14 @@ namespace Api.Data.Migrations
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("INTEGER");
@@ -227,7 +235,7 @@ namespace Api.Data.Migrations
                     b.Property<int>("ShippingAddressId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("UserName")
+                    b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -236,6 +244,8 @@ namespace Api.Data.Migrations
                     b.HasIndex("BillingAddressId");
 
                     b.HasIndex("ShippingAddressId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Customer");
                 });
@@ -322,6 +332,37 @@ namespace Api.Data.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("OrderItem");
+                });
+
+            modelBuilder.Entity("Api.Models.Db.OrderTrackingUpdate", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Note")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UpdatedBy")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderTrackingUpdate");
                 });
 
             modelBuilder.Entity("Api.Models.Db.Payment", b =>
@@ -631,9 +672,17 @@ namespace Api.Data.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Api.Models.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("BillingAddress");
 
                     b.Navigation("ShippingAddress");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Api.Models.Db.Order", b =>
@@ -670,6 +719,15 @@ namespace Api.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("Api.Models.Db.OrderTrackingUpdate", b =>
+                {
+                    b.HasOne("Api.Models.Db.Order", null)
+                        .WithMany("TrackingUpdates")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Api.Models.Db.Product", b =>
@@ -766,6 +824,8 @@ namespace Api.Data.Migrations
             modelBuilder.Entity("Api.Models.Db.Order", b =>
                 {
                     b.Navigation("OrderItems");
+
+                    b.Navigation("TrackingUpdates");
                 });
 #pragma warning restore 612, 618
         }

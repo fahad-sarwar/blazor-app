@@ -1,5 +1,6 @@
 ﻿@page "/checkout"
 
+@using System.Security.Claims
 @using OnlineShopUI.ViewModels
 @using OnlineShopUI.Services
 @rendermode InteractiveServer
@@ -7,6 +8,7 @@
 @inject NavigationManager Navigation
 @inject BasketService BasketService
 @inject CheckoutDummyDataService CheckoutDummyDataService
+@inject ApiAuthenticationStateProvider ApiAuthenticationStateProvider
 
 <h3>Checkout</h3>
 
@@ -15,7 +17,19 @@
     <div class="alert alert-danger">@_errorMessage</div>
 }
 
-@if (!_loaded)
+@if (!_authenticationChecked)
+{
+    <p>Loading...</p>
+}
+else if (!_isAuthenticated)
+{
+    <div class="alert alert-warning">
+        <p>You need to be logged in to access checkout.</p>
+        <a href="/account/login?returnUrl=%2Fcheckout" class="btn btn-primary">Login</a>
+        <a href="/account/register?returnUrl=%2Fcheckout" class="btn btn-secondary">Register</a>
+    </div>
+}
+else if (!_loaded)
 {
     <p>Loading basket...</p>
 }
@@ -43,9 +57,9 @@ else
                         <div id="collapseOne" class="accordion-collapse collapse @(_activeStep == 1 ? "show" : "")"
                              data-bs-parent="#checkoutAccordion">
                             <div class="accordion-body">
-                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.FirstName" placeholder="First Name" />
-                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.LastName" placeholder="Last Name" />
-                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.Email" placeholder="Email" />
+                                <InputText class="form-control mb-3" @bind-Value ="_checkoutModel.FirstName" placeholder="First Name" disabled="@_isAuthenticated" />
+                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.LastName" placeholder="Last Name" disabled="@_isAuthenticated" />
+                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.Email" placeholder="Email" disabled="@_isAuthenticated" />
                                 <InputText class="form-control mb-3" @bind-Value="_checkoutModel.PhoneNumber" placeholder="Phone Number" />
                                 <button type="button" class="btn btn-primary" @onclick="ValidateCustomer">Save & Continue</button>
                             </div>
@@ -67,6 +81,7 @@ else
                                 <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingTown" placeholder="Town" />
                                 <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingPostCode" placeholder="Postcode" />
                                 <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingCountry" placeholder="Country" />
+                                <button type="button" class="btn btn-secondary" @onclick="GoBack">Back</button>
                                 <button type="button" class="btn btn-primary" @onclick="ValidateBilling">Save & Continue</button>
                             </div>
                         </div>
@@ -87,6 +102,7 @@ else
                                 <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingTown" placeholder="Town" />
                                 <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingPostCode" placeholder="Postcode" />
                                 <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingCountry" placeholder="Country" />
+                                <button type="button" class="btn btn-secondary" @onclick="GoBack">Back</button>
                                 <button type="button" class="btn btn-primary" @onclick="ValidateShipping">Save & Continue</button>
                             </div>
                         </div>
@@ -113,6 +129,7 @@ else
                                         <InputText class="form-control" @bind-Value="_checkoutModel.CVV" placeholder="CVV" />
                                     </div>
                                 </div>
+                                <button type="button" class="btn btn-secondary mt-3" @onclick="GoBack">Back</button>
                                 <button type="submit" class="btn btn-success mt-3">Place Order</button>
                             </div>
                         </div>
@@ -168,6 +185,8 @@ else
     private BasketViewModel? _basket;
     private bool _loaded;
     private string? _errorMessage;
+    private bool _isAuthenticated = false;
+    private bool _authenticationChecked = false; // Add this flag
 
     private CheckoutViewModel _checkoutModel = new();
 
@@ -182,14 +201,24 @@ else
     {
         if (firstRender)
         {
+            var authState = await ApiAuthenticationStateProvider.GetAuthenticationStateAsync();
+            _isAuthenticated = authState.User?.Identity?.IsAuthenticated ?? false;
+            _authenticationChecked = true;
+
+            if (!_isAuthenticated)
+            {
+                Navigation.NavigateTo("/account/login?returnUrl=%2Fcheckout");
+                return;
+            }
+
             await LoadBasketAsync();
-            CreateDummyCheckoutModel();
+            CreateDummyCheckoutModel(authState.User);
         }
     }
 
-    private void CreateDummyCheckoutModel()
+    private void CreateDummyCheckoutModel(ClaimsPrincipal user)
     {
-        _checkoutModel = CheckoutDummyDataService.GetDummyCheckoutModel();
+        _checkoutModel = CheckoutDummyDataService.GetDummyCheckoutModel(user);
     }
 
     private async Task LoadBasketAsync()
@@ -242,6 +271,15 @@ else
             _activeStep = 4;
     }
 
+    private void GoBack()
+    {
+        if (_activeStep > 1)
+        {
+            _activeStep--;
+            StateHasChanged();
+        }
+    }
+
     private async Task SubmitOrder()
     {
         try
@@ -250,6 +288,7 @@ else
                 {
                     Customer = new CustomerViewModel
                     {
+                        Id = _checkoutModel.CustomerId,
                         FirstName = _checkoutModel.FirstName,
                         LastName = _checkoutModel.LastName,
                         Email = _checkoutModel.Email,

@@ -1,19 +1,25 @@
 ﻿using Bogus;
-using CountryData.Bogus;
 using OnlineShopUI.ViewModels;
+using System.Security.Claims;
 
 namespace OnlineShopUI.Services
 {
     public class CheckoutDummyDataService
     {
-        public CheckoutViewModel GetDummyCheckoutModel()
+        public CheckoutViewModel GetDummyCheckoutModel(ClaimsPrincipal user)
         {
             // This method returns a dummy checkout model with pre-filled data.
 
+            var customerId = int.Parse(user.FindFirst("CustomerId")?.Value);
+            var firstName = user.FindFirst(ClaimTypes.GivenName)?.Value ?? string.Empty;
+            var lastName = user.FindFirst(ClaimTypes.Surname)?.Value ?? string.Empty;
+            var email = user.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
+
             var testUser = new Faker<CheckoutViewModel>("en_GB")
-                .RuleFor(c => c.FirstName, f => f.Name.FirstName())
-                .RuleFor(c => c.LastName, f => f.Name.LastName())
-                .RuleFor(c => c.Email, f => f.Internet.Email())
+                .RuleFor(c => c.CustomerId, f => customerId)
+                .RuleFor(c => c.FirstName, f => firstName)
+                .RuleFor(c => c.LastName, f => lastName)
+                .RuleFor(c => c.Email, f => email)
                 .RuleFor(c => c.PhoneNumber, f => f.Phone.PhoneNumber())
                 .RuleFor(c => c.BillingAddressLineOne, f => f.Address.StreetAddress())
                 .RuleFor(c => c.BillingTown, f => f.Address.City())

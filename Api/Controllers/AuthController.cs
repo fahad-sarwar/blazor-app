@@ -1,6 +1,9 @@
-﻿using Api.Models;
+﻿using Api.Data;
+using Api.Models;
+using Api.Models.Db;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controllers
 {
@@ -10,11 +13,13 @@ namespace Api.Controllers
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
+        private readonly OnlineShopContext _context;
 
-        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager)
+        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, OnlineShopContext context)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _context = context;
         }
 
         [HttpGet("user")]
@@ -23,14 +28,21 @@ namespace Api.Controllers
             if (User.Identity?.IsAuthenticated == true)
             {
                 var user = await _userManager.GetUserAsync(User);
+                
                 if (user != null)
                 {
+                    
+                    var customer = await _context.Customer
+                        .FirstOrDefaultAsync(c => c.UserId == user.Id);
+
                     return Ok(new
                     {
                         Email = user.Email,
-                        Name = user.UserName,
+                        Name = user.FirstName,
                         FirstName = user.FirstName,
-                        LastName = user.LastName
+                        LastName = user.LastName,
+                        UserId = user.Id,
+                        CustomerId = customer?.Id,
                     });
                 }
             }
@@ -41,23 +53,43 @@ namespace Api.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] Register model)
         {
-            var user = new ApplicationUser
+            try
             {
-                UserName = model.Email,
-                Email = model.Email,
-                FirstName = model.FirstName,
-                LastName = model.LastName
-            };
+                var user = new ApplicationUser
+                {
+                    UserName = model.Email,
+                    Email = model.Email,
+                    FirstName = model.FirstName,
+                    LastName = model.LastName
+                };
 
-            var result = await _userManager.CreateAsync(user, model.Password);
+                var result = await _userManager.CreateAsync(user, model.Password);
 
-            if (result.Succeeded)
-            {
-                await _signInManager.SignInAsync(user, isPersistent: false);
-                return Ok();
+                if (result.Succeeded)
+                {
+                    var customer = new Customer
+                    {
+                        FirstName = model.FirstName,
+                        LastName = model.LastName,
+                        Email = model.Email,
+                        UserId = user.Id,
+                        User = user
+                    };
+
+                    _context.Customer.Add(customer);
+                    await _context.SaveChangesAsync();
+
+                    await _signInManager.SignInAsync(user, isPersistent: false);
+                    return Ok();
+                }
+
+                return BadRequest(result.Errors);
             }
-
-            return BadRequest(result.Errors);
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return BadRequest("Error whilst registering user.");
+            }
         }
 
         [HttpPost("login")]

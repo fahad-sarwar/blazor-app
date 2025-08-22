@@ -45,10 +45,13 @@
         }
         Register
     </button>
-    <a class="btn btn-link" href="/account/login">Already have an account?</a>
+    <a class="btn btn-link" href="/account/login@(string.IsNullOrEmpty(ReturnUrl) ? "" : $"?returnUrl={Uri.EscapeDataString(ReturnUrl)}")">Already have an account?</a>
 </EditForm>
 
 @code {
+    [SupplyParameterFromQuery]
+    private string? ReturnUrl { get; set; }
+
     private RegisterViewModel registerViewModel = new();
     private string ErrorMessage = string.Empty;
     private bool isLoading;
@@ -64,7 +67,7 @@
 
             if (success)
             {
-                Nav.NavigateTo("/");
+                Nav.NavigateTo(ReturnUrl ?? "/");
             }
             else
             {

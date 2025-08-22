@@ -27,10 +27,12 @@ namespace OnlineShopUI.Services
                     var user = result.Value;
                     var claims = new[]
                     {
-                        new Claim(ClaimTypes.Name, user.FirstName ?? user.Email),
+                        new Claim(ClaimTypes.Name, user.FirstName ?? string.Empty),
                         new Claim(ClaimTypes.Email, user.Email),
                         new Claim(ClaimTypes.GivenName, user.FirstName ?? string.Empty),
-                        new Claim(ClaimTypes.Surname, user.LastName ?? string.Empty)
+                        new Claim(ClaimTypes.Surname, user.LastName ?? string.Empty),
+                        new Claim("UserId", user.UserId ?? string.Empty),
+                        new Claim("CustomerId", user.CustomerId.ToString() ?? string.Empty)
                     };
 
                     var identity = new ClaimsIdentity(claims, "apiauth");
@@ -71,5 +73,7 @@ namespace OnlineShopUI.Services
         public string? Name { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }
+        public string? UserId { get; set; }
+        public int? CustomerId { get; set; }
     }
 }

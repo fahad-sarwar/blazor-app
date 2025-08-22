@@ -3,7 +3,9 @@
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
 @inject IHttpClientFactory HttpClientFactory
+@inject NavigationManager Navigation
 @inject BasketCountService BasketCountService
+@inject ApiAuthenticationStateProvider ApiAuthenticationStateProvider
 @rendermode InteractiveServer
 
 <h3>Order Confirmation</h3>
@@ -11,6 +13,11 @@
 @if (!string.IsNullOrEmpty(ErrorMessage))
 {
     <div class="alert alert-danger">@ErrorMessage</div>
+}
+
+@if (!_authenticationChecked)
+{
+    <p>Loading...</p>
 }
 else if (Order == null)
 {
@@ -56,18 +63,37 @@ else
     [Parameter] public int OrderId { get; set; }
     private OrderViewModel? Order;
     private string? ErrorMessage;
+    private bool _isAuthenticated = false;
+    private bool _authenticationChecked = false; // Add this flag
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        try
+        if (firstRender)
         {
-            var httpClient = HttpClientFactory.CreateClient("Api");
-            Order = await httpClient.GetFromJsonAsync<OrderViewModel>($"api/Orders/{OrderId}");
-            BasketCountService.SetCount(0); // Reset basket count after order confirmation
-        }
-        catch(Exception ex)
-        {
-            ErrorMessage = "We couldn't load your order details.";
+            var authState = await ApiAuthenticationStateProvider.GetAuthenticationStateAsync();
+            _isAuthenticated = authState.User?.Identity?.IsAuthenticated ?? false;
+            _authenticationChecked = true;
+
+            if (!_isAuthenticated)
+            {
+                Navigation.NavigateTo("/account/login?returnUrl=%2Fbasket");
+                return;
+            }
+
+            StateHasChanged();
+
+            try
+            {
+                var httpClient = HttpClientFactory.CreateClient("Api");
+                Order = await httpClient.GetFromJsonAsync<OrderViewModel>($"api/Orders/{OrderId}");
+                BasketCountService.SetCount(0); // Reset basket count after order confirmation
+            }
+            catch(Exception ex)
+            {
+                ErrorMessage = "We couldn't load your order details.";
+            }
+
+            StateHasChanged();
         }
     }
 }

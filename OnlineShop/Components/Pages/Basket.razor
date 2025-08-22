@@ -4,6 +4,8 @@
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
 @inject BasketService BasketService
+@inject NavigationManager Navigation
+@inject ApiAuthenticationStateProvider ApiAuthenticationStateProvider
 @rendermode InteractiveServer
 
 <h3>Basket</h3>
@@ -82,7 +84,7 @@ else
             </tfoot>
         </table>
         <div class="d-flex justify-content-end mt-3">
-            <a href="/checkout" class="btn btn-primary btn-lg">Proceed to Checkout</a>
+            <button class="btn btn-primary btn-lg" @onclick="ProceedToCheckout">Proceed to Checkout</button>
         </div>
     </div>
 }
@@ -160,5 +162,20 @@ else
         }
 
         StateHasChanged();
+    }
+
+    private async Task ProceedToCheckout()
+    {
+        var authState = await ApiAuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        if (authState?.User == null || !authState.User.Identity.IsAuthenticated)
+        {
+            var returnUrl = Uri.EscapeDataString("/checkout");
+            Navigation.NavigateTo($"/account/register?returnUrl={returnUrl}");
+        }
+        else
+        {
+            Navigation.NavigateTo("/checkout");
+        }
     }
 }

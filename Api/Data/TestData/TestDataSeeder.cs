@@ -1,11 +1,14 @@
-﻿using Api.Models.Db;
+﻿using Api.Models;
+using Api.Models.Db;
+using Microsoft.AspNetCore.Identity;
 
 namespace Api.Data.TestData
 {
     public class TestDataSeeder
     {
-        public static void Seed(OnlineShopContext context)
+        public static void Seed(OnlineShopContext context, UserManager<ApplicationUser> userManager)
         {
+            context.Users.RemoveRange(context.Users);
             context.Payment.RemoveRange(context.Payment);
             context.OrderTrackingUpdate.RemoveRange(context.OrderTrackingUpdate);
             context.OrderItem.RemoveRange(context.OrderItem);
@@ -229,9 +232,8 @@ namespace Api.Data.TestData
 
             var customers = new List<Customer>
             {
-                new Customer
+                new()
                 {
-                    UserName = "jdoe",
                     FirstName = "John",
                     LastName = "Doe",
                     Email = "jdoe@example.com",
@@ -240,9 +242,8 @@ namespace Api.Data.TestData
                     ShippingAddress = address1Shipping,
                     CreatedAt = DateTime.UtcNow.AddDays(-10)
                 },
-                new Customer
+                new()
                 {
-                    UserName = "asmith",
                     FirstName = "Alice",
                     LastName = "Smith",
                     Email = "asmith@example.com",
@@ -251,9 +252,8 @@ namespace Api.Data.TestData
                     ShippingAddress = address2Shipping,
                     CreatedAt = DateTime.UtcNow.AddDays(-20)
                 },
-                new Customer
+                new()
                 {
-                    UserName = "bwayne",
                     FirstName = "Bruce",
                     LastName = "Wayne",
                     Email = "bwayne@example.com",
@@ -262,9 +262,8 @@ namespace Api.Data.TestData
                     ShippingAddress = address3Shipping,
                     CreatedAt = DateTime.UtcNow.AddDays(-30)
                 },
-                new Customer
+                new()
                 {
-                    UserName = "ckent",
                     FirstName = "Clark",
                     LastName = "Kent",
                     Email = "ckent@example.com",
@@ -273,9 +272,8 @@ namespace Api.Data.TestData
                     ShippingAddress = address4Shipping,
                     CreatedAt = DateTime.UtcNow.AddDays(-40)
                 },
-                new Customer
+                new()
                 {
-                    UserName = "dprince",
                     FirstName = "Diana",
                     LastName = "Prince",
                     Email = "dprince@example.com",
@@ -285,6 +283,26 @@ namespace Api.Data.TestData
                     CreatedAt = DateTime.UtcNow.AddDays(-50)
                 }
             };
+
+            foreach(var customer in customers)
+            {
+                var user = new ApplicationUser
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    UserName = customer.Email,
+                    Email = customer.Email,
+                    PhoneNumber = customer.PhoneNumber,
+                    FirstName = customer.FirstName,
+                    LastName = customer.LastName,
+                    
+                };
+                user.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(user, "P@ssword1");
+
+                context.Users.Add(user);
+
+                customer.UserId = user.Id;
+                customer.User = user;
+            }
 
             context.Customer.AddRange(customers);
 

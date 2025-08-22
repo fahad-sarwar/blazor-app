@@ -4,6 +4,8 @@ namespace OnlineShopUI.ViewModels
 {
     public class CheckoutViewModel
     {
+        public int CustomerId { get; set; }
+
         [Required(ErrorMessage = "First name is required")]
         public string FirstName { get; set; } = string.Empty;
 

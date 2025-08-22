@@ -43,6 +43,7 @@ builder.Services.AddTransient<BasketService>();
 builder.Services.AddScoped<AnonymousUserService>();
 builder.Services.AddScoped<BasketCountService>();
 builder.Services.AddScoped<ProtectedSessionStorage>();
+builder.Services.AddScoped<ApiAuthenticationStateProvider>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
