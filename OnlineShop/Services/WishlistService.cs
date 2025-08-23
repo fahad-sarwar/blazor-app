@@ -1,15 +1,14 @@
 ﻿using OnlineShopUI.ViewModels;
-using System.Net.Http;
 
 namespace OnlineShopUI.Services
 {
     public class WishlistService(IHttpClientFactory httpClientFactory)
     {
-        public async Task<List<ProductViewModel>> GetWishlistAsync(int page, int pageSize)
+        public async Task<PagedProductResultViewModel> GetWishlistAsync(int page, int pageSize)
         {
             var httpClient = httpClientFactory.CreateClient("Api");
-            var response = await httpClient.GetFromJsonAsync<List<ProductViewModel>>($"api/wishlist?page={page}&pageSize={pageSize}");
-            return response ?? new List<ProductViewModel>();
+            var response = await httpClient.GetFromJsonAsync<PagedProductResultViewModel>($"api/wishlist?page={page}&pageSize={pageSize}");
+            return response ?? new PagedProductResultViewModel();
         }
 
         public async Task<bool> IsOnWishlistAsync(int productId)

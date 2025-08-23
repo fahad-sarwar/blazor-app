@@ -1,40 +1,55 @@
 ﻿@page "/wishlist"
+
+@using OnlineShopUI.Components.Layout
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
-@inject IHttpClientFactory HttpClientFactory
+@inject BasketService BasketService
 @inject WishlistService WishlistService
 
 <h3>Wishlist</h3>
 
 <AuthorizeView Context="authContext">
     <Authorized>
-        @if (wishlist == null)
+        @if (products == null)
         {
             <p>Loading...</p>
         }
-        else if (!wishlist.Any())
+        else if (!products.Any())
         {
             <p>Your wishlist is empty.</p>
         }
         else
         {
-            <div class="row">
-                @foreach (var item in wishlist)
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                @foreach (var product in products)
                 {
-                    <div class="col-md-4 mb-4">
-                        <div class="card">
-                            <img src="@GetImageUrl(item)" class="card-img-top" alt="@item.Name" />
+                    <div class="col">
+                        <div class="card h-100 shadow-sm">
+                            <img src="@GetImageUrl(product)"
+                                 class="card-img-top" alt="@product.Name" style="height: 200px; object-fit: cover;" />
+
                             <div class="card-body">
-                                <h5 class="card-title">@item.Name</h5>
-                                <p class="card-text">@item.Description</p>
-                                <p class="card-text"><strong>Price:</strong> £@item.Price.ToString("0.00")</p>
-                                <button class="btn btn-danger" @onclick="() => RemoveFromWishlist(item.Id)">Remove</button>
+                                <h5 class="card-title">@product.Name</h5>
+                                <p class="card-text text-muted">£@product.Price.ToString("0.00")</p>
+                                <a class="btn btn-primary" href="/product/@product.Id">View</a>
+                                <button class="btn btn-secondary" @onclick="async () => await AddToBasket(product.Id)">Add to Basket</button>
+                                <button class="btn btn-danger" @onclick="async () => await RemoveFromWishlist(product.Id)">Remove</button>
+                                @if (!string.IsNullOrEmpty(ErrorMessage))
+                                {
+                                    <div class="text-danger mt-2">@ErrorMessage</div>
+                                }
                             </div>
                         </div>
                     </div>
                 }
             </div>
-            <button class="btn btn-primary" @onclick="LoadMore">Load More</button>
+
+            @if (hasMore)
+            {
+                <div class="text-center mt-4">
+                    <button class="btn btn-outline-primary" @onclick="LoadMore">Load More</button>
+                </div>
+            }
         }
     </Authorized>
     <NotAuthorized>
@@ -47,9 +62,14 @@
 </AuthorizeView>
 
 @code {
-    private List<ProductViewModel> wishlist = new();
-    private int page = 1;
-    private const int pageSize = 10;
+    private List<ProductViewModel> products = new();
+    [CascadingParameter] public MainLayout? MainLayout { get; set; }
+    private string? ErrorMessage;
+    private int currentPage = 1;
+    private int pageSize = 9;
+    private int totalProducts = 0;
+    private string selectedSort = "name-asc";
+    private bool hasMore => (currentPage * pageSize) < totalProducts;
 
     protected override async Task OnInitializedAsync()
     {
@@ -58,22 +78,54 @@
 
     private async Task LoadWishlist()
     {
-        var response = await WishlistService.GetWishlistAsync(page, pageSize);
-        wishlist.AddRange(response);
+        try
+        {
+            var pagedProductResult = await WishlistService.GetWishlistAsync(currentPage, pageSize);
+            products.AddRange(pagedProductResult.Products);
+            totalProducts = pagedProductResult.TotalCount;
+        }
+        catch(Exception ex)
+        {
+            Console.WriteLine($"Error fetching wishlist: {ex.Message}");
+            products = new List<ProductViewModel>();
+            totalProducts = 0;
+        }
     }
 
     private async Task LoadMore()
     {
-        page++;
+        currentPage += 1;
         await LoadWishlist();
     }
 
     private async Task RemoveFromWishlist(int productId)
     {
         var success = await WishlistService.RemoveFromWishlistAsync(productId);
+
         if (success)
         {
-            wishlist.RemoveAll(p => p.Id == productId);
+            products.RemoveAll(p => p.Id == productId);
+            MainLayout?.ShowBasketPopup("Product removed from your wishlist!");
+            ErrorMessage = null; // Clear any previous error message
+        }
+        else
+        {
+            ErrorMessage = "Failed to remove product from the wishlist. Please try again.";
+        }
+    }
+
+    private async Task AddToBasket(int productId)
+    {
+        var result = await BasketService.AddToBasketAsync(productId, 1);
+
+        if (result)
+        {
+            MainLayout?.ShowBasketPopup("Item added to basket!");
+            ErrorMessage = null; // Clear any previous error message
+        }
+        else
+        {
+            ErrorMessage = "Failed to add item to basket. Please try again.";
         }
     }
 

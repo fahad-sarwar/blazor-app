@@ -1,9 +1,11 @@
-﻿using Api.Data;
+﻿using System.Security.Claims;
+using Api.Data;
 using Api.Models;
 using Api.Models.Db;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Api.Controllers
 {
@@ -13,12 +15,12 @@ namespace Api.Controllers
     public class WishlistController(OnlineShopContext context) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetWishlist([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<PagedProductResult>> GetWishlist([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var userId = User.FindFirst("UserId")?.Value;
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email)) return Unauthorized();
 
-            var customer = await context.Customer.FirstOrDefaultAsync(c => c.UserId == userId);
+            var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
             if (customer == null) return NotFound("Customer not found.");
 
             var wishlist = await context.Wishlist
@@ -29,24 +31,34 @@ namespace Api.Controllers
                 .Include(w => w.Product)
                 .ToListAsync();
 
-            return Ok(wishlist.Select(w => new
+            var query = context.Wishlist
+                .Where(w => w.CustomerId == customer.Id)
+                .OrderByDescending(w => w.CreatedAt)
+                .AsQueryable();
+
+            // Total before paging
+            var totalCount = await query.CountAsync();
+
+            var paged = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Include(w => w.Product)
+                .ToListAsync();
+
+            return new PagedProductResult
             {
-                w.Product.Id,
-                w.Product.Name,
-                w.Product.Description,
-                w.Product.Price,
-                w.Product.ImageURL,
-                w.CreatedAt
-            }));
+                Products = paged.Select(w => w.Product).ToList(),
+                TotalCount = totalCount
+            };
         }
 
         [HttpGet("{productId}/exists")]
         public async Task<IActionResult> IsOnWishlist(int productId)
         {
-            var userId = User.FindFirst("UserId")?.Value;
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email)) return Unauthorized();
 
-            var customer = await context.Customer.FirstOrDefaultAsync(c => c.UserId == userId);
+            var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
             if (customer == null) return NotFound("Customer not found.");
 
             var exists = await context.Wishlist.AnyAsync(w => w.CustomerId == customer.Id && w.ProductId == productId);
@@ -54,13 +66,13 @@ namespace Api.Controllers
             return exists ? Ok() : NotFound();
         }
 
-        [HttpPost("{productId}")]
+        [HttpPost("")]
         public async Task<IActionResult> AddToWishlist(AddToWishListRequest request)
         {
-            var userId = User.FindFirst("UserId")?.Value;
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email)) return Unauthorized();
 
-            var customer = await context.Customer.FirstOrDefaultAsync(c => c.UserId == userId);
+            var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
             if (customer == null) return NotFound("Customer not found.");
 
             var product = await context.Product.FindAsync(request.ProductId);
@@ -86,10 +98,10 @@ namespace Api.Controllers
         [HttpDelete("{productId}")]
         public async Task<IActionResult> RemoveFromWishlist(int productId)
         {
-            var userId = User.FindFirst("UserId")?.Value;
-            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email)) return Unauthorized();
 
-            var customer = await context.Customer.FirstOrDefaultAsync(c => c.UserId == userId);
+            var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
             if (customer == null) return NotFound("Customer not found.");
 
             var wishlistItem = await context.Wishlist
