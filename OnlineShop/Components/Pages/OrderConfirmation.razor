@@ -10,90 +10,77 @@
 
 <h3>Order Confirmation</h3>
 
-@if (!string.IsNullOrEmpty(ErrorMessage))
-{
-    <div class="alert alert-danger">@ErrorMessage</div>
-}
-
-@if (!_authenticationChecked)
-{
-    <p>Loading...</p>
-}
-else if (Order == null)
-{
-    <div class="alert alert-success">
-        <p>Thank you for your order!</p>
-        <p>Your order has been successfully placed.</p>
-        @if (OrderId > 0)
+<AuthorizeView Context="authContext">
+    <Authorized>
+        @if (!string.IsNullOrEmpty(ErrorMessage))
         {
-            <p><strong>Order ID:</strong> @OrderId</p>
+            <div class="alert alert-danger">@ErrorMessage</div>
         }
-    </div>
-}
-else
-{
-    <div class="card mb-4">
-        <div class="card-body">
-            <h5 class="card-title">Order #@Order.OrderNumber</h5>
-            <p><strong>Status:</strong> @Order.Status</p>
-            <p><strong>Placed on:</strong> @Order.CreatedAt.ToLocalTime().ToString("f")</p>
-            <p><strong>Total:</strong> £@Order.TotalPrice.ToString("0.00")</p>
+        else if (Order == null)
+        {
+            <div class="alert alert-success">
+                <p>Thank you for your order!</p>
+                <p>Your order has been successfully placed.</p>
+                @if (OrderId > 0)
+                {
+                    <p><strong>Order ID:</strong> @OrderId</p>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Order #@Order.OrderNumber</h5>
+                    <p><strong>Status:</strong> @Order.Status</p>
+                    <p><strong>Placed on:</strong> @Order.CreatedAt.ToLocalTime().ToString("f")</p>
+                    <p><strong>Total:</strong> £@Order.TotalPrice.ToString("0.00")</p>
+                </div>
+            </div>
+
+            <h5>Items</h5>
+            <ul class="list-group mb-4">
+                @foreach (var item in Order.OrderItems)
+                {
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span>@item.Product.Name (x @item.Quantity)</span>
+                        <span>£@(item.TotalPrice.ToString("0.00"))</span>
+                    </li>
+                }
+            </ul>
+        }
+
+        <div class="mt-4">
+
+            <a class="btn btn-primary me-2" href="/">Continue Shopping</a>
+            <a class="btn btn-secondary" href="/order-details/@OrderId">View Order</a>
         </div>
-    </div>
-
-    <h5>Items</h5>
-    <ul class="list-group mb-4">
-        @foreach (var item in Order.OrderItems)
-        {
-            <li class="list-group-item d-flex justify-content-between align-items-center">
-                <span>@item.Product.Name (x @item.Quantity)</span>
-                <span>£@(item.TotalPrice.ToString("0.00"))</span>
-            </li>
-        }
-    </ul>
-}
-
-<div class="mt-4">
-    
-    <a class="btn btn-primary me-2" href="/">Continue Shopping</a>
-    <a class="btn btn-secondary" href="/order-details/@OrderId">View Order</a>
-</div>
+    </Authorized>
+    <NotAuthorized>
+        <div class="alert alert-warning">
+            <p>You need to be logged in to access checkout.</p>
+            <a href="/account/login?returnUrl=%2Fcheckout" class="btn btn-primary">Login</a>
+            <a href="/account/register?returnUrl=%2Fcheckout" class="btn btn-secondary">Register</a>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
     [Parameter] public int OrderId { get; set; }
     private OrderViewModel? Order;
     private string? ErrorMessage;
-    private bool _isAuthenticated = false;
-    private bool _authenticationChecked = false; // Add this flag
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        if (firstRender)
+        try
         {
-            var authState = await ApiAuthenticationStateProvider.GetAuthenticationStateAsync();
-            _isAuthenticated = authState.User?.Identity?.IsAuthenticated ?? false;
-            _authenticationChecked = true;
-
-            if (!_isAuthenticated)
-            {
-                Navigation.NavigateTo("/account/login?returnUrl=%2Fbasket");
-                return;
-            }
-
-            StateHasChanged();
-
-            try
-            {
-                var httpClient = HttpClientFactory.CreateClient("Api");
-                Order = await httpClient.GetFromJsonAsync<OrderViewModel>($"api/Orders/{OrderId}");
-                BasketCountService.SetCount(0); // Reset basket count after order confirmation
-            }
-            catch(Exception ex)
-            {
-                ErrorMessage = "We couldn't load your order details.";
-            }
-
-            StateHasChanged();
+            var httpClient = HttpClientFactory.CreateClient("Api");
+            Order = await httpClient.GetFromJsonAsync<OrderViewModel>($"api/Orders/{OrderId}");
+            BasketCountService.SetCount(0); // Reset basket count after order confirmation
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "We couldn't load your order details.";
         }
     }
 }
