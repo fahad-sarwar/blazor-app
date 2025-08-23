@@ -40,7 +40,7 @@ namespace OnlineShopUI.Services
                     var user = await GetUserFromApiAsync();
                     if (user != null && _authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
                     {
-                        await apiProvider.SetAuthenticationStateAsync(user);
+                        await apiProvider.NotifyAuthenticationStateChangedAsync();
                         return true;
                     }
                 }
@@ -65,7 +65,7 @@ namespace OnlineShopUI.Services
                     var user = await GetUserFromApiAsync();
                     if (user != null && _authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
                     {
-                        await apiProvider.SetAuthenticationStateAsync(user);
+                        await apiProvider.NotifyAuthenticationStateChangedAsync();
                         return true;
                     }
                 }
@@ -94,7 +94,7 @@ namespace OnlineShopUI.Services
                 // Always clear local state
                 if (_authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
                 {
-                    await apiProvider.SetAuthenticationStateAsync(null);
+                    await apiProvider.NotifyAuthenticationStateChangedAsync();
                 }
             }
         }

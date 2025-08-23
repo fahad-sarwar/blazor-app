@@ -20,6 +20,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         options.Cookie.HttpOnly = true;
         options.Cookie.SecurePolicy = CookieSecurePolicy.None; // HTTP for dev
+        options.Cookie.SameSite = SameSiteMode.Lax;
         options.LoginPath = "/login";
         options.AccessDeniedPath = "/access-denied";
     });

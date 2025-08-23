@@ -1,6 +1,9 @@
-﻿using Api.Data;
+﻿using System.Security.Claims;
+using Api.Data;
 using Api.Models;
 using Api.Models.Db;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +34,6 @@ namespace Api.Controllers
                 
                 if (user != null)
                 {
-                    
                     var customer = await _context.Customer
                         .FirstOrDefaultAsync(c => c.UserId == user.Id);
 
@@ -96,7 +98,30 @@ namespace Api.Controllers
         public async Task<IActionResult> Login([FromBody] Login model)
         {
             var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
-            return result.Succeeded ? Ok() : Unauthorized();
+
+            if (result.Succeeded)
+            {
+                var user = await _userManager.FindByEmailAsync(model.Email);
+                var customer = await _context.Customer
+                    .FirstOrDefaultAsync(c => c.UserId == user.Id);
+
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(ClaimTypes.Email, user.Email),
+                    new Claim("UserId", user.Id),
+                    new Claim("CustomerId", customer.Id.ToString() ?? string.Empty)
+                };
+
+                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+                var principal = new ClaimsPrincipal(identity);
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+                return Ok();
+            }
+
+            return Unauthorized();
         }
 
         [HttpPost("logout")]
