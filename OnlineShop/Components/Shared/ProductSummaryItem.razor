@@ -2,6 +2,7 @@
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
 @inject BasketService BasketService
+@inject WishlistService WishlistService
 
 <div class="col">
     <div class="card h-100 shadow-sm">
@@ -13,6 +14,13 @@
             <p class="card-text text-muted">£@Product.Price.ToString("0.00")</p>
             <a class="btn btn-primary" href="/product/@Product.Id">View</a>
             <button class="btn btn-secondary" @onclick="AddToBasket">Add to Basket</button>
+            <AuthorizeView>
+                <Authorized>
+                    <button class="btn @GetWishlistButtonClass()" @onclick="AddToWishlist" disabled="@isOnWishlist">
+                        <i class="@GetWishlistIconClass()"></i> Wishlist
+                    </button>
+                </Authorized>
+            </AuthorizeView>
             @if (!string.IsNullOrEmpty(ErrorMessage))
             {
                 <div class="text-danger mt-2">@ErrorMessage</div>
@@ -25,6 +33,12 @@
     [Parameter] public ProductViewModel Product { get; set; }
     [CascadingParameter] public MainLayout? MainLayout { get; set; }
     private string? ErrorMessage;
+    private bool isOnWishlist;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isOnWishlist = await WishlistService.IsOnWishlistAsync(Product.Id);
+    }
 
     private string GetImageUrl(ProductViewModel product)
     {
@@ -47,4 +61,24 @@
             ErrorMessage = "Failed to add item to basket. Please try again.";
         }
     }
+
+    private async Task AddToWishlist()
+    {
+        if (isOnWishlist) return;
+
+        var success = await WishlistService.AddToWishlistAsync(Product.Id);
+
+        if (success)
+        {
+            isOnWishlist = true;
+            MainLayout?.ShowBasketPopup("Item added to wishlist!");
+        }
+        else
+        {
+            ErrorMessage = "Failed to add item to wishlist. Please try again.";
+        }
+    }
+
+    private string GetWishlistIconClass() => isOnWishlist ? "bi bi-heart-fill text-danger" : "bi bi-heart";
+    private string GetWishlistButtonClass() => isOnWishlist ? "btn-danger" : "btn-outline-danger";
 }

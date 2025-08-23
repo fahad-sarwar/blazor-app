@@ -9,6 +9,7 @@ namespace Api.Data.TestData
         public static void Seed(OnlineShopContext context, UserManager<ApplicationUser> userManager)
         {
             context.Users.RemoveRange(context.Users);
+            context.Wishlist.RemoveRange(context.Wishlist);
             context.Payment.RemoveRange(context.Payment);
             context.OrderTrackingUpdate.RemoveRange(context.OrderTrackingUpdate);
             context.OrderItem.RemoveRange(context.OrderItem);

@@ -3,102 +3,106 @@
 @using OnlineShopUI.Components.Shared
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
-@using System.Text.Json
 @using OnlineShopUI.Components.Layout
 @inject IHttpClientFactory HttpClientFactory
 @inject BasketService BasketService
+@inject WishlistService WishlistService
 @rendermode InteractiveServer
 
 <h3>Product Details</h3>
 
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @ErrorMessage
+    </div>
+}
+
 @if (product == null)
 {
-	<p>Loading...</p>
-}
-else if (!string.IsNullOrEmpty(ErrorMessage))
-{
-	<div class="alert alert-danger" role="alert">
-		@ErrorMessage
-	</div>
+    <p>Loading...</p>
 }
 else
 {
-	<div class="card mb-4">
-		<div class="row g-0">
-			<div class="col-md-4">
-				<img src="@GetImageUrl(product)" class="img-fluid rounded-start" alt="@product.Name" />
-			</div>
-			<div class="col-md-8">
-				<div class="card-body">
-					<h5 class="card-title">@product.Name</h5>
-					<p class="card-text">@product.Description</p>
-					<p class="card-text"><strong>Price:</strong> £@product.Price.ToString("0.00")</p>
+    <div class="card mb-4">
+        <div class="row g-0">
+            <div class="col-md-4">
+                <img src="@GetImageUrl(product)" class="img-fluid rounded-start" alt="@product.Name" />
+            </div>
+            <div class="col-md-8">
+                <div class="card-body">
+                    <h5 class="card-title">@product.Name</h5>
+                    <p class="card-text">@product.Description</p>
+                    <p class="card-text"><strong>Price:</strong> £@product.Price.ToString("0.00")</p>
 
-					<div class="d-flex gap-2 mt-4">
-						<button class="btn btn-primary" @onclick="AddToBasket">Add to Basket</button>
-						<button class="btn btn-outline-danger" @onclick="AddToWishlist">
-							<i class="bi bi-heart"></i> Add to Wishlist
-						</button>
-					</div>
-				</div>
-			</div>
-			<ProductReviews ProductId="@Id" />
-		</div>
-	</div>
+                    <div class="d-flex gap-2 mt-4">
+                        <button class="btn btn-primary" @onclick="AddToBasket">Add to Basket</button>
+
+                        <AuthorizeView>
+                            <Authorized>
+                                <button class="btn @GetWishlistButtonClass()" @onclick="AddToWishlist" disabled="@isOnWishlist">
+                                    <i class="@GetWishlistIconClass()"></i> Wishlist
+                                </button>
+                            </Authorized>
+                        </AuthorizeView>
+                    </div>
+                </div>
+            </div>
+            <ProductReviews ProductId="@Id" />
+        </div>
+    </div>
 }
 
 @code {
-	[CascadingParameter] public MainLayout? MainLayout { get; set; }
-	[Parameter] public int Id { get; set; }
-	private ProductViewModel? product;
-	private string? ErrorMessage;
+    [CascadingParameter] public MainLayout? MainLayout { get; set; }
+    [Parameter] public int Id { get; set; }
 
-	protected override async Task OnInitializedAsync()
-	{
-		var httpClient = HttpClientFactory.CreateClient("Api");
-		product = await httpClient.GetFromJsonAsync<ProductViewModel>($"api/products/{Id}");
-	}
+    public int ProductId { get; set; }
+    private ProductViewModel? product;
+    private string? ErrorMessage;
+    private bool isOnWishlist;
 
-	private string GetImageUrl(ProductViewModel p) =>
-		!string.IsNullOrWhiteSpace(p.ImageURL) ? p.ImageURL : "https://via.placeholder.com/300x200?text=No+Image";
+    protected override async Task OnInitializedAsync()
+    {
+        var httpClient = HttpClientFactory.CreateClient("Api");
+        product = await httpClient.GetFromJsonAsync<ProductViewModel>($"api/products/{Id}");
+        isOnWishlist = await WishlistService.IsOnWishlistAsync(product.Id);
+    }
 
-	private async Task AddToBasket()
-	{
-		var result = await BasketService.AddToBasketAsync(product.Id, 1);
+    private string GetImageUrl(ProductViewModel p) =>
+        !string.IsNullOrWhiteSpace(p.ImageURL) ? p.ImageURL : "https://via.placeholder.com/300x200?text=No+Image";
 
-		if(result)
-		{
-			MainLayout?.ShowBasketPopup("Item added to basket!");
-		}
-		else
-		{
+    private async Task AddToBasket()
+    {
+        var result = await BasketService.AddToBasketAsync(product.Id, 1);
+
+        if (result)
+        {
+            MainLayout?.ShowBasketPopup("Item added to basket!");
+        }
+        else
+        {
             ErrorMessage = "Failed to add item to basket. Please try again.";
-		}
-	}
+        }
+    }
 
-	public int ProductId { get; set; }
+    private async Task AddToWishlist()
+    {
+        if (isOnWishlist) return;
 
-	private async Task AddToWishlist()
-	{
-		var wishlist = await GetWishlistAsync();
-		if (!wishlist.Contains(ProductId))
-		{
-			wishlist.Add(ProductId);
-			await SaveWishlistAsync(wishlist);
-		}
-	}
+        var success = await WishlistService.AddToWishlistAsync(Id);
 
-	private async Task<List<int>> GetWishlistAsync()
-	{
-		var json = await JS.InvokeAsync<string>("localStorage.getItem", "wishlist");
-		return string.IsNullOrEmpty(json) ? new List<int>() : JsonSerializer.Deserialize<List<int>>(json);
-	}
+        if (success)
+        {
+            isOnWishlist = true;
+            MainLayout?.ShowBasketPopup("Item added to wishlist!");
+        }
+        else
+        {
+            ErrorMessage = "Failed to add item to wishlist. Please try again.";
+        }
+    }
 
-	private async Task SaveWishlistAsync(List<int> wishlist)
-	{
-		var json = JsonSerializer.Serialize(wishlist);
-		await JS.InvokeVoidAsync("localStorage.setItem", "wishlist", json);
-	}
-
-	[Inject] IJSRuntime JS { get; set; }
+    private string GetWishlistIconClass() => isOnWishlist ? "bi bi-heart-fill text-danger" : "bi bi-heart";
+    private string GetWishlistButtonClass() => isOnWishlist ? "btn-danger" : "btn-outline-danger";
 }

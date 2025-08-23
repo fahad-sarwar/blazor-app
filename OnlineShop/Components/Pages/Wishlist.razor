@@ -1,0 +1,82 @@
+﻿@page "/wishlist"
+@using OnlineShopUI.Services
+@using OnlineShopUI.ViewModels
+@inject IHttpClientFactory HttpClientFactory
+@inject WishlistService WishlistService
+
+<h3>Wishlist</h3>
+
+<AuthorizeView Context="authContext">
+    <Authorized>
+        @if (wishlist == null)
+        {
+            <p>Loading...</p>
+        }
+        else if (!wishlist.Any())
+        {
+            <p>Your wishlist is empty.</p>
+        }
+        else
+        {
+            <div class="row">
+                @foreach (var item in wishlist)
+                {
+                    <div class="col-md-4 mb-4">
+                        <div class="card">
+                            <img src="@GetImageUrl(item)" class="card-img-top" alt="@item.Name" />
+                            <div class="card-body">
+                                <h5 class="card-title">@item.Name</h5>
+                                <p class="card-text">@item.Description</p>
+                                <p class="card-text"><strong>Price:</strong> £@item.Price.ToString("0.00")</p>
+                                <button class="btn btn-danger" @onclick="() => RemoveFromWishlist(item.Id)">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+            <button class="btn btn-primary" @onclick="LoadMore">Load More</button>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <div class="alert alert-warning">
+            <p>You need to be logged in to access checkout.</p>
+            <a href="/account/login?returnUrl=%2Fcheckout" class="btn btn-primary">Login</a>
+            <a href="/account/register?returnUrl=%2Fcheckout" class="btn btn-secondary">Register</a>
+        </div>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private List<ProductViewModel> wishlist = new();
+    private int page = 1;
+    private const int pageSize = 10;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadWishlist();
+    }
+
+    private async Task LoadWishlist()
+    {
+        var response = await WishlistService.GetWishlistAsync(page, pageSize);
+        wishlist.AddRange(response);
+    }
+
+    private async Task LoadMore()
+    {
+        page++;
+        await LoadWishlist();
+    }
+
+    private async Task RemoveFromWishlist(int productId)
+    {
+        var success = await WishlistService.RemoveFromWishlistAsync(productId);
+        if (success)
+        {
+            wishlist.RemoveAll(p => p.Id == productId);
+        }
+    }
+
+    private string GetImageUrl(ProductViewModel p) =>
+        !string.IsNullOrWhiteSpace(p.ImageURL) ? p.ImageURL : "https://via.placeholder.com/300x200?text=No+Image";
+}

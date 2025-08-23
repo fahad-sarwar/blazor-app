@@ -17,12 +17,6 @@
 
     <ul class="navbar-nav d-flex flex-row gap-3">
         <li class="nav-item">
-            <NavLink class="nav-link" href="/auth">Auth</NavLink>
-        </li>
-        <li class="nav-item">
-            <NavLink class="nav-link" href="/wishlist">Wish List</NavLink>
-        </li>
-        <li class="nav-item">
             <NavLink class="nav-link" href="/basket">
                 Basket
                 <span class="badge bg-danger">@basketCount</span>
@@ -30,13 +24,15 @@
         </li>
         <AuthorizeView>
             <Authorized>
+                <li class="nav-item">
+                    <NavLink class="nav-link" href="/wishlist">Wish List</NavLink>
+                </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
                         Hello, @GetFirstName(context)
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li><NavLink class="dropdown-item" href="/account">My Account</NavLink></li>
-                        <li><NavLink class="dropdown-item" href="/admin">Admin</NavLink></li>
                         <li><NavLink class="dropdown-item" href="/account/logout">Logout</NavLink></li>
                     </ul>
                 </li>
