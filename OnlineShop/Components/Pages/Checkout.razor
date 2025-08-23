@@ -12,181 +12,178 @@
 
 <h3>Checkout</h3>
 
-@if (_errorMessage != null)
-{
-    <div class="alert alert-danger">@_errorMessage</div>
-}
+<AuthorizeView Context="authContext">
+    <Authorized>
+        @if (_errorMessage != null)
+        {
+            <div class="alert alert-danger">@_errorMessage</div>
+        }
 
-@if (!_authenticationChecked)
-{
-    <p>Loading...</p>
-}
-else if (!_isAuthenticated)
-{
-    <div class="alert alert-warning">
-        <p>You need to be logged in to access checkout.</p>
-        <a href="/account/login?returnUrl=%2Fcheckout" class="btn btn-primary">Login</a>
-        <a href="/account/register?returnUrl=%2Fcheckout" class="btn btn-secondary">Register</a>
-    </div>
-}
-else if (!_loaded)
-{
-    <p>Loading basket...</p>
-}
-else if (_basket == null || !_basket.Items.Any())
-{
-    <div class="alert alert-warning">Your basket is empty.</div>
-}
-else
-{
-    <div class="row g-5">
-        <div class="col-md-7">
-            <EditForm Model="@_checkoutModel" OnValidSubmit="SubmitOrder">
-                <DataAnnotationsValidator />
-                <ValidationSummary />
+        @if (!_loaded)
+        {
+            <p>Loading basket...</p>
+        }
+        else if (_basket == null || !_basket.Items.Any())
+        {
+            <div class="alert alert-warning">Your basket is empty.</div>
+        }
+        else
+        {
+            <div class="row g-5">
+                <div class="col-md-7">
+                    <EditForm Model="@_checkoutModel" OnValidSubmit="SubmitOrder" Context="editContext">
+                        <DataAnnotationsValidator />
+                        <ValidationSummary />
 
-                <div class="accordion" id="checkoutAccordion">
-                    <!-- Step 1: Customer Details -->
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingOne">
-                            <button class="accordion-button @(!_isCustomerValid ? "" : "collapsed text-success")" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#collapseOne">
-                                Step 1: Customer Details
-                            </button>
-                        </h2>
-                        <div id="collapseOne" class="accordion-collapse collapse @(_activeStep == 1 ? "show" : "")"
-                             data-bs-parent="#checkoutAccordion">
-                            <div class="accordion-body">
-                                <InputText class="form-control mb-3" @bind-Value ="_checkoutModel.FirstName" placeholder="First Name" disabled="@_isAuthenticated" />
-                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.LastName" placeholder="Last Name" disabled="@_isAuthenticated" />
-                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.Email" placeholder="Email" disabled="@_isAuthenticated" />
-                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.PhoneNumber" placeholder="Phone Number" />
-                                <button type="button" class="btn btn-primary" @onclick="ValidateCustomer">Save & Continue</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 2: Billing Address -->
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingTwo">
-                            <button class="accordion-button @(_activeStep == 2 ? "" : "collapsed text-success")" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#collapseTwo">
-                                Step 2: Billing Address
-                            </button>
-                        </h2>
-                        <div id="collapseTwo" class="accordion-collapse collapse @(_activeStep == 2 ? "show" : "")"
-                             data-bs-parent="#checkoutAccordion">
-                            <div class="accordion-body">
-                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingAddressLineOne" placeholder="Address Line 1" />
-                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingTown" placeholder="Town" />
-                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingPostCode" placeholder="Postcode" />
-                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingCountry" placeholder="Country" />
-                                <button type="button" class="btn btn-secondary" @onclick="GoBack">Back</button>
-                                <button type="button" class="btn btn-primary" @onclick="ValidateBilling">Save & Continue</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 3: Shipping Address -->
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingThree">
-                            <button class="accordion-button @(_activeStep == 3 ? "" : "collapsed text-success")" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#collapseThree">
-                                Step 3: Shipping Address
-                            </button>
-                        </h2>
-                        <div id="collapseThree" class="accordion-collapse collapse @(_activeStep == 3 ? "show" : "")"
-                             data-bs-parent="#checkoutAccordion">
-                            <div class="accordion-body">
-                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingAddressLineOne" placeholder="Address Line 1" />
-                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingTown" placeholder="Town" />
-                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingPostCode" placeholder="Postcode" />
-                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingCountry" placeholder="Country" />
-                                <button type="button" class="btn btn-secondary" @onclick="GoBack">Back</button>
-                                <button type="button" class="btn btn-primary" @onclick="ValidateShipping">Save & Continue</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Step 4: Payment Details -->
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="headingFour">
-                            <button class="accordion-button @(_activeStep == 4 ? "" : "collapsed text-success")" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#collapseFour">
-                                Step 4: Payment Details
-                            </button>
-                        </h2>
-                        <div id="collapseFour" class="accordion-collapse collapse @(_activeStep == 4 ? "show" : "")"
-                             data-bs-parent="#checkoutAccordion">
-                            <div class="accordion-body">
-                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.CardNumber" placeholder="Card Number" />
-                                <InputText class="form-control mb-3" @bind-Value="_checkoutModel.CardName" placeholder="Name on Card" />
-                                <div class="row g-2">
-                                    <div class="col-md-6">
-                                        <InputText class="form-control" @bind-Value="_checkoutModel.Expiry" placeholder="MM/YY" />
-                                    </div>
-                                    <div class="col-md-6">
-                                        <InputText class="form-control" @bind-Value="_checkoutModel.CVV" placeholder="CVV" />
+                        <div class="accordion" id="checkoutAccordion">
+                            <!-- Step 1: Customer Details -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingOne">
+                                    <button class="accordion-button @(!_isCustomerValid ? "" : "collapsed text-success")" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                        Step 1: Customer Details
+                                    </button>
+                                </h2>
+                                <div id="collapseOne" class="accordion-collapse collapse @(_activeStep == 1 ? "show" : "")"
+                                     data-bs-parent="#checkoutAccordion">
+                                    <div class="accordion-body">
+                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.FirstName" placeholder="First Name" disabled="true" />
+                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.LastName" placeholder="Last Name" disabled="true" />
+                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.Email" placeholder="Email" disabled="true" />
+                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.PhoneNumber" placeholder="Phone Number" />
+                                        <button type="button" class="btn btn-primary" @onclick="ValidateCustomer">Save & Continue</button>
                                     </div>
                                 </div>
-                                <button type="button" class="btn btn-secondary mt-3" @onclick="GoBack">Back</button>
-                                <button type="submit" class="btn btn-success mt-3">Place Order</button>
+                            </div>
+
+                            <!-- Step 2: Billing Address -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingTwo">
+                                    <button class="accordion-button @(_activeStep == 2 ? "" : "collapsed text-success")" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                        Step 2: Billing Address
+                                    </button>
+                                </h2>
+                                <div id="collapseTwo" class="accordion-collapse collapse @(_activeStep == 2 ? "show" : "")"
+                                     data-bs-parent="#checkoutAccordion">
+                                    <div class="accordion-body">
+                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingAddressLineOne" placeholder="Address Line 1" />
+                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingTown" placeholder="Town" />
+                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingPostCode" placeholder="Postcode" />
+                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingCountry" placeholder="Country" />
+                                        <button type="button" class="btn btn-secondary" @onclick="GoBack">Back</button>
+                                        <button type="button" class="btn btn-primary" @onclick="ValidateBilling">Save & Continue</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 3: Shipping Address -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingThree">
+                                    <button class="accordion-button @(_activeStep == 3 ? "" : "collapsed text-success")" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                                        Step 3: Shipping Address
+                                    </button>
+                                </h2>
+                                <div id="collapseThree" class="accordion-collapse collapse @(_activeStep == 3 ? "show" : "")"
+                                     data-bs-parent="#checkoutAccordion">
+                                    <div class="accordion-body">
+                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingAddressLineOne" placeholder="Address Line 1" />
+                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingTown" placeholder="Town" />
+                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingPostCode" placeholder="Postcode" />
+                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingCountry" placeholder="Country" />
+                                        <button type="button" class="btn btn-secondary" @onclick="GoBack">Back</button>
+                                        <button type="button" class="btn btn-primary" @onclick="ValidateShipping">Save & Continue</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 4: Payment Details -->
+                            <div class="accordion-item">
+                                <h2 class="accordion-header" id="headingFour">
+                                    <button class="accordion-button @(_activeStep == 4 ? "" : "collapsed text-success")" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#collapseFour">
+                                        Step 4: Payment Details
+                                    </button>
+                                </h2>
+                                <div id="collapseFour" class="accordion-collapse collapse @(_activeStep == 4 ? "show" : "")"
+                                     data-bs-parent="#checkoutAccordion">
+                                    <div class="accordion-body">
+                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.CardNumber" placeholder="Card Number" />
+                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.CardName" placeholder="Name on Card" />
+                                        <div class="row g-2">
+                                            <div class="col-md-6">
+                                                <InputText class="form-control" @bind-Value="_checkoutModel.Expiry" placeholder="MM/YY" />
+                                            </div>
+                                            <div class="col-md-6">
+                                                <InputText class="form-control" @bind-Value="_checkoutModel.CVV" placeholder="CVV" />
+                                            </div>
+                                        </div>
+                                        <button type="button" class="btn btn-secondary mt-3" @onclick="GoBack">Back</button>
+                                        <button type="submit" class="btn btn-success mt-3">Place Order</button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+                    </EditForm>
+                </div>
+
+                <div class="col-md-5">
+                    <h4 class="mb-3">Order Summary</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="text-end">Qty</th>
+                                    <th class="text-end">Price</th>
+                                    <th class="text-end">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in _basket.Items)
+                                {
+                                    <tr>
+                                        <td>@item.Product.Name</td>
+                                        <td class="text-end">@item.Quantity</td>
+                                        <td class="text-end">£@item.Price.ToString("0.00")</td>
+                                        <td class="text-end">£@item.LineTotal.ToString("0.00")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot class="table-group-divider">
+                                <tr>
+                                    <td colspan="3" class="text-end fw-semibold">Subtotal</td>
+                                    <td class="text-end">@_basket.Subtotal.ToString("C")</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end fw-semibold">VAT (20%)</td>
+                                    <td class="text-end">@_basket.Vat.ToString("C")</td>
+                                </tr>
+                                <tr class="table-primary">
+                                    <td colspan="3" class="text-end fw-bold">Total</td>
+                                    <td class="text-end fw-bold">@_basket.Total.ToString("C")</td>
+                                </tr>
+                            </tfoot>
+                        </table>
                     </div>
                 </div>
-            </EditForm>
-        </div>
-
-        <div class="col-md-5">
-            <h4 class="mb-3">Order Summary</h4>
-            <div class="table-responsive">
-                <table class="table table-striped align-middle">
-                    <thead class="table-light">
-                    <tr>
-                        <th>Product</th>
-                        <th class="text-end">Qty</th>
-                        <th class="text-end">Price</th>
-                        <th class="text-end">Total</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    @foreach (var item in _basket.Items)
-                    {
-                        <tr>
-                            <td>@item.Product.Name</td>
-                            <td class="text-end">@item.Quantity</td>
-                            <td class="text-end">£@item.Price.ToString("0.00")</td>
-                            <td class="text-end">£@item.LineTotal.ToString("0.00")</td>
-                        </tr>
-                    }
-                    </tbody>
-                    <tfoot class="table-group-divider">
-                    <tr>
-                        <td colspan="3" class="text-end fw-semibold">Subtotal</td>
-                        <td class="text-end">@_basket.Subtotal.ToString("C")</td>
-                    </tr>
-                    <tr>
-                        <td colspan="3" class="text-end fw-semibold">VAT (20%)</td>
-                            <td class="text-end">@_basket.Vat.ToString("C")</td>
-                    </tr>
-                    <tr class="table-primary">
-                        <td colspan="3" class="text-end fw-bold">Total</td>
-                            <td class="text-end fw-bold">@_basket.Total.ToString("C")</td>
-                    </tr>
-                    </tfoot>
-                </table>
             </div>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <div class="alert alert-warning">
+            <p>You need to be logged in to access checkout.</p>
+            <a href="/account/login?returnUrl=%2Fcheckout" class="btn btn-primary">Login</a>
+            <a href="/account/register?returnUrl=%2Fcheckout" class="btn btn-secondary">Register</a>
         </div>
-    </div>
-}
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
     private BasketViewModel? _basket;
     private bool _loaded;
     private string? _errorMessage;
-    private bool _isAuthenticated = false;
-    private bool _authenticationChecked = false; // Add this flag
 
     private CheckoutViewModel _checkoutModel = new();
 
@@ -197,28 +194,16 @@ else
     private bool _isShippingValid = false;
     private bool _isPaymentValid = false;
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnInitializedAsync()
     {
-        if (firstRender)
-        {
-            var authState = await ApiAuthenticationStateProvider.GetAuthenticationStateAsync();
-            _isAuthenticated = authState.User?.Identity?.IsAuthenticated ?? false;
-            _authenticationChecked = true;
-
-            if (!_isAuthenticated)
-            {
-                Navigation.NavigateTo("/account/login?returnUrl=%2Fcheckout");
-                return;
-            }
-
-            await LoadBasketAsync();
-            CreateDummyCheckoutModel(authState.User);
-        }
+        await LoadBasketAsync();
+        await CreateDummyCheckoutModel();
     }
 
-    private void CreateDummyCheckoutModel(ClaimsPrincipal user)
+    private async Task CreateDummyCheckoutModel()
     {
-        _checkoutModel = CheckoutDummyDataService.GetDummyCheckoutModel(user);
+        var authState = await ApiAuthenticationStateProvider.GetAuthenticationStateAsync();
+        _checkoutModel = CheckoutDummyDataService.GetDummyCheckoutModel(authState.User);
     }
 
     private async Task LoadBasketAsync()
@@ -241,9 +226,9 @@ else
     private void ValidateCustomer()
     {
         _isCustomerValid = !string.IsNullOrWhiteSpace(_checkoutModel.FirstName)
-                          && !string.IsNullOrWhiteSpace(_checkoutModel.LastName)
-                          && !string.IsNullOrWhiteSpace(_checkoutModel.Email)
-                          && !string.IsNullOrWhiteSpace(_checkoutModel.PhoneNumber);
+        && !string.IsNullOrWhiteSpace(_checkoutModel.LastName)
+        && !string.IsNullOrWhiteSpace(_checkoutModel.Email)
+        && !string.IsNullOrWhiteSpace(_checkoutModel.PhoneNumber);
 
         if (_isCustomerValid)
             _activeStep = 2;
@@ -252,9 +237,9 @@ else
     private void ValidateBilling()
     {
         _isBillingValid = !string.IsNullOrWhiteSpace(_checkoutModel.BillingAddressLineOne)
-                         && !string.IsNullOrWhiteSpace(_checkoutModel.BillingTown)
-                         && !string.IsNullOrWhiteSpace(_checkoutModel.BillingPostCode)
-                         && !string.IsNullOrWhiteSpace(_checkoutModel.BillingCountry);
+        && !string.IsNullOrWhiteSpace(_checkoutModel.BillingTown)
+        && !string.IsNullOrWhiteSpace(_checkoutModel.BillingPostCode)
+        && !string.IsNullOrWhiteSpace(_checkoutModel.BillingCountry);
 
         if (_isBillingValid)
             _activeStep = 3;
@@ -263,9 +248,9 @@ else
     private void ValidateShipping()
     {
         _isShippingValid = !string.IsNullOrWhiteSpace(_checkoutModel.ShippingAddressLineOne)
-                          && !string.IsNullOrWhiteSpace(_checkoutModel.ShippingTown)
-                          && !string.IsNullOrWhiteSpace(_checkoutModel.ShippingPostCode)
-                          && !string.IsNullOrWhiteSpace(_checkoutModel.ShippingCountry);
+        && !string.IsNullOrWhiteSpace(_checkoutModel.ShippingTown)
+        && !string.IsNullOrWhiteSpace(_checkoutModel.ShippingPostCode)
+        && !string.IsNullOrWhiteSpace(_checkoutModel.ShippingCountry);
 
         if (_isShippingValid)
             _activeStep = 4;
