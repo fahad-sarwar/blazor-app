@@ -1,59 +1,67 @@
 ﻿using Api.Data;
+using Api.Models;
 using Api.Models.Db;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ReviewsController : ControllerBase
+    public class ReviewsController(OnlineShopContext context) : ControllerBase
     {
-        private readonly OnlineShopContext _context;
-
-        public ReviewsController(OnlineShopContext context)
-        {
-            _context = context;
-        }
+        private static readonly string[] ReviewStatuses = new[] { "Pending", "Approved", "Rejected" };
 
         // GET: api/Reviews
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Review>>> GetReviews([FromQuery] int productId)
+        public async Task<ActionResult<PagedReviewResult>> GetReviews([FromQuery] int productId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            return await _context.Review
+            var query = context.Review
+                .Include(r => r.Customer)
                 .Where(r => r.Product.Id == productId)
+                .Where(r => r.Status == "Approved")
+                .OrderByDescending(r => r.CreatedAt)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+
+            var paged = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            return new PagedReviewResult()
+            {
+                Reviews = paged,
+                TotalCount = totalCount
+            };
         }
 
-        // GET: api/Reviews/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Review>> GetReview([FromRoute] int id)
+        // PUT: api/Reviews/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutReview(int id, string status)
         {
-            var review = await _context.Review.FindAsync(id);
+            var review = await context.Review.FindAsync(id);
 
             if (review == null)
             {
                 return NotFound();
             }
 
-            return review;
-        }
-
-        // PUT: api/Reviews/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutReview(int id, Review review)
-        {
-            if (id != review.Id)
+            if (!ReviewStatuses.Contains(status))
             {
-                return BadRequest();
+                return BadRequest($"Invalid status. Allowed values are: {string.Join(", ", ReviewStatuses)}");
             }
 
-            _context.Entry(review).State = EntityState.Modified;
+            review.Status = status;
+
+            context.Entry(review).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -61,45 +69,46 @@ namespace Api.Controllers
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             return NoContent();
         }
 
         // POST: api/Reviews
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Review>> PostReview(Review review)
+        public async Task<ActionResult<Review>> PostReview(CreateReviewRequest request)
         {
-            _context.Review.Add(review);
-            await _context.SaveChangesAsync();
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email)) return Unauthorized();
+
+            var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
+            if (customer == null) return NotFound("Customer not found.");
+
+            var product = await context.Product.FirstOrDefaultAsync(p => p.Id == request.ProductId);
+            if (product == null) return NotFound("Product not found.");
+
+            var review = new Review
+            {
+                Subject = request.Subject,
+                Rating = request.Rating,
+                Comment = request.Comment,
+                Status = "Pending",
+                Product = product,
+                Customer = customer,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            context.Review.Add(review);
+            await context.SaveChangesAsync();
 
             return CreatedAtAction("GetReview", new { id = review.Id }, review);
         }
 
-        // DELETE: api/Reviews/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteReview(int id)
-        {
-            var review = await _context.Review.FindAsync(id);
-            if (review == null)
-            {
-                return NotFound();
-            }
-
-            _context.Review.Remove(review);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
         private bool ReviewExists(int id)
         {
-            return _context.Review.Any(e => e.Id == id);
+            return context.Review.Any(e => e.Id == id);
         }
     }
 }

@@ -307,32 +307,47 @@ namespace Api.Data.TestData
 
             context.Customer.AddRange(customers);
 
+            var reviewSubjects = new[]
+            {
+                "Excellent choice!",
+                "Disappointed",
+                "Worth every penny",
+                "Not great",
+                "Perfect for daily use",
+                "Highly recommend",
+                "Pretty average",
+                "Exceeded expectations",
+                "Wouldn’t buy again",
+                "Fantastic value"
+            };
+
             var reviewComments = new[]
             {
-                "Excellent product!",
-                "Very satisfied.",
-                "Would buy again.",
-                "Not as expected.",
-                "Good value for money.",
-                "Quality could be better.",
-                "Fast delivery.",
-                "Highly recommended.",
-                "Average experience.",
-                "Superb!"
+                "The product quality is amazing, much better than I expected for the price.",
+                "Unfortunately, the item didn’t match the description and felt cheap.",
+                "Really good build and works perfectly — happy with this purchase!",
+                "The quality was okay, but not worth the cost in my opinion.",
+                "Exactly what I needed, I’ve been using it every day and it holds up well.",
+                "Fast shipping and excellent packaging, I’ll definitely order from here again.",
+                "It’s decent but nothing special, kind of average overall.",
+                "I was surprised at how sturdy and reliable this turned out to be.",
+                "Didn’t last long before showing wear and tear — not impressed.",
+                "Affordable, practical, and works as described. Great deal!"
             };
 
             var reviews = new List<Review>();
 
             foreach (var product in products)
             {
-                for (int i = 0; i < 2; i++)
+                for (var i = 0; i < 2; i++)
                 {
                     var customer = customers[rnd.Next(customers.Count)];
                     var review = new Review
                     {
-                        ReviewerName = $"{customer.FirstName} {customer.LastName}",
+                        Subject = reviewSubjects[rnd.Next(reviewSubjects.Length)],
                         Rating = rnd.Next(1, 6), // 1 to 5
                         Comment = reviewComments[rnd.Next(reviewComments.Length)],
+                        Status = "Approved",
                         Product = product,
                         Customer = customer,
                         CreatedAt = DateTime.UtcNow.AddDays(-rnd.Next(1, 100))

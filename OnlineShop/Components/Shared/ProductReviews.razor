@@ -1,19 +1,46 @@
-﻿﻿@using OnlineShopUI.ViewModels
-@inject IHttpClientFactory HttpClientFactory
-@using OnlineShopUI.ViewModels
+﻿@using OnlineShopUI.ViewModels
+@using OnlineShopUI.Services
+@inject ReviewService ReviewService
+
+@if (!string.IsNullOrEmpty(SuccessMessage))
+{
+    <div class="alert alert-success mt-2">@SuccessMessage</div>
+}
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <div class="alert alert-danger mt-2">@ErrorMessage</div>
+}
 
 @if (isLoading)
 {
     <p>Loading reviews...</p>
 }
-else if (Reviews is not null && Reviews.Any())
+else if (Reviews.Any())
 {
     <h4 class="mt-4">Customer Reviews</h4>
     @foreach (var review in Reviews)
     {
         <div class="border rounded p-3 mb-2">
-            <strong>@review.ReviewerName</strong> - <span>Rating: @review.Rating/5</span>
-            <p>@review.Comment</p>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong>@review.CustomerName</strong>
+                    <span class="ms-2 text-warning">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            <i class="bi @(i <= review.Rating ? "bi-star-fill" : "bi-star")"></i>
+                        }
+                    </span>
+                </div>
+                <span class="text-muted small">@review.DateCreated.ToLocalTime().ToString("dd MMM yyyy")</span>
+            </div>
+            <div class="fw-semibold mt-1">@review.Subject</div>
+            <p class="mb-0">@review.Comment</p>
+        </div>
+    }
+    @if (hasMore)
+    {
+        <div class="text-center mt-3">
+            <button class="btn btn-outline-primary" @onclick="LoadMore">Load More</button>
         </div>
     }
 }
@@ -22,63 +49,98 @@ else
     <p class="mt-3">No reviews yet. Be the first to leave one!</p>
 }
 
-@if (!showForm)
+<AuthorizeView Context="authContext">
+    <Authorized>
+        @if (!showForm)
+        {
+            <button class="btn btn-outline-primary mt-3" @onclick="() => showForm = true">Write a Review</button>
+        }
+        else
+        {
+            <div class="mt-4">
+                <h5>Add Your Review</h5>
+                <EditForm Model="NewReview" OnValidSubmit="HandleSubmit" Context="editContext">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="mb-2">
+                        <label>Subject:</label>
+                        <InputText class="form-control" @bind-Value="NewReview.Subject" />
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Rating:</label>
+                        <div>
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                <button type="button"
+                                        class="btn btn-link p-0"
+                                        style="font-size:1.5rem;"
+                                        @onclick="() => NewReview.Rating = i">
+                                    <i class="bi @(i <= NewReview.Rating ? "bi-star-fill text-warning" : "bi-star text-secondary")"></i>
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label>Comment:</label>
+                        <InputTextArea class="form-control" @bind-Value="NewReview.Comment" />
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <button type="button" class="btn btn-secondary ms-2" @onclick="() => showForm = false">Cancel</button>
+                </EditForm>
+            </div>
+        }
+    </Authorized>
+</AuthorizeView>
+
+@if (!string.IsNullOrEmpty(ErrorMessage))
 {
-    <button class="btn btn-outline-primary mt-3" @onclick="() => showForm = true">Write a Review</button>
-}
-else
-{
-    <div class="mt-4">
-        <h5>Add Your Review</h5>
-        <EditForm Model="NewReview" OnValidSubmit="HandleSubmit">
-            <DataAnnotationsValidator />
-            <ValidationSummary />
-
-            <div class="mb-2">
-                <label>Name:</label>
-                <InputText class="form-control" @bind-Value="NewReview.ReviewerName" />
-            </div>
-
-            <div class="mb-2">
-                <label>Rating (1–5):</label>
-                <InputNumber class="form-control" @bind-Value="NewReview.Rating" />
-            </div>
-
-            <div class="mb-2">
-                <label>Comment:</label>
-                <InputTextArea class="form-control" @bind-Value="NewReview.Comment" />
-            </div>
-
-            <button type="submit" class="btn btn-primary">Submit</button>
-            <button type="button" class="btn btn-secondary ms-2" @onclick="() => showForm = false">Cancel</button>
-        </EditForm>
-    </div>
+    <div class="alert alert-danger mt-2">@ErrorMessage</div>
 }
 
 @code {
     [Parameter] public int ProductId { get; set; }
 
     private List<ReviewViewModel> Reviews { get; set; } = new();
-    private ReviewViewModel NewReview { get; set; } = new();
+    private CreateReviewViewModel NewReview { get; set; } = new() { Rating = 5 };
     private bool showForm = false;
     private bool isLoading = true;
+    private int currentPage = 1;
+    private int pageSize = 5;
+    private int totalCount = 0;
+    private bool hasMore => Reviews.Count < totalCount;
+    private string? SuccessMessage;
+    private string? ErrorMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        await LoadReviews();
+        await LoadReviews(reset: true);
     }
 
-    private async Task LoadReviews()
+    private async Task LoadReviews(bool reset = false)
     {
         try
         {
             isLoading = true;
-            var httpClient = HttpClientFactory.CreateClient("Api");
-            Reviews = await httpClient.GetFromJsonAsync<List<ReviewViewModel>>($"api/reviews?productId={ProductId}") ?? new();
+            ErrorMessage = null;
+            if (reset)
+            {
+                Reviews.Clear();
+                currentPage = 1;
+            }
+            var result = await ReviewService.GetPagedReviewsAsync(ProductId, currentPage, pageSize);
+            if (result != null)
+            {
+                Reviews.AddRange(result.Reviews);
+                totalCount = result.TotalCount;
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading reviews: {ex.Message}");
+            ErrorMessage = $"Error loading reviews: {ex.Message}";
             Reviews = new();
         }
         finally
@@ -87,28 +149,36 @@ else
         }
     }
 
+    private async Task LoadMore()
+    {
+        currentPage++;
+        await LoadReviews();
+    }
+
     private async Task HandleSubmit()
     {
         try
         {
-            // NewReview.ProductId = ProductId;
-            
-            //var httpClient = HttpClientFactory.CreateClient("Api");
-            // var response = await httpClient.PostAsJsonAsync("api/reviews", NewReview);
-            // if (response.IsSuccessStatusCode)
-            // {
-            //     var addedReview = await response.Content.ReadFromJsonAsync<Review>();
-            //     if (addedReview != null)
-            //     {
-            //         Reviews.Insert(0, addedReview);
-            //         NewReview = new Review();
-            //         showForm = false;
-            //     }
-            // }
+            ErrorMessage = null;
+            NewReview.ProductId = ProductId;
+            var success = await ReviewService.CreateReviewAsync(NewReview);
+            if (success)
+            {
+                showForm = false;
+                NewReview = new CreateReviewViewModel { Rating = 5 };
+                SuccessMessage = "Your review has been submitted and is pending approval.";
+                await LoadReviews(reset: true);
+            }
+            else
+            {
+                ErrorMessage = "Failed to submit review. Please try again.";
+                SuccessMessage = null;
+            }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to submit review: {ex.Message}");
+            ErrorMessage = $"Failed to submit review: {ex.Message}";
+            SuccessMessage = null;
         }
     }
 }

@@ -5,7 +5,6 @@ using Api.Models.Db;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace Api.Controllers
 {
@@ -23,20 +22,11 @@ namespace Api.Controllers
             var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
             if (customer == null) return NotFound("Customer not found.");
 
-            var wishlist = await context.Wishlist
-                .Where(w => w.CustomerId == customer.Id)
-                .OrderByDescending(w => w.CreatedAt)
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .Include(w => w.Product)
-                .ToListAsync();
-
             var query = context.Wishlist
                 .Where(w => w.CustomerId == customer.Id)
                 .OrderByDescending(w => w.CreatedAt)
                 .AsQueryable();
 
-            // Total before paging
             var totalCount = await query.CountAsync();
 
             var paged = await query
