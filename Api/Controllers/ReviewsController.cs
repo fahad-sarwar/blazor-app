@@ -38,6 +38,22 @@ namespace Api.Controllers
             };
         }
 
+        // GET: api/Reviews/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Review>> GetReview(int id)
+        {
+            var review = await context.Review
+                .Include(r => r.Customer)
+                .SingleOrDefaultAsync(r => r.Id == id);
+
+            if (review == null)
+            {
+                return NotFound();
+            }
+
+            return review;
+        }
+
         // PUT: api/Reviews/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]

@@ -2,104 +2,130 @@
 @using OnlineShopUI.Services
 @inject ReviewService ReviewService
 
-@if (!string.IsNullOrEmpty(SuccessMessage))
-{
-    <div class="alert alert-success mt-2">@SuccessMessage</div>
-}
-@if (!string.IsNullOrEmpty(ErrorMessage))
-{
-    <div class="alert alert-danger mt-2">@ErrorMessage</div>
-}
-
-@if (isLoading)
-{
-    <p>Loading reviews...</p>
-}
-else if (Reviews.Any())
-{
-    <h4 class="mt-4">Customer Reviews</h4>
-    @foreach (var review in Reviews)
+<div class="reviews-container">
+    @if (!string.IsNullOrEmpty(SuccessMessage))
     {
-        <div class="border rounded p-3 mb-2">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <strong>@review.CustomerName</strong>
-                    <span class="ms-2 text-warning">
-                        @for (int i = 1; i <= 5; i++)
-                        {
-                            <i class="bi @(i <= review.Rating ? "bi-star-fill" : "bi-star")"></i>
-                        }
-                    </span>
-                </div>
-                <span class="text-muted small">@review.DateCreated.ToLocalTime().ToString("dd MMM yyyy")</span>
-            </div>
-            <div class="fw-semibold mt-1">@review.Subject</div>
-            <p class="mb-0">@review.Comment</p>
+        <div class="alert alert-success">@SuccessMessage</div>
+    }
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="alert alert-danger">@ErrorMessage</div>
+    }
+
+    @if (isLoading)
+    {
+        <div class="text-center p-4">
+            <p>Loading reviews...</p>
         </div>
     }
-    @if (hasMore)
+    else if (Reviews.Any())
     {
-        <div class="text-center mt-3">
-            <button class="btn btn-outline-primary" @onclick="LoadMore">Load More</button>
-        </div>
-    }
-}
-else
-{
-    <p class="mt-3">No reviews yet. Be the first to leave one!</p>
-}
-
-<AuthorizeView Context="authContext">
-    <Authorized>
-        @if (!showForm)
-        {
-            <button class="btn btn-outline-primary mt-3" @onclick="() => showForm = true">Write a Review</button>
-        }
-        else
-        {
-            <div class="mt-4">
-                <h5>Add Your Review</h5>
-                <EditForm Model="NewReview" OnValidSubmit="HandleSubmit" Context="editContext">
-                    <DataAnnotationsValidator />
-                    <ValidationSummary />
-
-                    <div class="mb-2">
-                        <label>Subject:</label>
-                        <InputText class="form-control" @bind-Value="NewReview.Subject" />
+        <div class="reviews-section">
+            <h4 class="mb-4">Customer Reviews</h4>
+            @foreach (var review in Reviews)
+            {
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                <strong class="text-primary">@review.CustomerName</strong>
+                                <div class="rating-stars mt-1">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        <i class="bi @(i <= review.Rating ? "bi-star-fill text-warning" : "bi-star text-muted")"></i>
+                                    }
+                                    <span class="ms-2 text-muted">(@review.Rating/5)</span>
+                                </div>
+                            </div>
+                            <span class="text-muted small">@review.DateCreated.ToLocalTime().ToString("dd MMM yyyy")</span>
+                        </div>
+                        <h6 class="fw-semibold mb-2">@review.Subject</h6>
+                        <p class="mb-0 text-secondary">@review.Comment</p>
                     </div>
+                </div>
+            }
+            @if (hasMore)
+            {
+                <div class="text-center mt-4">
+                    <button class="btn btn-outline-primary" @onclick="LoadMore">Load More Reviews</button>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center p-4">
+            <p class="text-muted">No reviews yet. Be the first to leave one!</p>
+        </div>
+    }
 
-                    <div class="mb-2">
-                        <label>Rating:</label>
-                        <div>
-                            @for (int i = 1; i <= 5; i++)
-                            {
-                                <button type="button"
-                                        class="btn btn-link p-0"
-                                        style="font-size:1.5rem;"
-                                        @onclick="() => NewReview.Rating = i">
-                                    <i class="bi @(i <= NewReview.Rating ? "bi-star-fill text-warning" : "bi-star text-secondary")"></i>
-                                </button>
-                            }
+    <AuthorizeView Context="authContext">
+        <Authorized>
+            <div class="review-form-section mt-5">
+                @if (!showForm)
+                {
+                    <div class="text-center">
+                        <button class="btn btn-primary btn-lg" @onclick="() => showForm = true">
+                            <i class="bi bi-pencil-square me-2"></i>Write a Review
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Add Your Review</h5>
+                        </div>
+                        <div class="card-body p-4">
+                            <EditForm Model="NewReview" OnValidSubmit="HandleSubmit" Context="editContext">
+                                <DataAnnotationsValidator />
+                                <ValidationSummary class="text-danger mb-3" />
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Subject</label>
+                                    <InputText class="form-control" @bind-Value="NewReview.Subject"
+                                               placeholder="Brief summary of your review" />
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Rating</label>
+                                    <div class="rating-input d-flex align-items-center">
+                                        @for (int i = 1; i <= 5; i++)
+                                        {
+                                            int currentStar = i;
+                                            <button type="button"
+                                                    class="btn btn-link p-1 me-1"
+                                                    style="font-size: 2rem; line-height: 1;"
+                                                    @onclick="() => SetRating(currentStar)">
+                                                <i class="bi @(currentStar <= NewReview.Rating ? "bi-star-fill text-warning" : "bi-star text-secondary")"></i>
+                                            </button>
+                                        }
+                                        <span class="ms-2 text-muted">(@NewReview.Rating out of 5)</span>
+                                    </div>
+                                </div>
+
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold">Comment</label>
+                                    <InputTextArea class="form-control" @bind-Value="NewReview.Comment"
+                                                   rows="4" placeholder="Share your experience with this product..." />
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-check-circle me-2"></i>Submit Review
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" @onclick="CancelForm">
+                                        <i class="bi bi-x-circle me-2"></i>Cancel
+                                    </button>
+                                </div>
+                            </EditForm>
                         </div>
                     </div>
-
-                    <div class="mb-2">
-                        <label>Comment:</label>
-                        <InputTextArea class="form-control" @bind-Value="NewReview.Comment" />
-                    </div>
-
-                    <button type="submit" class="btn btn-primary">Submit</button>
-                    <button type="button" class="btn btn-secondary ms-2" @onclick="() => showForm = false">Cancel</button>
-                </EditForm>
+                }
             </div>
-        }
-    </Authorized>
-</AuthorizeView>
-
-@if (!string.IsNullOrEmpty(ErrorMessage))
-{
-    <div class="alert alert-danger mt-2">@ErrorMessage</div>
-}
+        </Authorized>
+    </AuthorizeView>
+</div>
 
 @code {
     [Parameter] public int ProductId { get; set; }
@@ -153,6 +179,20 @@ else
     {
         currentPage++;
         await LoadReviews();
+    }
+
+    private void SetRating(int rating)
+    {
+        NewReview.Rating = rating;
+        StateHasChanged();
+    }
+
+    private void CancelForm()
+    {
+        showForm = false;
+        NewReview = new CreateReviewViewModel { Rating = 5 };
+        SuccessMessage = null;
+        ErrorMessage = null;
     }
 
     private async Task HandleSubmit()
