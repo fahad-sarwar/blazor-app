@@ -78,7 +78,7 @@ namespace Api.Controllers
 
         // POST: api/Orders
         [HttpPost]
-        public async Task<ActionResult<Order>> PostBasketItem(CreateOrderRequest createOrderRequest)
+        public async Task<ActionResult<Order>> PostOrder(CreateOrderRequest createOrderRequest)
         {
             // Check basket & tax rate exist
             var basket = await context.Basket

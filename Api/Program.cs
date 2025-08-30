@@ -39,6 +39,8 @@ builder.Services.AddCors(options =>
 builder.Services.AddAuthorization();
 builder.Services.AddSingleton<BackgroundOrderQueue>();
 builder.Services.AddHostedService<BackgroundOrderUpdateService>();
+builder.Services.AddSingleton<BackgroundReturnStack>();
+builder.Services.AddHostedService<BackgroundReturnUpdateService>();
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();

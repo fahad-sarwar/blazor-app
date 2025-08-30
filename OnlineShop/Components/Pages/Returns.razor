@@ -1,141 +1,82 @@
-﻿@page "/returns"
+﻿@page "/returns/{OrderId:int}"
 
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
+@inject ReturnService ReturnService
 @inject OrderService OrderService
-@inject NavigationManager Navigation
 @rendermode InteractiveServer
 
 <div class="container py-5">
     <div class="row">
         <div class="col-12">
-            <h1 class="text-center mb-5">
-                <i class="bi bi-arrow-return-left me-3"></i>Returns & Refunds
-            </h1>
-        </div>
-    </div>
-
-    <!-- Return Policy Section -->
-    <div class="row mb-5">
-        <div class="col-lg-8 mx-auto">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0">
-                        <i class="bi bi-info-circle me-2"></i>Our Return Policy
-                    </h4>
-                </div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-start mb-3">
-                                <i class="bi bi-calendar-check text-success me-3 fs-4"></i>
-                                <div>
-                                    <h6 class="fw-bold">30-Day Return Window</h6>
-                                    <p class="text-muted mb-0">Return items within 30 days of delivery for a full refund.</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-start mb-3">
-                                <i class="bi bi-box-seam text-info me-3 fs-4"></i>
-                                <div>
-                                    <h6 class="fw-bold">Original Condition</h6>
-                                    <p class="text-muted mb-0">Items must be unused, unworn, and in original packaging.</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-start mb-3">
-                                <i class="bi bi-truck text-warning me-3 fs-4"></i>
-                                <div>
-                                    <h6 class="fw-bold">Free Return Shipping</h6>
-                                    <p class="text-muted mb-0">We provide prepaid return labels for eligible returns.</p>
-                                </div>
-                            </div>
-                            <div class="d-flex align-items-start mb-3">
-                                <i class="bi bi-credit-card text-success me-3 fs-4"></i>
-                                <div>
-                                    <h6 class="fw-bold">Quick Refunds</h6>
-                                    <p class="text-muted mb-0">Refunds processed within 3-5 business days after we receive your return.</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    <i class="bi bi-arrow-return-left me-3"></i>Return Request
+                </h1>
+                <div>
+                    <a href="/orders" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Orders
+                    </a>
+                    <a href="/returns" class="btn btn-outline-info">
+                        <i class="bi bi-info-circle me-1"></i>Returns Policy
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Return Process Steps -->
-    <div class="row mb-5">
+    <!-- Brief Policy Summary -->
+    <div class="row mb-4">
         <div class="col-12">
-            <h3 class="text-center mb-4">How to Return an Item</h3>
-            <div class="row">
-                <div class="col-md-3 text-center mb-4">
-                    <div class="card h-100 border-0">
-                        <div class="card-body">
-                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                                <span class="fw-bold fs-4">1</span>
-                            </div>
-                            <h6 class="fw-bold">Start Your Return</h6>
-                            <p class="text-muted small">Fill out the return form below or contact our support team.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 text-center mb-4">
-                    <div class="card h-100 border-0">
-                        <div class="card-body">
-                            <div class="bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                                <span class="fw-bold fs-4">2</span>
-                            </div>
-                            <h6 class="fw-bold">Print Return Label</h6>
-                            <p class="text-muted small">We'll email you a prepaid return shipping label.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 text-center mb-4">
-                    <div class="card h-100 border-0">
-                        <div class="card-body">
-                            <div class="bg-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                                <span class="fw-bold fs-4">3</span>
-                            </div>
-                            <h6 class="fw-bold">Package & Ship</h6>
-                            <p class="text-muted small">Pack your item securely and drop it off at any postal location.</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-3 text-center mb-4">
-                    <div class="card h-100 border-0">
-                        <div class="card-body">
-                            <div class="bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
-                                <span class="fw-bold fs-4">4</span>
-                            </div>
-                            <h6 class="fw-bold">Get Your Refund</h6>
-                            <p class="text-muted small">Receive your refund within 3-5 business days of us receiving your return.</p>
-                        </div>
-                    </div>
-                </div>
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle me-2"></i>
+                <strong>Return Window:</strong> 30 days from delivery. Items must be unused and in original packaging.
+                <a href="/returns" class="alert-link">View full policy</a>
             </div>
         </div>
     </div>
 
     <!-- Return Form Section -->
-    <div class="row mb-5">
-        <div class="col-lg-8 mx-auto">
-            <AuthorizeView Context="authContext">
-                <Authorized>
-                    <div class="card shadow-sm">
-                        <div class="card-header bg-success text-white">
-                            <h4 class="mb-0">
-                                <i class="bi bi-file-earmark-text me-2"></i>Start a Return
-                            </h4>
-                        </div>
-                        <div class="card-body">
-                            @if (!string.IsNullOrEmpty(SuccessMessage))
-                            {
-                                <div class="alert alert-success">
-                                    <i class="bi bi-check-circle me-2"></i>@SuccessMessage
+    <AuthorizeView Context="authContext">
+        <Authorized>
+            @if (isLoading)
+            {
+                <div class="text-center p-5">
+                    <div class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Loading order details...</p>
+                </div>
+            }
+            else if (order == null)
+            {
+                <div class="alert alert-warning">
+                    <h4>Order Not Found</h4>
+                    <p>The order you're trying to return could not be found or you don't have permission to access it.</p>
+                    <a href="/orders" class="btn btn-primary">View My Orders</a>
+                </div>
+            }
+            else
+            {
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h4 class="mb-0">
+                            <i class="bi bi-file-earmark-text me-2"></i>Return Items from Order @order.OrderNumber
+                        </h4>
+                        <small>Order placed on @order.CreatedAt.ToString("dd MMM yyyy")</small>
+                    </div>
+                    <div class="card-body">
+                        @if (!string.IsNullOrEmpty(SuccessMessage))
+                        {
+                            <div class="alert alert-success">
+                                <i class="bi bi-check-circle me-2"></i>@SuccessMessage
+                                <div class="mt-2">
+                                    <a href="/orders" class="btn btn-outline-success">Back to Orders</a>
                                 </div>
-                            }
-
+                            </div>
+                        }
+                        else
+                        {
                             @if (!string.IsNullOrEmpty(ErrorMessage))
                             {
                                 <div class="alert alert-danger">
@@ -143,231 +84,183 @@
                                 </div>
                             }
 
-                            <EditForm Model="@returnRequest" OnValidSubmit="SubmitReturnRequest" Context="editContext">
+                            <EditForm Model="formModel" OnValidSubmit="SubmitReturnRequest" Context="editContext">
                                 <DataAnnotationsValidator />
                                 <ValidationSummary class="text-danger mb-3" />
 
-                                <div class="row">
-                                    <div class="col-md-6 mb-3">
-                                        <label for="orderNumber" class="form-label fw-semibold">
-                                            <i class="bi bi-box-seam me-1"></i>Order Number
-                                        </label>
-                                        <InputText id="orderNumber" class="form-control" @bind-Value="returnRequest.OrderNumber"
-                                                   placeholder="e.g. ORD0000123" />
-                                        <ValidationMessage For="@(() => returnRequest.OrderNumber)" class="text-danger" />
-                                    </div>
-
-                                    <div class="col-md-6 mb-3">
-                                        <label for="itemName" class="form-label fw-semibold">
-                                            <i class="bi bi-tag me-1"></i>Item Name
-                                        </label>
-                                        <InputText id="itemName" class="form-control" @bind-Value="returnRequest.ItemName"
-                                                   placeholder="Name of the item you want to return" />
-                                        <ValidationMessage For="@(() => returnRequest.ItemName)" class="text-danger" />
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <label for="reason" class="form-label fw-semibold">
-                                        <i class="bi bi-question-circle me-1"></i>Reason for Return
-                                    </label>
-                                    <InputSelect id="reason" class="form-select" @bind-Value="returnRequest.Reason">
-                                        <option value="">Please select a reason</option>
-                                        <option value="Wrong Size">Wrong Size</option>
-                                        <option value="Wrong Color">Wrong Color</option>
-                                        <option value="Defective/Damaged">Defective/Damaged</option>
-                                        <option value="Not as Described">Not as Described</option>
-                                        <option value="Changed Mind">Changed Mind</option>
-                                        <option value="Ordered by Mistake">Ordered by Mistake</option>
-                                        <option value="Other">Other</option>
-                                    </InputSelect>
-                                    <ValidationMessage For="@(() => returnRequest.Reason)" class="text-danger" />
+                                <h5>Select items to return:</h5>
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th width="50">Return</th>
+                                                <th>Product</th>
+                                                <th width="80">Qty</th>
+                                                <th width="200">Reason</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var item in selectedItems)
+                                            {
+                                                <tr>
+                                                    <td>
+                                                        <InputCheckbox @bind-Value="item.IsSelected" class="form-check-input" />
+                                                    </td>
+                                                    <td>
+                                                        <strong>@item.ProductName</strong>
+                                                    </td>
+                                                    <td>
+                                                        @{
+                                                            var orderItem = order.OrderItems.FirstOrDefault(oi => oi.Id == item.OrderItemId);
+                                                            if (orderItem != null)
+                                                            {
+                                                                @orderItem.Quantity
+                                                            }
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <InputSelect class="form-select form-select-sm" @bind-Value="item.Reason"
+                                                                     disabled="@(!item.IsSelected)">
+                                                            <option value="">Select reason</option>
+                                                            <option value="Wrong Size">Wrong Size</option>
+                                                            <option value="Wrong Color">Wrong Color</option>
+                                                            <option value="Defective/Damaged">Defective/Damaged</option>
+                                                            <option value="Not as Described">Not as Described</option>
+                                                            <option value="Changed Mind">Changed Mind</option>
+                                                            <option value="Ordered by Mistake">Ordered by Mistake</option>
+                                                            <option value="Other">Other</option>
+                                                        </InputSelect>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
                                 </div>
 
                                 <div class="mb-4">
-                                    <label for="comments" class="form-label fw-semibold">
-                                        <i class="bi bi-chat-text me-1"></i>Additional Comments
+                                    <label class="form-label fw-semibold">
+                                        <i class="bi bi-chat-text me-1"></i>Additional Comments (Optional)
                                     </label>
-                                    <InputTextArea id="comments" class="form-control" @bind-Value="returnRequest.Comments"
-                                                   rows="4" placeholder="Please provide any additional details about your return..." />
-                                    <ValidationMessage For="@(() => returnRequest.Comments)" class="text-danger" />
+                                    <InputTextArea class="form-control" @bind-Value="formModel.Comments" rows="3"
+                                                   placeholder="Please provide any additional details about your return..." />
                                 </div>
 
-                                <button type="submit" class="btn btn-success" disabled="@isSubmitting">
-                                    @if (isSubmitting)
-                                    {
-                                        <span class="spinner-border spinner-border-sm me-2"></span>
-                                    }
-                                    else
-                                    {
-                                        <i class="bi bi-send me-2"></i>
-                                    }
-                                    Submit Return Request
-                                </button>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-success" disabled="@isSubmitting">
+                                        @if (isSubmitting)
+                                        {
+                                            <span class="spinner-border spinner-border-sm me-2"></span>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-send me-2"></i>
+                                        }
+                                        Submit Return Request
+                                    </button>
+                                    <a href="/orders" class="btn btn-outline-secondary">Cancel</a>
+                                </div>
                             </EditForm>
-                        </div>
-                    </div>
-                </Authorized>
-                <NotAuthorized>
-                    <div class="card">
-                        <div class="card-body text-center p-5">
-                            <i class="bi bi-shield-lock display-1 text-muted mb-3"></i>
-                            <h4 class="mb-3">Login Required</h4>
-                            <p class="text-muted mb-4">You need to be logged in to start a return request.</p>
-                            <div class="d-flex gap-2 justify-content-center">
-                                <a href="/account/login?returnUrl=%2Freturns" class="btn btn-primary">
-                                    <i class="bi bi-box-arrow-in-right me-2"></i>Login
-                                </a>
-                                <a href="/account/register?returnUrl=%2Freturns" class="btn btn-outline-secondary">
-                                    <i class="bi bi-person-plus me-2"></i>Register
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </NotAuthorized>
-            </AuthorizeView>
-        </div>
-    </div>
-
-    <!-- FAQ Section -->
-    <div class="row mb-5">
-        <div class="col-lg-10 mx-auto">
-            <h3 class="text-center mb-4">Frequently Asked Questions</h3>
-            <div class="accordion" id="returnsAccordion">
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                            What items can't be returned?
-                        </button>
-                    </h2>
-                    <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#returnsAccordion">
-                        <div class="accordion-body">
-                            <p>For hygiene and safety reasons, we cannot accept returns on:</p>
-                            <ul>
-                                <li>Underwear and intimate apparel</li>
-                                <li>Personalized or customized items</li>
-                                <li>Perishable goods</li>
-                                <li>Items damaged by normal wear and tear</li>
-                            </ul>
-                        </div>
+                        }
                     </div>
                 </div>
-
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                            How long do refunds take?
-                        </button>
-                    </h2>
-                    <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#returnsAccordion">
-                        <div class="accordion-body">
-                            <p>Once we receive your returned item, we'll process your refund within 3-5 business days. The time it takes for the refund to appear in your account depends on your payment method:</p>
-                            <ul>
-                                <li><strong>Credit/Debit Cards:</strong> 3-5 business days</li>
-                                <li><strong>PayPal:</strong> 1-2 business days</li>
-                                <li><strong>Bank Transfer:</strong> 5-7 business days</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-                            Can I exchange an item instead of returning it?
-                        </button>
-                    </h2>
-                    <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#returnsAccordion">
-                        <div class="accordion-body">
-                            <p>We currently process returns for refunds only. If you'd like a different size or color, please:</p>
-                            <ol>
-                                <li>Return your original item for a full refund</li>
-                                <li>Place a new order for the item you want</li>
-                            </ol>
-                            <p>This ensures you get the item you want as quickly as possible!</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="accordion-item">
-                    <h2 class="accordion-header">
-                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
-                            What if my item was damaged during shipping?
-                        </button>
-                    </h2>
-                    <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#returnsAccordion">
-                        <div class="accordion-body">
-                            <p>If your item arrived damaged, we'll make it right immediately:</p>
-                            <ul>
-                                <li>Contact us within 48 hours of delivery</li>
-                                <li>Provide photos of the damaged item and packaging</li>
-                                <li>We'll send a replacement or full refund (your choice)</li>
-                                <li>No need to return the damaged item</li>
-                            </ul>
-                        </div>
+            }
+        </Authorized>
+        <NotAuthorized>
+            <div class="card">
+                <div class="card-body text-center p-5">
+                    <i class="bi bi-shield-lock display-1 text-muted mb-3"></i>
+                    <h4 class="mb-3">Login Required</h4>
+                    <p class="text-muted mb-4">You need to be logged in to start a return request.</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="/account/login?returnUrl=%2Freturns/@OrderId" class="btn btn-primary">
+                            <i class="bi bi-box-arrow-in-right me-2"></i>Login
+                        </a>
+                        <a href="/account/register?returnUrl=%2Freturns/@OrderId" class="btn btn-outline-secondary">
+                            <i class="bi bi-person-plus me-2"></i>Register
+                        </a>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-
-    <!-- Contact Section -->
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <div class="card bg-light">
-                <div class="card-body text-center p-4">
-                    <h5 class="card-title">Need More Help?</h5>
-                    <p class="card-text">Our customer service team is here to help with any questions about returns or refunds.</p>
-                    <div class="row">
-                        <div class="col-md-4 mb-3">
-                            <a href="/contact" class="btn btn-outline-primary w-100">
-                                <i class="bi bi-envelope me-2"></i>Email Support
-                            </a>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <a href="tel:+1234567890" class="btn btn-outline-success w-100">
-                                <i class="bi bi-telephone me-2"></i>Call Us
-                            </a>
-                        </div>
-                        <div class="col-md-4 mb-3">
-                            <a href="/orders" class="btn btn-outline-info w-100">
-                                <i class="bi bi-list-ul me-2"></i>View Orders
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+        </NotAuthorized>
+    </AuthorizeView>
 </div>
 
 @code {
-    private ReturnRequestViewModel returnRequest = new();
+    [Parameter] public int OrderId { get; set; }
+    private OrderViewModel? order;
+    private List<ReturnOrderItemViewModel> selectedItems = new();
+    private ReturnFormModel formModel = new();
+    private bool isLoading = true;
     private bool isSubmitting = false;
     private string? SuccessMessage;
     private string? ErrorMessage;
 
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        order = await OrderService.GetOrderByIdAsync(OrderId);
+        if (order != null)
+        {
+            selectedItems = order.OrderItems.Select(item => new ReturnOrderItemViewModel
+                {
+                    OrderItemId = item.Id,
+                    ProductName = item.Product.Name,
+                    IsSelected = false,
+                    Reason = ""
+                }).ToList();
+        }
+        isLoading = false;
+    }
+
     private async Task SubmitReturnRequest()
     {
-        try
-        {
-            isSubmitting = true;
-            ErrorMessage = null;
-            SuccessMessage = null;
+        isSubmitting = true;
+        ErrorMessage = null;
+        SuccessMessage = null;
 
-            // Simulate API call to submit return request
-            await Task.Delay(2000);
-
-            SuccessMessage = "Your return request has been submitted successfully! We'll email you a return label within 24 hours.";
-            returnRequest = new ReturnRequestViewModel(); // Reset form
-        }
-        catch (Exception ex)
+        var itemsToReturn = selectedItems.Where(i => i.IsSelected).ToList();
+        if (!itemsToReturn.Any())
         {
-            ErrorMessage = "An error occurred while submitting your return request. Please try again.";
-        }
-        finally
-        {
+            ErrorMessage = "Please select at least one item to return.";
             isSubmitting = false;
+            return;
         }
+
+        var request = new CreateReturnViewModel
+            {
+                OrderId = OrderId,
+                Items = itemsToReturn.Select(i => new CreateReturnItemViewModel
+                {
+                    OrderItemId = i.OrderItemId,
+                    Reason = i.Reason
+                }).ToList(),
+                Comments = formModel.Comments ?? ""
+            };
+
+        var success = await ReturnService.CreateReturnAsync(request);
+        if (success)
+        {
+            SuccessMessage = "Your return request has been submitted successfully!";
+            formModel = new ReturnFormModel(); // Reset form
+            selectedItems.ForEach(i => { i.IsSelected = false; i.Reason = ""; });
+        }
+        else
+        {
+            ErrorMessage = "Failed to submit your return request. Please try again.";
+        }
+        isSubmitting = false;
+    }
+
+    public class ReturnFormModel
+    {
+        public string Comments { get; set; } = "";
+    }
+
+    public class ReturnOrderItemViewModel
+    {
+        public int OrderItemId { get; set; }
+        public string ProductName { get; set; } = "";
+        public bool IsSelected { get; set; }
+        public string Reason { get; set; } = "";
     }
 }
