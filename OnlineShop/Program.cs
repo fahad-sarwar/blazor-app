@@ -42,6 +42,7 @@ builder.Services.AddTransient<CheckoutDummyDataService>();
 builder.Services.AddTransient<BasketService>();
 builder.Services.AddScoped<AnonymousUserService>();
 builder.Services.AddScoped<CustomerService>();
+builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<BasketCountService>();
 builder.Services.AddScoped<WishlistService>();
 builder.Services.AddScoped<ReviewService>();

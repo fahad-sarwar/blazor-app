@@ -1,4 +1,5 @@
-﻿using Api.Data;
+﻿using System.Security.Claims;
+using Api.Data;
 using Api.Models;
 using Api.Models.Db;
 using Api.Services;
@@ -9,22 +10,49 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrdersController : ControllerBase
+    public class OrdersController(OnlineShopContext context, BackgroundOrderQueue queue) : ControllerBase
     {
-        private readonly OnlineShopContext _context;
-        private readonly BackgroundOrderQueue _queue;
-
-        public OrdersController(OnlineShopContext context, BackgroundOrderQueue queue)
+        // GET: api/Orders
+        [HttpGet]
+        public async Task<ActionResult<PagedOrderResult>> GetOrders([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            _context = context;
-            _queue = queue;
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email)) return Unauthorized();
+
+            var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
+            if (customer == null) return NotFound("Customer not found.");
+
+            var query = context.Order
+                .Include(o => o.Customer)
+                .Where(o => o.Customer.Id == customer.Id)
+                .OrderByDescending(w => w.CreatedAt)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+
+            var paged = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedOrderResult
+            {
+                Orders = paged.ToList(),
+                TotalCount = totalCount
+            };
         }
 
         // GET: api/Orders/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Order>> GetOrder(int id)
         {
-            var order = await _context.Order
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email)) return Unauthorized();
+
+            var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
+            if (customer == null) return NotFound("Customer not found.");
+
+            var order = await context.Order
                 .Include(o => o.Customer)
                     .ThenInclude(c => c.ShippingAddress)
                 .Include(o => o.Customer)
@@ -33,7 +61,7 @@ namespace Api.Controllers
                     .ThenInclude(oi => oi.Product)
                 .Include(o => o.Payment)
                 .Include(o => o.TrackingUpdates)
-                .SingleOrDefaultAsync(o => o.Id == id);
+                .SingleOrDefaultAsync(o => o.Id == id && o.Customer.Id == customer.Id);
 
             if (order == null)
             {
@@ -48,19 +76,19 @@ namespace Api.Controllers
         public async Task<ActionResult<Order>> PostBasketItem(CreateOrderRequest createOrderRequest)
         {
             // Check basket & tax rate exist
-            var basket = await _context.Basket
+            var basket = await context.Basket
                 .Include(b => b.Items)
                 .ThenInclude(bi => bi.Product)
                 .SingleOrDefaultAsync(b => b.Id == createOrderRequest.BasketId);
 
-            var taxRate = await _context.TaxRate
+            var taxRate = await context.TaxRate
                 .Where(t =>
                     t.EffectiveFrom <= DateTime.UtcNow &&
                     (t.EffectiveTo == null || t.EffectiveTo > DateTime.UtcNow))
                 .OrderByDescending(t => t.EffectiveFrom)
                 .FirstOrDefaultAsync();
 
-            var customer = await _context.Customer
+            var customer = await context.Customer
                 .SingleOrDefaultAsync(c => c.Id == createOrderRequest.Customer.Id);
 
             if (basket == null)
@@ -106,16 +134,16 @@ namespace Api.Controllers
                     Country = createOrderRequest.Customer.ShippingAddress.Country,
                 };
 
-                _context.Address.Add(billingAddress);
-                _context.Address.Add(shippingAddress);
-                await _context.SaveChangesAsync();
+                context.Address.Add(billingAddress);
+                context.Address.Add(shippingAddress);
+                await context.SaveChangesAsync();
 
                 customer.PhoneNumber = createOrderRequest.Customer.PhoneNumber;
                 customer.BillingAddress = billingAddress;
                 customer.ShippingAddress = shippingAddress;
 
-                _context.Entry(customer).State = EntityState.Modified;
-                await _context.SaveChangesAsync();
+                context.Entry(customer).State = EntityState.Modified;
+                await context.SaveChangesAsync();
                
                 // Create order
                 var totalPrice = basket.Items.Sum(bi => bi.TotalPrice);
@@ -142,11 +170,11 @@ namespace Api.Controllers
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                 };
-                _context.Order.Add(order);
-                await _context.SaveChangesAsync();
+                context.Order.Add(order);
+                await context.SaveChangesAsync();
 
                 order.OrderNumber = $"ORD{order.Id:D7}";
-                await _context.SaveChangesAsync(); // Save the OrderNumber
+                await context.SaveChangesAsync(); // Save the OrderNumber
 
                 // Create order items
                 var orderItems = basket.Items.Select(bi => new OrderItem
@@ -160,14 +188,14 @@ namespace Api.Controllers
                     CreatedAt = DateTime.UtcNow
                 }).ToList();
 
-                _context.OrderItem.AddRange(orderItems);
-                await _context.SaveChangesAsync();
+                context.OrderItem.AddRange(orderItems);
+                await context.SaveChangesAsync();
 
-                _context.BasketItem.RemoveRange(basket.Items); // Clear the basket items
-                _context.Basket.Remove(basket); // Clear the basket after order creation
-                await _context.SaveChangesAsync();
+                context.BasketItem.RemoveRange(basket.Items); // Clear the basket items
+                context.Basket.Remove(basket); // Clear the basket after order creation
+                await context.SaveChangesAsync();
 
-                _queue.Enqueue(order.Id); // Enqueue the order for background processing
+                queue.Enqueue(order.Id); // Enqueue the order for background processing
 
                 return CreatedAtAction("GetOrder", new { id = order.Id }, order);
             }

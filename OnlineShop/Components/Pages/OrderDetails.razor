@@ -2,8 +2,7 @@
 
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
-@inject IHttpClientFactory HttpClientFactory
-@inject ApiAuthenticationStateProvider ApiAuthenticationStateProvider
+@inject OrderService OrderService
 @rendermode InteractiveServer
 
 <AuthorizeView Context="authContext">
@@ -13,20 +12,30 @@
             <div class="alert alert-danger">@ErrorMessage</div>
         }
 
-        @if (!_orderLoaded)
+        @if (isLoading)
         {
-            <p>Loading order...</p>
+            <div class="text-center p-5">
+                <div class="spinner-border text-primary mb-3" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p>Loading order details...</p>
+            </div>
         }
         else if (Order == null)
         {
             <div class="alert alert-warning">
                 <p>Order not found or you don't have permission to view this order.</p>
-                <a href="/" class="btn btn-primary">Go Home</a>
+                <a href="/orders" class="btn btn-primary">Back to My Orders</a>
             </div>
         }
         else
         {
-            <h2 class="my-4">Order Tracking - @Order.OrderNumber</h2>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Order Details - @Order.OrderNumber</h2>
+                <a href="/orders" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-2"></i>Back to Orders
+                </a>
+            </div>
 
             <!-- Status Milestones -->
             <div class="d-flex gap-3 justify-content-between mb-5">
@@ -67,21 +76,21 @@
 
             <style>
                 .timeline li {
-                border-left: 3px solid #0d6efd;
-                padding-left: 1rem;
-                position: relative;
+                    border-left: 3px solid #0d6efd;
+                    padding-left: 1rem;
+                    position: relative;
                 }
 
-                .timeline li::before {
-                content: '';
-                position: absolute;
-                left: -9px;
-                top: 6px;
-                width: 12px;
-                height: 12px;
-                background-color: #0d6efd;
-                border-radius: 50%;
-                }
+                    .timeline li::before {
+                        content: '';
+                        position: absolute;
+                        left: -9px;
+                        top: 6px;
+                        width: 12px;
+                        height: 12px;
+                        background-color: #0d6efd;
+                        border-radius: 50%;
+                    }
             </style>
 
             <!-- Order Summary Cards -->
@@ -159,22 +168,13 @@
                         </tbody>
                         <tfoot class="table-group-divider">
                             <tr>
-                                <td colspan="3" class="text-end fw-semibold">Subtotal</td>
-                                <td class="text-end">@Order.TotalPrice.ToString("C")</td>
+                                <td colspan="3" class="text-end fw-semibold">Total</td>
+                                <td class="text-end fw-bold">@Order.TotalPrice.ToString("C")</td>
                             </tr>
-                            @* <tr>
-                    <td colspan="3" class="text-end fw-semibold">VAT (20%)</td>
-                    <td class="text-end">@_basket.Vat.ToString("C")</td>
-                </tr>
-                <tr class="table-primary">
-                    <td colspan="3" class="text-end fw-bold">Total</td>
-                    <td class="text-end fw-bold">@_basket.Total.ToString("C")</td>
-                </tr> *@
                         </tfoot>
                     </table>
                 </div>
             </div>
-
 
             <div class="mt-5 border-top pt-4">
                 <h5 class="mb-4">Need Help?</h5>
@@ -206,33 +206,15 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body">
-                                <h6 class="card-title">Delivery and Returns</h6>
-                                <p class="card-text">Understand our delivery times, options, and how to return an item.</p>
-                                <a href="/delivery-and-returns" class="btn btn-outline-primary btn-sm">Delivery Info</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100 shadow-sm">
-                            <div class="card-body">
-                                <h6 class="card-title">Track Order</h6>
-                                <p class="card-text">Track the status of your recent orders in real-time.</p>
-                                <a href="/track-order" class="btn btn-outline-primary btn-sm">Track Now</a>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         }
     </Authorized>
     <NotAuthorized>
         <div class="alert alert-warning">
-            <p>You need to be logged in to access checkout.</p>
-            <a href="/account/login?returnUrl=%2Fcheckout" class="btn btn-primary">Login</a>
-            <a href="/account/register?returnUrl=%2Fcheckout" class="btn btn-secondary">Register</a>
+            <p>You need to be logged in to view order details.</p>
+            <a href="/account/login?returnUrl=%2Forder-details%2F@OrderId" class="btn btn-primary">Login</a>
+            <a href="/account/register?returnUrl=%2Forder-details%2F@OrderId" class="btn btn-secondary">Register</a>
         </div>
     </NotAuthorized>
 </AuthorizeView>
@@ -243,47 +225,32 @@
     private OrderViewModel? Order;
     private readonly string[] StatusMilestones = new[] { "Pending", "Processing", "Packed", "Shipped", "Out for Delivery", "Delivered" };
     private string? ErrorMessage;
-    private bool _isAuthenticated = false;
-    private bool _authenticationChecked = false;
-    private bool _orderLoaded = false;
+    private bool isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
+        await LoadOrderDetails();
+    }
+
+    private async Task LoadOrderDetails()
+    {
         try
         {
-            var httpClient = HttpClientFactory.CreateClient("Api");
-            var response = await httpClient.GetAsync($"api/Orders/{OrderId}");
+            isLoading = true;
+            Order = await OrderService.GetOrderAsync(OrderId);
 
-            if (response.IsSuccessStatusCode)
+            if (Order == null)
             {
-                Order = await response.Content.ReadFromJsonAsync<OrderViewModel>();
-
-                var authState = await ApiAuthenticationStateProvider.GetAuthenticationStateAsync();
-                var customerId = authState.User?.FindFirst("CustomerId")?.Value;
-
-                if (!string.IsNullOrEmpty(customerId) && Order?.Customer?.Id.ToString() != customerId)
-                {
-                    ErrorMessage = "You don't have permission to view this order.";
-                    Order = null;
-                }
-            }
-            else if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
-            {
-                ErrorMessage = "Order not found.";
-            }
-            else
-            {
-                ErrorMessage = "Failed to load order details.";
+                ErrorMessage = "Order not found or you don't have permission to view this order.";
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = "We couldn't load your order details.";
+            ErrorMessage = "Failed to load order details. Please try again.";
         }
         finally
         {
-            _orderLoaded = true;
-            StateHasChanged();
+            isLoading = false;
         }
     }
 
