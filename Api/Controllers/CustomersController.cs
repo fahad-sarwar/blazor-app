@@ -1,33 +1,29 @@
 ﻿using Api.Data;
+using Api.Models;
 using Api.Models.Db;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CustomersController : ControllerBase
+    public class CustomersController(OnlineShopContext context, UserManager<ApplicationUser> userManager) : ControllerBase
     {
-        private readonly OnlineShopContext _context;
-
-        public CustomersController(OnlineShopContext context)
-        {
-            _context = context;
-        }
-
         // GET: api/Customers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Customer>>> GetCustomer()
         {
-            return await _context.Customer.ToListAsync();
+            return await context.Customer.ToListAsync();
         }
 
         // GET: api/Customers/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Customer>> GetCustomer(int id)
         {
-            var customer = await _context.Customer.FindAsync(id);
+            var customer = await context.Customer.FindAsync(id);
 
             if (customer == null)
             {
@@ -40,18 +36,44 @@ namespace Api.Controllers
         // PUT: api/Customers/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCustomer(int id, Customer customer)
+        public async Task<IActionResult> PutCustomer(int id, UpdateCustomerRequest request)
         {
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            if (string.IsNullOrEmpty(email)) return Unauthorized();
+
+            var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
+            if (customer == null) return NotFound("Customer not found.");
+
             if (id != customer.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(customer).State = EntityState.Modified;
+            var user = await userManager.FindByEmailAsync(email);
+
+            if(user == null)
+            {
+                return NotFound("User not found.");
+            }
+
+            if(user.Email != customer.Email)
+            {
+                return BadRequest("User email does not match customer email.");
+            }
+
+            customer.FirstName = request.FirstName;
+            customer.LastName = request.LastName;
+            customer.PhoneNumber = request.PhoneNumber;
+
+            user.FirstName = request.FirstName;
+            user.LastName = request.LastName;
+
+            context.Entry(customer).State = EntityState.Modified;
+            context.Entry(user).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -59,22 +81,19 @@ namespace Api.Controllers
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             return NoContent();
         }
 
         // POST: api/Customers
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
         public async Task<ActionResult<Customer>> PostCustomer(Customer customer)
         {
-            _context.Customer.Add(customer);
-            await _context.SaveChangesAsync();
+            context.Customer.Add(customer);
+            await context.SaveChangesAsync();
 
             return CreatedAtAction("GetCustomer", new { id = customer.Id }, customer);
         }
@@ -83,21 +102,21 @@ namespace Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCustomer(int id)
         {
-            var customer = await _context.Customer.FindAsync(id);
+            var customer = await context.Customer.FindAsync(id);
             if (customer == null)
             {
                 return NotFound();
             }
 
-            _context.Customer.Remove(customer);
-            await _context.SaveChangesAsync();
+            context.Customer.Remove(customer);
+            await context.SaveChangesAsync();
 
             return NoContent();
         }
 
         private bool CustomerExists(int id)
         {
-            return _context.Customer.Any(e => e.Id == id);
+            return context.Customer.Any(e => e.Id == id);
         }
     }
 }

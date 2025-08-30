@@ -12,44 +12,37 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController : ControllerBase
+    public class AuthController(
+        UserManager<ApplicationUser> userManager,
+        SignInManager<ApplicationUser> signInManager,
+        OnlineShopContext context)
+        : ControllerBase
     {
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly OnlineShopContext _context;
-
-        public AuthController(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, OnlineShopContext context)
-        {
-            _userManager = userManager;
-            _signInManager = signInManager;
-            _context = context;
-        }
-
         [HttpGet("user")]
         public async Task<IActionResult> GetCurrentUser()
         {
-            if (User.Identity?.IsAuthenticated == true)
+            if (User.Identity?.IsAuthenticated != true)
+                return Unauthorized();
+
+            var user = await userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Unauthorized();
+
+            var customer = await context.Customer
+                .FirstOrDefaultAsync(c => c.UserId == user.Id);
+
+            return Ok(new
             {
-                var user = await _userManager.GetUserAsync(User);
-                
-                if (user != null)
-                {
-                    var customer = await _context.Customer
-                        .FirstOrDefaultAsync(c => c.UserId == user.Id);
+                Email = user.Email,
+                Name = user.FirstName,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                UserId = user.Id,
+                CustomerId = customer?.Id,
+                PhoneNumber = customer?.PhoneNumber
+            });
 
-                    return Ok(new
-                    {
-                        Email = user.Email,
-                        Name = user.FirstName,
-                        FirstName = user.FirstName,
-                        LastName = user.LastName,
-                        UserId = user.Id,
-                        CustomerId = customer?.Id,
-                    });
-                }
-            }
-
-            return Unauthorized();
         }
 
         [HttpPost("register")]
@@ -65,27 +58,26 @@ namespace Api.Controllers
                     LastName = model.LastName
                 };
 
-                var result = await _userManager.CreateAsync(user, model.Password);
+                var result = await userManager.CreateAsync(user, model.Password);
 
-                if (result.Succeeded)
+                if (!result.Succeeded)
+                    return BadRequest(result.Errors);
+
+                var customer = new Customer
                 {
-                    var customer = new Customer
-                    {
-                        FirstName = model.FirstName,
-                        LastName = model.LastName,
-                        Email = model.Email,
-                        UserId = user.Id,
-                        User = user
-                    };
+                    FirstName = model.FirstName,
+                    LastName = model.LastName,
+                    Email = model.Email,
+                    UserId = user.Id,
+                    User = user
+                };
 
-                    _context.Customer.Add(customer);
-                    await _context.SaveChangesAsync();
+                context.Customer.Add(customer);
+                await context.SaveChangesAsync();
 
-                    await _signInManager.SignInAsync(user, isPersistent: false);
-                    return Ok();
-                }
+                await signInManager.SignInAsync(user, isPersistent: false);
+                return Ok();
 
-                return BadRequest(result.Errors);
             }
             catch (Exception e)
             {
@@ -97,37 +89,68 @@ namespace Api.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] Login model)
         {
-            var result = await _signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
+            var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
 
-            if (result.Succeeded)
+            if (!result.Succeeded)
+                return Unauthorized();
+
+            var user = await userManager.FindByEmailAsync(model.Email);
+            var customer = await context.Customer
+                .FirstOrDefaultAsync(c => c.UserId == user.Id);
+
+            var claims = new List<Claim>
             {
-                var user = await _userManager.FindByEmailAsync(model.Email);
-                var customer = await _context.Customer
-                    .FirstOrDefaultAsync(c => c.UserId == user.Id);
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.GivenName, user.FirstName),
+                new Claim(ClaimTypes.Surname, user.LastName),
+                new Claim("UserId", user.Id),
+                new Claim("CustomerId", customer.Id.ToString())
+            };
 
-                var claims = new List<Claim>
-                {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim("UserId", user.Id),
-                    new Claim("CustomerId", customer.Id.ToString() ?? string.Empty)
-                };
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
 
-                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var principal = new ClaimsPrincipal(identity);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            return Ok();
+        }
 
-                return Ok();
-            }
+        [HttpPost("refresh-claims")]
+        public async Task<IActionResult> RefreshClaims()
+        {
+            if (User.Identity?.IsAuthenticated != true)
+                return Unauthorized();
 
-            return Unauthorized();
+            var user = await userManager.GetUserAsync(User);
+
+            if (user == null)
+                return Unauthorized();
+
+            var customer = await context.Customer
+                .FirstOrDefaultAsync(c => c.UserId == user.Id);
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.UserName),
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.GivenName, user.FirstName),
+                new Claim(ClaimTypes.Surname, user.LastName),
+                new Claim("UserId", user.Id),
+                new Claim("CustomerId", customer?.Id.ToString() ?? string.Empty)
+            };
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            return Ok();
         }
 
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            await _signInManager.SignOutAsync();
+            await signInManager.SignOutAsync();
             return Ok();
         }
     }

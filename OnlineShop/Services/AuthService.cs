@@ -10,6 +10,8 @@ namespace OnlineShopUI.Services
         Task<bool> RegisterAsync(RegisterViewModel registerModel);
         Task LogoutAsync();
         Task<UserInfo?> GetCurrentUserAsync();
+        Task<bool> UpdateProfileAsync(UpdateCustomerViewModel updateModel);
+        Task RefreshAuthenticationStateAsync();
     }
 
     public class AuthService : IAuthService
@@ -102,6 +104,45 @@ namespace OnlineShopUI.Services
         public async Task<UserInfo?> GetCurrentUserAsync()
         {
             return await GetUserFromApiAsync();
+        }
+        public async Task<bool> UpdateProfileAsync(UpdateCustomerViewModel updateModel)
+        {
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient("Api");
+                var response = await httpClient.PutAsJsonAsync($"api/customers/{updateModel.Id}", updateModel);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    // Refresh authentication state to update claims
+                    await RefreshAuthenticationStateAsync();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating profile");
+            }
+
+            return false;
+        }
+
+        public async Task RefreshAuthenticationStateAsync()
+        {
+            try
+            {
+                var httpClient = _httpClientFactory.CreateClient("Api");
+                await httpClient.PostAsync("api/auth/refresh-claims", null);
+
+                if (_authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
+                {
+                    await apiProvider.NotifyAuthenticationStateChangedAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error refreshing authentication state");
+            }
         }
 
         private async Task<UserInfo?> GetUserFromApiAsync()
