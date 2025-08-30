@@ -14,7 +14,7 @@ namespace Api.Controllers
     {
         // GET: api/Orders
         [HttpGet]
-        public async Task<ActionResult<PagedOrderResult>> GetOrders([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<ActionResult<PagedOrderResult>> GetOrders([FromQuery] string? orderNumber, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var email = User.FindFirst(ClaimTypes.Email)?.Value;
             if (string.IsNullOrEmpty(email)) return Unauthorized();
@@ -27,6 +27,11 @@ namespace Api.Controllers
                 .Where(o => o.Customer.Id == customer.Id)
                 .OrderByDescending(w => w.CreatedAt)
                 .AsQueryable();
+
+            if (!string.IsNullOrEmpty(orderNumber))
+            {
+                query = query.Where(o => o.OrderNumber == orderNumber);
+            }
 
             var totalCount = await query.CountAsync();
 

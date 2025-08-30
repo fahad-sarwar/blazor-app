@@ -237,7 +237,7 @@
         try
         {
             isLoading = true;
-            Order = await OrderService.GetOrderAsync(OrderId);
+            Order = await OrderService.GetOrderByIdAsync(OrderId);
 
             if (Order == null)
             {

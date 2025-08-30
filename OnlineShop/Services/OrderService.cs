@@ -11,7 +11,14 @@ namespace OnlineShopUI.Services
             return response ?? new PagedOrderResultViewModel();
         }
 
-        public async Task<OrderViewModel> GetOrderAsync(int orderId)
+        public async Task<PagedOrderResultViewModel> GetOrderByOrderNumberAsync(string orderNumber)
+        {
+            var httpClient = httpClientFactory.CreateClient("Api");
+            var response = await httpClient.GetFromJsonAsync<PagedOrderResultViewModel>($"api/orders?orderNumber={orderNumber}");
+            return response ?? new PagedOrderResultViewModel();
+        }
+
+        public async Task<OrderViewModel> GetOrderByIdAsync(int orderId)
         {
             var httpClient = httpClientFactory.CreateClient("Api");
             var response = await httpClient.GetFromJsonAsync<OrderViewModel>($"api/orders/{orderId}");
