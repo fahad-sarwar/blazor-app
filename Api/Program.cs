@@ -55,7 +55,7 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<OnlineShopContext>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-    TestDataSeeder.Seed(dbContext, userManager);
+    await TestDataSeeder.SeedAsync(dbContext, userManager);
 }
 
 //app.UseHttpsRedirection();

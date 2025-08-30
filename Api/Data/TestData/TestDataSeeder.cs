@@ -6,7 +6,7 @@ namespace Api.Data.TestData
 {
     public class TestDataSeeder
     {
-        public static void Seed(OnlineShopContext context, UserManager<ApplicationUser> userManager)
+        public static async Task SeedAsync(OnlineShopContext context, UserManager<ApplicationUser> userManager)
         {
             context.Users.RemoveRange(context.Users);
             context.Wishlist.RemoveRange(context.Wishlist);
@@ -23,7 +23,7 @@ namespace Api.Data.TestData
             context.Customer.RemoveRange(context.Customer);
             context.TaxRate.RemoveRange(context.TaxRate);
             context.Message.RemoveRange(context.Message);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var taxRate = new TaxRate
             {
@@ -48,7 +48,7 @@ namespace Api.Data.TestData
                 categorySportsOutdoors,
                 categoryToysGames
             );
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var rnd = new Random();
             var products = new List<Product>
@@ -230,7 +230,7 @@ namespace Api.Data.TestData
                 address4Billing, address4Shipping,
                 address5Billing, address5Shipping
             );
-            context.SaveChanges();
+            await context.SaveChangesAsync();
 
             var customers = new List<Customer>
             {
@@ -290,20 +290,27 @@ namespace Api.Data.TestData
             {
                 var user = new ApplicationUser
                 {
-                    Id = Guid.NewGuid().ToString(),
                     UserName = customer.Email,
                     Email = customer.Email,
                     PhoneNumber = customer.PhoneNumber,
                     FirstName = customer.FirstName,
                     LastName = customer.LastName,
+                    EmailConfirmed = true
                     
                 };
-                user.PasswordHash = new PasswordHasher<ApplicationUser>().HashPassword(user, "P@ssword1");
 
-                context.Users.Add(user);
+                var result = await userManager.CreateAsync(user, "P@ssword1");
 
-                customer.UserId = user.Id;
-                customer.User = user;
+                if (result.Succeeded)
+                {
+                    customer.UserId = user.Id;
+                    customer.User = user;
+                }
+                else
+                {
+                    // Handle errors if user creation fails
+                    throw new InvalidOperationException($"Failed to create user {customer.Email}: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+                }
             }
 
             context.Customer.AddRange(customers);
@@ -359,7 +366,7 @@ namespace Api.Data.TestData
 
             context.Review.AddRange(reviews);
 
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
 
         private static Product CreateProduct(string name, string description, double price, string imageUrl, Category category)
