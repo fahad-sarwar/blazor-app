@@ -8,22 +8,15 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BasketsController : ControllerBase
+    public class BasketsController(OnlineShopContext context) : ControllerBase
     {
-        private readonly OnlineShopContext _context;
-
-        public BasketsController(OnlineShopContext context)
-        {
-            _context = context;
-        }
-
         // GET: api/Baskets
         [HttpGet]
         public async Task<ActionResult<Basket>> GetBasket([FromQuery] string anonymousUserId)
         {
             try
             {
-                var basket = await _context.Basket
+                var basket = await context.Basket
                     .Include(b => b.Items)
                     .ThenInclude(bi => bi.Product)
                     .Where(b => b.AnonymousId == anonymousUserId)
@@ -41,7 +34,7 @@ namespace Api.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Basket>> GetBasket(int id)
         {
-            var basket = await _context.Basket.FindAsync(id);
+            var basket = await context.Basket.FindAsync(id);
 
             if (basket == null)
             {
@@ -61,11 +54,11 @@ namespace Api.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(basket).State = EntityState.Modified;
+            context.Entry(basket).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -87,8 +80,8 @@ namespace Api.Controllers
         [HttpPost]
         public async Task<ActionResult<Basket>> PostBasket(Basket basket)
         {
-            _context.Basket.Add(basket);
-            await _context.SaveChangesAsync();
+            context.Basket.Add(basket);
+            await context.SaveChangesAsync();
 
             return CreatedAtAction("GetBasket", new { id = basket.Id }, basket);
         }
@@ -97,21 +90,21 @@ namespace Api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBasket(int id)
         {
-            var basket = await _context.Basket.FindAsync(id);
+            var basket = await context.Basket.FindAsync(id);
             if (basket == null)
             {
                 return NotFound();
             }
 
-            _context.Basket.Remove(basket);
-            await _context.SaveChangesAsync();
+            context.Basket.Remove(basket);
+            await context.SaveChangesAsync();
 
             return NoContent();
         }
 
         private bool BasketExists(int id)
         {
-            return _context.Basket.Any(e => e.Id == id);
+            return context.Basket.Any(e => e.Id == id);
         }
     }
 }

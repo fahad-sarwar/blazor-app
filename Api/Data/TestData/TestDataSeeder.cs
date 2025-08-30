@@ -22,6 +22,7 @@ namespace Api.Data.TestData
             context.Address.RemoveRange(context.Address);
             context.Customer.RemoveRange(context.Customer);
             context.TaxRate.RemoveRange(context.TaxRate);
+            context.Message.RemoveRange(context.Message);
             context.SaveChanges();
 
             var taxRate = new TaxRate

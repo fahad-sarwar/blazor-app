@@ -24,5 +24,6 @@ namespace Api.Data
         public DbSet<Api.Models.Db.Payment> Payment { get; set; } = default!;
         public DbSet<Api.Models.Db.TaxRate> TaxRate { get; set; } = default!;
         public DbSet<Api.Models.Db.Wishlist> Wishlist { get; set; } = default!;
+        public DbSet<Api.Models.Db.Message> Message { get; set; } = default!;
     }
 }
