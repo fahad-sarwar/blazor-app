@@ -1,6 +1,5 @@
 ﻿using Api.Data;
 using Api.Models;
-using Api.Models.Db;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,29 +11,6 @@ namespace Api.Controllers
     [ApiController]
     public class CustomersController(OnlineShopContext context, UserManager<ApplicationUser> userManager) : ControllerBase
     {
-        // GET: api/Customers
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Customer>>> GetCustomer()
-        {
-            return await context.Customer.ToListAsync();
-        }
-
-        // GET: api/Customers/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Customer>> GetCustomer(int id)
-        {
-            var customer = await context.Customer.FindAsync(id);
-
-            if (customer == null)
-            {
-                return NotFound();
-            }
-
-            return customer;
-        }
-
-        // PUT: api/Customers/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCustomer(int id, UpdateCustomerRequest request)
         {
@@ -84,32 +60,6 @@ namespace Api.Controllers
 
                 throw;
             }
-
-            return NoContent();
-        }
-
-        // POST: api/Customers
-        [HttpPost]
-        public async Task<ActionResult<Customer>> PostCustomer(Customer customer)
-        {
-            context.Customer.Add(customer);
-            await context.SaveChangesAsync();
-
-            return CreatedAtAction("GetCustomer", new { id = customer.Id }, customer);
-        }
-
-        // DELETE: api/Customers/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCustomer(int id)
-        {
-            var customer = await context.Customer.FindAsync(id);
-            if (customer == null)
-            {
-                return NotFound();
-            }
-
-            context.Customer.Remove(customer);
-            await context.SaveChangesAsync();
 
             return NoContent();
         }

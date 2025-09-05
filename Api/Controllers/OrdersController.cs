@@ -12,7 +12,6 @@ namespace Api.Controllers
     [ApiController]
     public class OrdersController(OnlineShopContext context, BackgroundOrderQueue queue) : ControllerBase
     {
-        // GET: api/Orders
         [HttpGet]
         public async Task<ActionResult<PagedOrderResult>> GetOrders([FromQuery] string? orderNumber, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
@@ -47,7 +46,6 @@ namespace Api.Controllers
             };
         }
 
-        // GET: api/Orders/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Order>> GetOrder(int id)
         {
@@ -76,11 +74,9 @@ namespace Api.Controllers
             return order;
         }
 
-        // POST: api/Orders
         [HttpPost]
         public async Task<ActionResult<Order>> PostOrder(CreateOrderRequest createOrderRequest)
         {
-            // Check basket & tax rate exist
             var basket = await context.Basket
                 .Include(b => b.Items)
                 .ThenInclude(bi => bi.Product)
@@ -118,7 +114,6 @@ namespace Api.Controllers
 
             try
             {
-                // Create customer addresses
                 var billingAddress = new Address
                 {
                     AddressLineOne = createOrderRequest.Customer.BillingAddress.AddressLineOne,
@@ -150,10 +145,9 @@ namespace Api.Controllers
                 context.Entry(customer).State = EntityState.Modified;
                 await context.SaveChangesAsync();
                
-                // Create order
                 var totalPrice = basket.Items.Sum(bi => bi.TotalPrice);
                 var totalVAT = totalPrice * taxRate.Rate / 100;
-                totalPrice += totalVAT; // Add VAT to total price
+                totalPrice += totalVAT;
 
                 var order = new Order
                 {
@@ -171,7 +165,7 @@ namespace Api.Controllers
                         CVV = createOrderRequest.Payment.CVV,
                     },
                     DeliveryMethod = "Royal Mail",
-                    EstimatedDelivery = DateTime.UtcNow.AddDays(3), // Example estimated delivery
+                    EstimatedDelivery = DateTime.UtcNow.AddDays(3),
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                 };
@@ -179,9 +173,8 @@ namespace Api.Controllers
                 await context.SaveChangesAsync();
 
                 order.OrderNumber = $"ORD{order.Id:D7}";
-                await context.SaveChangesAsync(); // Save the OrderNumber
+                await context.SaveChangesAsync(); 
 
-                // Create order items
                 var orderItems = basket.Items.Select(bi => new OrderItem
                 {
                     OrderId = order.Id,
@@ -196,13 +189,14 @@ namespace Api.Controllers
                 context.OrderItem.AddRange(orderItems);
                 await context.SaveChangesAsync();
 
-                context.BasketItem.RemoveRange(basket.Items); // Clear the basket items
-                context.Basket.Remove(basket); // Clear the basket after order creation
+                context.BasketItem.RemoveRange(basket.Items);
+                context.Basket.Remove(basket);
                 await context.SaveChangesAsync();
 
-                queue.Enqueue(order.Id); // Enqueue the order for background processing
+                queue.Enqueue(order.Id);
 
-                return CreatedAtAction("GetOrder", new { id = order.Id }, order);
+                return await GetOrder(order.Id);
+                //return CreatedAtAction("GetOrder", new { id = order.Id }, order);
             }
             catch (Exception ex)
             {

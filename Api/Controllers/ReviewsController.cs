@@ -13,7 +13,6 @@ namespace Api.Controllers
     {
         private static readonly string[] ReviewStatuses = new[] { "Pending", "Approved", "Rejected" };
 
-        // GET: api/Reviews
         [HttpGet]
         public async Task<ActionResult<PagedReviewResult>> GetReviews([FromQuery] int productId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
@@ -38,7 +37,6 @@ namespace Api.Controllers
             };
         }
 
-        // GET: api/Reviews/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Review>> GetReview(int id)
         {
@@ -54,45 +52,6 @@ namespace Api.Controllers
             return review;
         }
 
-        // PUT: api/Reviews/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutReview(int id, string status)
-        {
-            var review = await context.Review.FindAsync(id);
-
-            if (review == null)
-            {
-                return NotFound();
-            }
-
-            if (!ReviewStatuses.Contains(status))
-            {
-                return BadRequest($"Invalid status. Allowed values are: {string.Join(", ", ReviewStatuses)}");
-            }
-
-            review.Status = status;
-
-            context.Entry(review).State = EntityState.Modified;
-
-            try
-            {
-                await context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ReviewExists(id))
-                {
-                    return NotFound();
-                }
-
-                throw;
-            }
-
-            return NoContent();
-        }
-
-        // POST: api/Reviews
         [HttpPost]
         public async Task<ActionResult<Review>> PostReview(CreateReviewRequest request)
         {
@@ -119,12 +78,7 @@ namespace Api.Controllers
             context.Review.Add(review);
             await context.SaveChangesAsync();
 
-            return CreatedAtAction("GetReview", new { id = review.Id }, review);
-        }
-
-        private bool ReviewExists(int id)
-        {
-            return context.Review.Any(e => e.Id == id);
+            return review;
         }
     }
 }

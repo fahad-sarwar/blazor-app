@@ -8,42 +8,12 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BasketItemsController : ControllerBase
+    public class BasketItemsController(OnlineShopContext context) : ControllerBase
     {
-        private readonly OnlineShopContext _context;
-
-        public BasketItemsController(OnlineShopContext context)
-        {
-            _context = context;
-        }
-
-        // GET: api/BasketItems
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<BasketItem>>> GetBasketItem()
-        {
-            return await _context.BasketItem.ToListAsync();
-        }
-
-        // GET: api/BasketItems/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<BasketItem>> GetBasketItem(int id)
-        {
-            var basketItem = await _context.BasketItem.FindAsync(id);
-
-            if (basketItem == null)
-            {
-                return NotFound();
-            }
-
-            return basketItem;
-        }
-
-        // PUT: api/BasketItems/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBasketItem(int id, UpdateBasketItemQuantity updateBasketItemQuantity)
         {
-            var basketItem = await _context.BasketItem.FindAsync(id);
+            var basketItem = await context.BasketItem.FindAsync(id);
 
             if (basketItem == null)
             {
@@ -52,11 +22,11 @@ namespace Api.Controllers
 
             basketItem.Quantity = updateBasketItemQuantity.Quantity;
 
-            _context.Entry(basketItem).State = EntityState.Modified;
+            context.Entry(basketItem).State = EntityState.Modified;
 
             try
             {
-                await _context.SaveChangesAsync();
+                await context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -64,20 +34,17 @@ namespace Api.Controllers
                 {
                     return NotFound();
                 }
-                else
-                {
-                    throw;
-                }
+
+                throw;
             }
 
             return NoContent();
         }
 
-        // POST: api/BasketItems
         [HttpPost]
         public async Task<ActionResult<BasketItem>> PostBasketItem(AddBasketItem addBasketItem)
         {
-            var product = await _context.Product.SingleOrDefaultAsync(p => p.Id == addBasketItem.ProductId);
+            var product = await context.Product.SingleOrDefaultAsync(p => p.Id == addBasketItem.ProductId);
 
             if (product == null)
             {
@@ -94,14 +61,14 @@ namespace Api.Controllers
                 return BadRequest("Either AnonymousId or CustomerId must be provided");
             }
 
-            var customer = await _context.Customer.SingleOrDefaultAsync(c => c.Id == addBasketItem.CustomerId);
+            var customer = await context.Customer.SingleOrDefaultAsync(c => c.Id == addBasketItem.CustomerId);
 
             if (addBasketItem.CustomerId.HasValue && customer == null)
             {
                 return BadRequest("Customer not found");
             }
 
-            var basket = await _context.Basket
+            var basket = await context.Basket
                 .SingleOrDefaultAsync(b => b.AnonymousId == addBasketItem.AnonymousId ||
                 (b.Customer != null && b.Customer.Id == addBasketItem.CustomerId));
 
@@ -110,10 +77,10 @@ namespace Api.Controllers
                 basket = new Basket
                 {
                     AnonymousId = addBasketItem.AnonymousId,
-                    Customer = addBasketItem.CustomerId.HasValue ? await _context.Customer.FindAsync(addBasketItem.CustomerId.Value) : null
+                    Customer = addBasketItem.CustomerId.HasValue ? await context.Customer.FindAsync(addBasketItem.CustomerId.Value) : null
                 };
-                _context.Basket.Add(basket);
-                await _context.SaveChangesAsync();
+                context.Basket.Add(basket);
+                await context.SaveChangesAsync();
             }
 
             var basketItem = new BasketItem
@@ -125,32 +92,31 @@ namespace Api.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-            _context.BasketItem.Add(basketItem);
-            await _context.SaveChangesAsync();
+            context.BasketItem.Add(basketItem);
+            await context.SaveChangesAsync();
 
-            return CreatedAtAction("GetBasketItem", new { id = basketItem.Id }, basketItem);
+            return basketItem;
         }
 
-        // DELETE: api/BasketItems/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteBasketItem(int id)
         {
-            var basketItem = await _context.BasketItem.FindAsync(id);
+            var basketItem = await context.BasketItem.FindAsync(id);
 
             if (basketItem == null)
             {
                 return NotFound();
             }
 
-            _context.BasketItem.Remove(basketItem);
-            await _context.SaveChangesAsync();
+            context.BasketItem.Remove(basketItem);
+            await context.SaveChangesAsync();
 
             return NoContent();
         }
 
         private bool BasketItemExists(int id)
         {
-            return _context.BasketItem.Any(e => e.Id == id);
+            return context.BasketItem.Any(e => e.Id == id);
         }
     }
 }
