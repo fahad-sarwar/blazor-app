@@ -11,9 +11,6 @@ namespace Api.Data.TestData
             context.Users.RemoveRange(context.Users);
             context.Wishlist.RemoveRange(context.Wishlist);
             context.Payment.RemoveRange(context.Payment);
-            context.ReturnTrackingUpdate.RemoveRange(context.ReturnTrackingUpdate);
-            context.ReturnItem.RemoveRange(context.ReturnItem);
-            context.Return.RemoveRange(context.Return);
             context.OrderTrackingUpdate.RemoveRange(context.OrderTrackingUpdate);
             context.OrderItem.RemoveRange(context.OrderItem);
             context.Order.RemoveRange(context.Order);

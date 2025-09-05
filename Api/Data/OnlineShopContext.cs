@@ -22,9 +22,6 @@ namespace Api.Data
         public DbSet<Api.Models.Db.Order> Order { get; set; } = default!;
         public DbSet<Api.Models.Db.OrderItem> OrderItem { get; set; } = default!;
         public DbSet<Api.Models.Db.OrderTrackingUpdate> OrderTrackingUpdate { get; set; } = default!;
-        public DbSet<Api.Models.Db.Return> Return { get; set; } = default!;
-        public DbSet<Api.Models.Db.ReturnItem> ReturnItem { get; set; } = default!;
-        public DbSet<Api.Models.Db.ReturnTrackingUpdate> ReturnTrackingUpdate { get; set; } = default!;
         public DbSet<Api.Models.Db.Payment> Payment { get; set; } = default!;
         public DbSet<Api.Models.Db.TaxRate> TaxRate { get; set; } = default!;
         public DbSet<Api.Models.Db.Wishlist> Wishlist { get; set; } = default!;
