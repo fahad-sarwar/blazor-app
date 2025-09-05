@@ -10,6 +10,7 @@
         public int Stock { get; set; }
         public bool ForSale { get; set; }
         public double? SalePrice { get; set; }
+        public List<ProductAttribute> Attribute { get; set; } = new List<ProductAttribute>();
         public Category Category { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

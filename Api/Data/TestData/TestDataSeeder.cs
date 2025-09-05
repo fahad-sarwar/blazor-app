@@ -20,6 +20,7 @@ namespace Api.Data.TestData
             context.BasketItem.RemoveRange(context.BasketItem);
             context.Basket.RemoveRange(context.Basket);
             context.Review.RemoveRange(context.Review);
+            context.ProductAttribute.RemoveRange(context.ProductAttribute);
             context.Product.RemoveRange(context.Product);
             context.Category.RemoveRange(context.Category);
             context.Address.RemoveRange(context.Address);
