@@ -11,5 +11,11 @@ namespace Api.Models.DTOs
         public string LastName { get; set; }
 
         public string PhoneNumber { get; set; } = string.Empty;
+
+        [Required]
+        public UpdateAddressDTO ShippingAddress { get; set; } = new();
+
+        [Required]
+        public UpdateAddressDTO BillingAddress { get; set; } = new();
     }
 }

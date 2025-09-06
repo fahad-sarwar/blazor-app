@@ -16,5 +16,8 @@ namespace OnlineShopUI.ViewModels
 
         [Phone(ErrorMessage = "Invalid phone number format")]
         public string PhoneNumber { get; set; } = string.Empty;
+
+        public UpdateAddressViewModel ShippingAddress { get; set; }
+        public UpdateAddressViewModel BillingAddress { get; set; }
     }
 }

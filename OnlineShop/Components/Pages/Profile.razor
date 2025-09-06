@@ -50,6 +50,7 @@
                                     <DataAnnotationsValidator />
                                     <ValidationSummary class="text-danger mb-3" />
 
+                                    <h5 class="mb-3">Personal Information</h5>
                                     <div class="row">
                                         <div class="col-md-6 mb-3">
                                             <label for="firstName" class="form-label fw-semibold">
@@ -73,8 +74,80 @@
                                             <i class="bi bi-telephone me-1"></i>Phone Number
                                         </label>
                                         <InputText id="phoneNumber" class="form-control" @bind-Value="updateModel.PhoneNumber"
-                                        placeholder="Enter your phone number" />
+                                                   placeholder="Enter your phone number" />
                                         <ValidationMessage For="@(() => updateModel.PhoneNumber)" class="text-danger" />
+                                    </div>
+
+                                    <h5 class="mb-3">Shipping Address</h5>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="shippingAddressLineOne" class="form-label fw-semibold">Address Line 1</label>
+                                            <InputText id="shippingAddressLineOne" class="form-control" @bind-Value="updateModel.ShippingAddress.AddressLineOne" />
+                                            <ValidationMessage For="@(() => updateModel.ShippingAddress.AddressLineOne)" class="text-danger" />
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="shippingAddressLineTwo" class="form-label fw-semibold">Address Line 2</label>
+                                            <InputText id="shippingAddressLineTwo" class="form-control" @bind-Value="updateModel.ShippingAddress.AddressLineTwo" />
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="shippingTown" class="form-label fw-semibold">Town</label>
+                                            <InputText id="shippingTown" class="form-control" @bind-Value="updateModel.ShippingAddress.Town" />
+                                            <ValidationMessage For="@(() => updateModel.ShippingAddress.Town)" class="text-danger" />
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="shippingCounty" class="form-label fw-semibold">County</label>
+                                            <InputText id="shippingCounty" class="form-control" @bind-Value="updateModel.ShippingAddress.County" />
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="shippingPostCode" class="form-label fw-semibold">Postcode</label>
+                                            <InputText id="shippingPostCode" class="form-control" @bind-Value="updateModel.ShippingAddress.PostCode" />
+                                            <ValidationMessage For="@(() => updateModel.ShippingAddress.PostCode)" class="text-danger" />
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="shippingCountry" class="form-label fw-semibold">Country</label>
+                                            <InputText id="shippingCountry" class="form-control" @bind-Value="updateModel.ShippingAddress.Country" />
+                                            <ValidationMessage For="@(() => updateModel.ShippingAddress.Country)" class="text-danger" />
+                                        </div>
+                                    </div>
+
+                                    <h5 class="mb-3">Billing Address</h5>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="billingAddressLineOne" class="form-label fw-semibold">Address Line 1</label>
+                                            <InputText id="billingAddressLineOne" class="form-control" @bind-Value="updateModel.BillingAddress.AddressLineOne" />
+                                            <ValidationMessage For="@(() => updateModel.BillingAddress.AddressLineOne)" class="text-danger" />
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="billingAddressLineTwo" class="form-label fw-semibold">Address Line 2</label>
+                                            <InputText id="billingAddressLineTwo" class="form-control" @bind-Value="updateModel.BillingAddress.AddressLineTwo" />
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="billingTown" class="form-label fw-semibold">Town</label>
+                                            <InputText id="billingTown" class="form-control" @bind-Value="updateModel.BillingAddress.Town" />
+                                            <ValidationMessage For="@(() => updateModel.BillingAddress.Town)" class="text-danger" />
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="billingCounty" class="form-label fw-semibold">County</label>
+                                            <InputText id="billingCounty" class="form-control" @bind-Value="updateModel.BillingAddress.County" />
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6 mb-3">
+                                            <label for="billingPostCode" class="form-label fw-semibold">Postcode</label>
+                                            <InputText id="billingPostCode" class="form-control" @bind-Value="updateModel.BillingAddress.PostCode" />
+                                            <ValidationMessage For="@(() => updateModel.BillingAddress.PostCode)" class="text-danger" />
+                                        </div>
+                                        <div class="col-md-6 mb-3">
+                                            <label for="billingCountry" class="form-label fw-semibold">Country</label>
+                                            <InputText id="billingCountry" class="form-control" @bind-Value="updateModel.BillingAddress.Country" />
+                                            <ValidationMessage For="@(() => updateModel.BillingAddress.Country)" class="text-danger" />
+                                        </div>
                                     </div>
 
                                     <div class="d-flex gap-2">
@@ -138,16 +211,34 @@
         try
         {
             isLoading = true;
-            var userInfo = await AuthService.GetCurrentUserAsync();
+            var customer = await CustomerService.GetCustomerAsync();
 
-            if (userInfo != null)
+            if (customer != null)
             {
                 updateModel = new UpdateCustomerViewModel
                     {
-                        Id = userInfo.CustomerId ?? 0,
-                        FirstName = userInfo.FirstName ?? string.Empty,
-                        LastName = userInfo.LastName ?? string.Empty,
-                        PhoneNumber = userInfo.PhoneNumber ?? string.Empty
+                        Id = customer.Id,
+                        FirstName = customer.FirstName,
+                        LastName = customer.LastName,
+                        PhoneNumber = customer.PhoneNumber,
+                        ShippingAddress = new UpdateAddressViewModel
+                        {
+                            AddressLineOne = customer.ShippingAddress?.AddressLineOne,
+                            AddressLineTwo = customer.ShippingAddress?.AddressLineTwo,
+                            Town = customer.ShippingAddress?.Town,
+                            County = customer.ShippingAddress?.County,
+                            PostCode = customer.ShippingAddress?.PostCode,
+                            Country = customer.ShippingAddress?.Country
+                        },
+                        BillingAddress = new UpdateAddressViewModel
+                        {
+                            AddressLineOne = customer.BillingAddress?.AddressLineOne,
+                            AddressLineTwo = customer.BillingAddress?.AddressLineTwo,
+                            Town = customer.BillingAddress?.Town,
+                            County = customer.BillingAddress?.County,
+                            PostCode = customer.BillingAddress?.PostCode,
+                            Country = customer.BillingAddress?.Country
+                        }
                     };
             }
             else

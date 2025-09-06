@@ -105,6 +105,7 @@ namespace OnlineShopUI.Services
         {
             return await GetUserFromApiAsync();
         }
+
         public async Task<bool> UpdateProfileAsync(UpdateCustomerViewModel updateModel)
         {
             try
