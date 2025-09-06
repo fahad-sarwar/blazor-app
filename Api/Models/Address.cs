@@ -1,4 +1,4 @@
-﻿namespace Api.Models.Db
+﻿namespace Api.Models
 {
     public class Address
     {

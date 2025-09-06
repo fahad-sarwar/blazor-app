@@ -11,20 +11,20 @@ namespace Api.Data
         {
         }
 
-        public DbSet<Api.Models.Db.Category> Category { get; set; } = default!;
-        public DbSet<Api.Models.Db.Product> Product { get; set; } = default!;
-        public DbSet<Api.Models.Db.ProductAttribute> ProductAttribute { get; set; } = default!;
-        public DbSet<Api.Models.Db.Customer> Customer { get; set; } = default!;
-        public DbSet<Api.Models.Db.Address> Address { get; set; } = default!;
-        public DbSet<Api.Models.Db.Review> Review { get; set; } = default!;
-        public DbSet<Api.Models.Db.Basket> Basket { get; set; } = default!;
-        public DbSet<Api.Models.Db.BasketItem> BasketItem { get; set; } = default!;
-        public DbSet<Api.Models.Db.Order> Order { get; set; } = default!;
-        public DbSet<Api.Models.Db.OrderItem> OrderItem { get; set; } = default!;
-        public DbSet<Api.Models.Db.OrderTrackingUpdate> OrderTrackingUpdate { get; set; } = default!;
-        public DbSet<Api.Models.Db.Payment> Payment { get; set; } = default!;
-        public DbSet<Api.Models.Db.TaxRate> TaxRate { get; set; } = default!;
-        public DbSet<Api.Models.Db.Wishlist> Wishlist { get; set; } = default!;
-        public DbSet<Api.Models.Db.Message> Message { get; set; } = default!;
+        public DbSet<Category> Category { get; set; } = default!;
+        public DbSet<Product> Product { get; set; } = default!;
+        public DbSet<ProductAttribute> ProductAttribute { get; set; } = default!;
+        public DbSet<Customer> Customer { get; set; } = default!;
+        public DbSet<Address> Address { get; set; } = default!;
+        public DbSet<Review> Review { get; set; } = default!;
+        public DbSet<Basket> Basket { get; set; } = default!;
+        public DbSet<BasketItem> BasketItem { get; set; } = default!;
+        public DbSet<Order> Order { get; set; } = default!;
+        public DbSet<OrderItem> OrderItem { get; set; } = default!;
+        public DbSet<OrderTrackingUpdate> OrderTrackingUpdate { get; set; } = default!;
+        public DbSet<Payment> Payment { get; set; } = default!;
+        public DbSet<TaxRate> TaxRate { get; set; } = default!;
+        public DbSet<Wishlist> Wishlist { get; set; } = default!;
+        public DbSet<Message> Message { get; set; } = default!;
     }
 }

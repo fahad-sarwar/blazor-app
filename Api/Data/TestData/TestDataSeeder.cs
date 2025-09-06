@@ -1,5 +1,4 @@
 ﻿using Api.Models;
-using Api.Models.Db;
 using Microsoft.AspNetCore.Identity;
 
 namespace Api.Data.TestData

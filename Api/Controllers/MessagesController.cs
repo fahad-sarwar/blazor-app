@@ -1,29 +1,37 @@
 ﻿using Api.Data;
 using Api.Models;
-using Api.Models.Db;
+using Api.Models.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MessagesController(OnlineShopContext context) : ControllerBase
+    public class MessagesController(OnlineShopContext context, ILogger<MessagesController> logger) : ControllerBase
     {
         [HttpPost]
-        public async Task<ActionResult<Message>> PostBasket(CreateMessageRequest request)
+        public async Task<IActionResult> PostBasket(SendMessageDTO request)
         {
-            var message = new Message()
+            try
             {
-                Name = request.Name,
-                Email = request.Email,
-                Subject = request.Subject,
-                Content = request.Content,
-            };
+                var message = new Message
+                {
+                    Name = request.Name,
+                    Email = request.Email,
+                    Subject = request.Subject,
+                    Content = request.Content,
+                };
 
-            context.Message.Add(message);
-            await context.SaveChangesAsync();
+                context.Message.Add(message);
+                await context.SaveChangesAsync();
 
-            return message;
+                return Ok(message);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error saving message from {Email}", request.Email);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
     }
 }

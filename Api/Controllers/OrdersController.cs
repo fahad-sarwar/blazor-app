@@ -1,7 +1,7 @@
 ﻿using System.Security.Claims;
 using Api.Data;
 using Api.Models;
-using Api.Models.Db;
+using Api.Models.DTOs;
 using Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,110 +10,114 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrdersController(OnlineShopContext context, BackgroundOrderQueue queue) : ControllerBase
+    public class OrdersController(OnlineShopContext context, BackgroundOrderQueue queue, ILogger<OrdersController> logger) : ControllerBase
     {
         [HttpGet]
-        public async Task<ActionResult<PagedOrderResult>> GetOrders([FromQuery] string? orderNumber, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetOrders([FromQuery] string? orderNumber, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email)) return Unauthorized();
-
-            var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
-            if (customer == null) return NotFound("Customer not found.");
-
-            var query = context.Order
-                .Include(o => o.Customer)
-                .Where(o => o.Customer.Id == customer.Id)
-                .OrderByDescending(w => w.CreatedAt)
-                .AsQueryable();
-
-            if (!string.IsNullOrEmpty(orderNumber))
+            try
             {
-                query = query.Where(o => o.OrderNumber == orderNumber);
+                var email = User.FindFirst(ClaimTypes.Email)?.Value;
+
+                if (string.IsNullOrEmpty(email))
+                    return Unauthorized();
+
+                var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
+
+                if (customer == null)
+                    return NotFound("Customer not found.");
+
+                var query = context.Order
+                    .Include(o => o.Customer)
+                    .Where(o => o.Customer.Id == customer.Id)
+                    .OrderByDescending(w => w.CreatedAt)
+                    .AsQueryable();
+
+                if (!string.IsNullOrEmpty(orderNumber))
+                    query = query.Where(o => o.OrderNumber == orderNumber);
+
+                var totalCount = await query.CountAsync();
+
+                var paged = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                return Ok(
+                    new
+                    {
+                        Orders = paged.ToList(),
+                        TotalCount = totalCount
+                    }
+                );
             }
-
-            var totalCount = await query.CountAsync();
-
-            var paged = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return new PagedOrderResult
+            catch (Exception ex)
             {
-                Orders = paged.ToList(),
-                TotalCount = totalCount
-            };
+                logger.LogError(ex, "Error retrieving orders");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Order>> GetOrder(int id)
+        public async Task<IActionResult> GetOrderById(int id)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
-            if (string.IsNullOrEmpty(email)) return Unauthorized();
-
-            var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
-            if (customer == null) return NotFound("Customer not found.");
-
-            var order = await context.Order
-                .Include(o => o.Customer)
-                    .ThenInclude(c => c.ShippingAddress)
-                .Include(o => o.Customer)
-                    .ThenInclude(c => c.BillingAddress)
-                .Include(o => o.OrderItems)
-                    .ThenInclude(oi => oi.Product)
-                .Include(o => o.Payment)
-                .Include(o => o.TrackingUpdates)
-                .SingleOrDefaultAsync(o => o.Id == id && o.Customer.Id == customer.Id);
-
-            if (order == null)
+            try
             {
-                return NotFound();
-            }
+                var email = User.FindFirst(ClaimTypes.Email)?.Value;
 
-            return order;
+                if (string.IsNullOrEmpty(email))
+                    return Unauthorized();
+
+                var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
+
+                if (customer == null)
+                    return NotFound("Customer not found.");
+
+                var order = await GetOrder(id, customer.Id);
+
+                return order == null
+                    ? NotFound()
+                    : Ok(order);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error retrieving order with id {OrderId}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
         }
 
         [HttpPost]
-        public async Task<ActionResult<Order>> PostOrder(CreateOrderRequest createOrderRequest)
+        public async Task<IActionResult> PostOrder(CreateOrderDTO createOrderRequest)
         {
-            var basket = await context.Basket
+            try
+            {
+                var basket = await context.Basket
                 .Include(b => b.Items)
                 .ThenInclude(bi => bi.Product)
                 .SingleOrDefaultAsync(b => b.Id == createOrderRequest.BasketId);
 
-            var taxRate = await context.TaxRate
-                .Where(t =>
-                    t.EffectiveFrom <= DateTime.UtcNow &&
-                    (t.EffectiveTo == null || t.EffectiveTo > DateTime.UtcNow))
-                .OrderByDescending(t => t.EffectiveFrom)
-                .FirstOrDefaultAsync();
+                var taxRate = await context.TaxRate
+                    .Where(t =>
+                        t.EffectiveFrom <= DateTime.UtcNow &&
+                        (t.EffectiveTo == null || t.EffectiveTo > DateTime.UtcNow))
+                    .OrderByDescending(t => t.EffectiveFrom)
+                    .FirstOrDefaultAsync();
 
-            var customer = await context.Customer
-                .SingleOrDefaultAsync(c => c.Id == createOrderRequest.Customer.Id);
+                var customer = await context.Customer
+                    .SingleOrDefaultAsync(c => c.Id == createOrderRequest.Customer.Id);
 
-            if (basket == null)
-            {
-                return BadRequest("Basket not found");
-            }
+                if (basket == null)
+                    return BadRequest("Basket not found");
 
-            if (taxRate == null)
-            {
-                return BadRequest("No applicable tax rate found");
-            }
+                if (taxRate == null)
+                    return BadRequest("No applicable tax rate found");
 
-            if (basket.Items.Count == 0)
-            {
-                return BadRequest("Basket is empty");
-            }
+                if (basket.Items.Count == 0)
+                    return BadRequest("Basket is empty");
 
-            if (customer == null)
-            {
-                return BadRequest("Customer not found");
-            }
+                if (customer == null)
+                    return BadRequest("Customer not found");
 
-            try
-            {
                 var billingAddress = new Address
                 {
                     AddressLineOne = createOrderRequest.Customer.BillingAddress.AddressLineOne,
@@ -144,7 +148,7 @@ namespace Api.Controllers
 
                 context.Entry(customer).State = EntityState.Modified;
                 await context.SaveChangesAsync();
-               
+
                 var totalPrice = basket.Items.Sum(bi => bi.TotalPrice);
                 var totalVAT = totalPrice * taxRate.Rate / 100;
                 totalPrice += totalVAT;
@@ -173,7 +177,7 @@ namespace Api.Controllers
                 await context.SaveChangesAsync();
 
                 order.OrderNumber = $"ORD{order.Id:D7}";
-                await context.SaveChangesAsync(); 
+                await context.SaveChangesAsync();
 
                 var orderItems = basket.Items.Select(bi => new OrderItem
                 {
@@ -195,13 +199,30 @@ namespace Api.Controllers
 
                 queue.Enqueue(order.Id);
 
-                return await GetOrder(order.Id);
-                //return CreatedAtAction("GetOrder", new { id = order.Id }, order);
+                var createdOrder = await GetOrder(order.Id, customer.Id);
+                return Ok(createdOrder);
             }
             catch (Exception ex)
             {
-                return BadRequest($"Order creation failed: {ex.Message}");
+                logger.LogError(ex, "Error creating order");
+                return StatusCode(StatusCodes.Status500InternalServerError);
             }
+        }
+
+        private async Task<Order> GetOrder(int orderId, int customerId)
+        {
+            var order = await context.Order
+                .Include(o => o.Customer)
+                    .ThenInclude(c => c.ShippingAddress)
+                .Include(o => o.Customer)
+                    .ThenInclude(c => c.BillingAddress)
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                .Include(o => o.Payment)
+                .Include(o => o.TrackingUpdates)
+                .SingleOrDefaultAsync(o => o.Id == orderId && o.Customer.Id == customerId);
+
+            return order;
         }
     }
 }
