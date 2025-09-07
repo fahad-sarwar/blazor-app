@@ -31,7 +31,23 @@
 
                             <div class="card-body">
                                 <h5 class="card-title">@product.Name</h5>
-                                <p class="card-text text-muted">£@product.Price.ToString("0.00")</p>
+                                <div class="card-text">
+                                    @if (product.IsOnSale())
+                                    {
+                                        <div class="price-container">
+                                            <span class="text-muted text-decoration-line-through me-2">£@product.Price.ToString("0.00")</span>
+                                            <span class="text-danger fw-bold fs-5">£@product.SalePrice.Value.ToString("0.00")</span>
+                                            <span class="badge bg-danger ms-2">SALE</span>
+                                        </div>
+                                        <small class="text-success">
+                                            Save £@((product.Price - product.SalePrice.Value).ToString("0.00"))
+                                        </small>
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted fw-bold">£@product.Price.ToString("0.00")</span>
+                                    }
+                                </div>
                                 <a class="btn btn-primary" href="/product/@product.Id">View</a>
                                 <button class="btn btn-secondary" @onclick="async () => await AddToBasket(product.Id)">Add to Basket</button>
                                 <button class="btn btn-danger" @onclick="async () => await RemoveFromWishlist(product.Id)">Remove</button>

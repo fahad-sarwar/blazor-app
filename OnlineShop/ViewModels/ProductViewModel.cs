@@ -9,6 +9,7 @@
         public string ImageURL { get; set; }
         public int Stock { get; set; }
         public bool ForSale { get; set; }
+        public double? SalePrice { get; set; }
 
         public string GetStockStatus()
         {
@@ -16,6 +17,16 @@
                 return "In Stock";
 
             return Stock == 0 ? "Out of Stock" : "Low Stock";
+        }
+
+        public bool IsOnSale()
+        {
+            return SalePrice.HasValue && SalePrice.Value > 0 && SalePrice < Price;
+        }
+
+        public double EffectivePrice()
+        {
+            return IsOnSale() ? SalePrice!.Value : Price;
         }
     }
 }
