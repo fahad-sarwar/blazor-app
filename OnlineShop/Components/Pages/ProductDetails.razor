@@ -27,7 +27,7 @@ else
     <div class="card mb-4">
         <div class="row g-0">
             <div class="col-md-4">
-                <img src="@GetImageUrl(product)" class="img-fluid rounded-start" alt="@product.Name" />
+                <img src="@product.ImageURL" class="img-fluid rounded-start" alt="@product.Name" />
             </div>
             <div class="col-md-8">
                 <div class="card-body">
@@ -73,9 +73,6 @@ else
         product = await httpClient.GetFromJsonAsync<ProductViewModel>($"api/products/{Id}");
         isOnWishlist = await WishlistService.IsOnWishlistAsync(product.Id);
     }
-
-    private string GetImageUrl(ProductViewModel p) =>
-        !string.IsNullOrWhiteSpace(p.ImageURL) ? p.ImageURL : "https://via.placeholder.com/300x200?text=No+Image";
 
     private async Task AddToBasket()
     {

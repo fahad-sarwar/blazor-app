@@ -6,7 +6,7 @@
 
 <div class="col">
     <div class="card h-100 shadow-sm">
-        <img src="@GetImageUrl(Product)"
+        <img src="@Product.ImageURL"
              class="card-img-top" alt="@Product.Name" style="height: 200px; object-fit: cover;" />
 
         <div class="card-body">
@@ -38,13 +38,6 @@
     protected override async Task OnInitializedAsync()
     {
         isOnWishlist = await WishlistService.IsOnWishlistAsync(Product.Id);
-    }
-
-    private string GetImageUrl(ProductViewModel product)
-    {
-        return !string.IsNullOrWhiteSpace(product.ImageURL)
-            ? product.ImageURL
-            : "https://via.placeholder.com/300x200?text=No+Image";
     }
 
     private async Task AddToBasket()

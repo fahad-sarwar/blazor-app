@@ -1,7 +1,7 @@
 Name###Description
-Automotive###Explore a wide range of automotive products including car accessories, maintenance tools, replacement parts, and performance upgrades. Perfect for DIY enthusiasts and professional mechanics alike.
-Books###Discover a vast collection of books across all genres—fiction, non-fiction, educational, self-help, and more. Whether you're a casual reader or a passionate bookworm, there's something for everyone.
-Clothing###Shop the latest in fashion for men, women, and children. From everyday wear to formal outfits, our clothing collection includes stylish and affordable apparel for every occasion and season.
-Electronics###Browse top-rated electronics including smartphones, laptops, headphones, smart home devices, gaming gear, and more. Stay up to date with the latest tech trends and innovations.
-Sports & Outdoors###Gear up for adventure with our sports and outdoor equipment. Find fitness gear, camping essentials, bikes, and accessories to support your active lifestyle—whether at the gym or in the wild.
-Toys & Games###Bring joy to all ages with our range of toys and games. From educational toys and creative kits to board games and puzzles, there’s fun and learning packed into every product.
+Automotive###Explore different types of mobility products to help develop your car and make it feel more comforting. There are car accessories and things like replacement parts. It helps DIY and mechanics to explore a wide range of new products to use to develop the car/bike you are working on.
+Books###Find all types of books with different genres to educational, fiction and non – fiction. Even if you just read for fun or if you want to get into reading there is a wide variety of different books to help you improve.
+Clothing###Here you can find different types of clothing for all ages. You can find everyday wear or even normal outfits. These types of clothes are affordable and available to mostly everyone. There is clothing for every type of season whether it is winter or summer.
+Electronics###Here you can find the best rated electronics from mobile phones to TVs and cameras. You can stay up to date with the latest trends and find devise that benefit you. In addition, headphones for the gym.
+Sports & Outdoors###Find different types of gear for outdoors to help you stay more active like hiking equipment to footballs and tennis racquets. There is fitness gear and different accessories to help support your active lifestyle.
+Toys & Games###Find different types of fun for all ages with a variety of different toys and games to help keep you entertained. From toys for children to creative games where you can learn new things or even drive your favourite car.
