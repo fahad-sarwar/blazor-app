@@ -1,6 +1,5 @@
 ﻿@page "/basket"
 
-@using OnlineShopUI.Components.Layout
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
 @inject BasketService BasketService
@@ -90,7 +89,6 @@ else
 }
 
 @code {
-    [CascadingParameter] public MainLayout? MainLayout { get; set; }
     public BasketViewModel? BasketViewModel { get; set; }
     private string? ErrorMessage;
     private bool _loaded;

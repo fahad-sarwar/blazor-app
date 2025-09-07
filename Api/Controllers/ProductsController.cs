@@ -80,7 +80,9 @@ namespace Api.Controllers
         {
             try
             {
-                var product = await context.Product.FindAsync(id);
+                var product = await context.Product
+                    .Include(p => p.Attributes)
+                    .FirstOrDefaultAsync(p => p.Id == id);
 
                 return product == null
                     ? NotFound()

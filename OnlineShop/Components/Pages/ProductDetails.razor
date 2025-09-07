@@ -3,103 +3,245 @@
 @using OnlineShopUI.Components.Shared
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
-@using OnlineShopUI.Components.Layout
-@inject IHttpClientFactory HttpClientFactory
 @inject BasketService BasketService
+@inject ProductService ProductService
 @inject WishlistService WishlistService
 @rendermode InteractiveServer
 
-<h3>Product Details</h3>
+<div class="container py-4">
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <div class="alert alert-danger" role="alert">
+            @ErrorMessage
+        </div>
+    }
 
-@if (!string.IsNullOrEmpty(ErrorMessage))
-{
-    <div class="alert alert-danger" role="alert">
-        @ErrorMessage
-    </div>
-}
-
-@if (product == null)
-{
-    <p>Loading...</p>
-}
-else
-{
-    <div class="card mb-4">
-        <div class="row g-0">
-            <div class="col-md-4">
-                <img src="@product.ImageURL" class="img-fluid rounded-start" alt="@product.Name" />
+    @if (product == null)
+    {
+        <div class="text-center p-5">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Loading...</span>
             </div>
-            <div class="col-md-8">
-                <div class="card-body">
-                    <h5 class="card-title">@product.Name</h5>
-                    <p class="card-text">@product.Description</p>
-                    <p class="card-text"><strong>Price:</strong> £@product.Price.ToString("0.00")</p>
+            <p>Loading product details...</p>
+        </div>
+    }
+    else
+    {
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <img src="@product.ImageURL" class="card-img-top" alt="@product.Name" style="height: 400px; object-fit: cover;" />
+                </div>
+            </div>
 
-                    <div class="d-flex gap-2 mt-4">
-                        <button class="btn btn-primary" @onclick="AddToBasket">Add to Basket</button>
+            <!-- Product Information -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h1 class="card-title">@product.Name</h1>
+                        
+                        <!-- Average Rating -->
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="me-2">
+                                    @for (int i = 1; i <= 5; i++)
+                                    {
+                                        @if (i <= Math.Floor(product.AverageRating))
+                                        {
+                                            <i class="bi bi-star-fill text-warning"></i>
+                                        }
+                                        else if (i == Math.Ceiling(product.AverageRating) && product.AverageRating % 1 != 0)
+                                        {
+                                            <i class="bi bi-star-half text-warning"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-star text-muted"></i>
+                                        }
+                                    }
+                                </div>
+                                <span class="text-muted">(@product.AverageRating.ToString("0.0"))</span>
+                            </div>
+                        </div>
 
-                        <AuthorizeView>
-                            <Authorized>
-                                <button class="btn @GetWishlistButtonClass()" @onclick="AddToWishlist" disabled="@isOnWishlist">
-                                    <i class="@GetWishlistIconClass()"></i> Wishlist
-                                </button>
-                            </Authorized>
-                        </AuthorizeView>
+                        <div class="mb-3">
+                            @if (product.IsOnSale())
+                            {
+                                <div class="price-container">
+                                    <span class="text-muted text-decoration-line-through me-2 fs-5">£@product.Price.ToString("0.00")</span>
+                                    <span class="text-danger fw-bold fs-3">£@product.SalePrice!.Value.ToString("0.00")</span>
+                                    <span class="badge bg-danger ms-2">SALE</span>
+                                </div>
+                                <div class="text-success">
+                                    <i class="bi bi-tag-fill me-1"></i>
+                                    Save £@((product.Price - product.SalePrice!.Value).ToString("0.00"))
+                                </div>
+                            }
+                            else
+                            {
+                                <span class="fw-bold fs-3">£@product.Price.ToString("0.00")</span>
+                            }
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="d-flex align-items-center">
+                                <i class="bi bi-box-seam me-2"></i>
+                                <span class="fw-semibold">Stock: </span>
+                                <span class="ms-2 @product.GetStockStatusClass()">
+                                    @product.GetStockStatus()
+                                    @if (product.Stock > 0)
+                                    {
+                                        <span class="text-muted"> (@product.Stock available)</span>
+                                    }
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6>Description</h6>
+                            <p class="card-text">@product.Description</p>
+                        </div>
+
+                        <div class="d-flex gap-2 mb-3">
+                            <button class="btn btn-primary btn-lg" @onclick="AddToBasket" disabled="@(product.Stock == 0)">
+                                <i class="bi bi-cart-plus me-2"></i>Add to Basket
+                            </button>
+
+                            <AuthorizeView>
+                                <Authorized>
+                                    <button class="btn @GetWishlistButtonClass()" @onclick="AddToWishlist" disabled="@isOnWishlist">
+                                        <i class="@GetWishlistIconClass() me-1"></i>
+                                        @(isOnWishlist ? "In Wishlist" : "Add to Wishlist")
+                                    </button>
+                                </Authorized>
+                            </AuthorizeView>
+                        </div>
+
+                        @if (product.Stock == 0)
+                        {
+                            <div class="alert alert-warning">
+                                <i class="bi bi-exclamation-triangle me-2"></i>
+                                This item is currently out of stock.
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="card">
-        <div class="card-body">
-            <ProductReviews ProductId="@Id" />
+        @if (product.Attributes != null && product.Attributes.Any())
+        {
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-list-ul me-2"></i>Product Specifications
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-striped table-hover">
+                                    <tbody>
+                                        @foreach (var productAttribute in product.Attributes.Where(a => !string.IsNullOrWhiteSpace(a.Name) && !string.IsNullOrWhiteSpace(a.Value)))
+                                        {
+                                            <tr>
+                                                <td class="fw-semibold" style="width: 30%;">@productAttribute.Name</td>
+                                                <td>@productAttribute.Value</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <ProductReviews ProductId="@Id" />
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-}
+    }
+</div>
 
 @code {
-    [CascadingParameter] public MainLayout? MainLayout { get; set; }
     [Parameter] public int Id { get; set; }
 
-    public int ProductId { get; set; }
     private ProductViewModel? product;
     private string? ErrorMessage;
     private bool isOnWishlist;
 
     protected override async Task OnInitializedAsync()
     {
-        var httpClient = HttpClientFactory.CreateClient("Api");
-        product = await httpClient.GetFromJsonAsync<ProductViewModel>($"api/products/{Id}");
-        isOnWishlist = await WishlistService.IsOnWishlistAsync(product.Id);
+        try
+        {
+            product = await ProductService.GetProductAsync(Id);
+
+            if (product != null)
+            {
+                isOnWishlist = await WishlistService.IsOnWishlistAsync(product.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "Failed to load product details. Please try again.";
+        }
     }
 
     private async Task AddToBasket()
     {
-        var result = await BasketService.AddToBasketAsync(product.Id, 1);
+        if (product == null || product.Stock == 0) return;
 
-        if (!result)
+        try
         {
-            ErrorMessage = "Failed to add item to basket. Please try again.";
+            var result = await BasketService.AddToBasketAsync(product.Id, 1);
+
+            if (!result)
+            {
+                ErrorMessage = "Failed to add item to basket. Please try again.";
+            }
+            else
+            {
+                ErrorMessage = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = "An error occurred while adding the item to your basket.";
         }
     }
 
     private async Task AddToWishlist()
     {
-        if (isOnWishlist) return;
+        if (isOnWishlist || product == null) return;
 
-        var success = await WishlistService.AddToWishlistAsync(Id);
-
-        if (success)
+        try
         {
-            isOnWishlist = true;
+            var success = await WishlistService.AddToWishlistAsync(product.Id);
+
+            if (success)
+            {
+                isOnWishlist = true;
+                ErrorMessage = null;
+            }
+            else
+            {
+                ErrorMessage = "Failed to add item to wishlist. Please try again.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            ErrorMessage = "Failed to add item to wishlist. Please try again.";
+            ErrorMessage = "An error occurred while adding the item to your wishlist.";
         }
     }
 
-    private string GetWishlistIconClass() => isOnWishlist ? "bi bi-heart-fill text-danger" : "bi bi-heart";
+    private string GetWishlistIconClass() => isOnWishlist ? "bi bi-heart-fill" : "bi bi-heart";
     private string GetWishlistButtonClass() => isOnWishlist ? "btn-danger" : "btn-outline-danger";
 }

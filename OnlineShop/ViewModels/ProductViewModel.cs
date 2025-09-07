@@ -10,6 +10,8 @@
         public int Stock { get; set; }
         public bool ForSale { get; set; }
         public double? SalePrice { get; set; }
+        public List<ProductAttributeViewModel> Attributes { get; set; }
+        public double AverageRating { get; set; }
 
         public string GetStockStatus()
         {
@@ -17,6 +19,16 @@
                 return "In Stock";
 
             return Stock == 0 ? "Out of Stock" : "Low Stock";
+        }
+
+        public string GetStockStatusClass()
+        {
+            return Stock switch
+            {
+                0 => "text-danger",
+                <= 10 => "text-warning",
+                _ => "text-success"
+            };
         }
 
         public bool IsOnSale()

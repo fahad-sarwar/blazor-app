@@ -45,6 +45,30 @@ namespace Api.Controllers
             }
         }
 
+        [HttpGet("stats")]
+        public async Task<IActionResult> GetProductReviewStats([FromQuery] int productId)
+        {
+            try
+            {
+                var averageRating = await context.Review
+                    .Where(r => r.Product.Id == productId)
+                    .Where(r => r.Status == "Approved")
+                    .AverageAsync(r => (double?)r.Rating);
+
+                return Ok(
+                    new
+                    {
+                        AverageRating = averageRating
+                    }
+                );
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error retrieving product review stats for product with id {ReviewId}", productId);
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetReview(int id)
         {
@@ -54,8 +78,8 @@ namespace Api.Controllers
                     .Include(r => r.Customer)
                     .SingleOrDefaultAsync(r => r.Id == id);
 
-                return review == null 
-                    ? NotFound() 
+                return review == null
+                    ? NotFound()
                     : Ok(review);
             }
             catch (Exception ex)

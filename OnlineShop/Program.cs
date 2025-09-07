@@ -48,6 +48,7 @@ builder.Services.AddScoped<AnonymousUserService>();
 builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<BasketCountService>();
+builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<WishlistService>();
 builder.Services.AddScoped<ReviewService>();
 builder.Services.AddScoped<MessageService>();

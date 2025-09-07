@@ -1,6 +1,5 @@
 ﻿@page "/wishlist"
 
-@using OnlineShopUI.Components.Layout
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
 @inject BasketService BasketService
@@ -80,7 +79,6 @@
 
 @code {
     private List<ProductViewModel> products = new();
-    [CascadingParameter] public MainLayout? MainLayout { get; set; }
     private string? ErrorMessage;
     private int currentPage = 1;
     private int pageSize = 9;

@@ -119,18 +119,18 @@ namespace Api.Data.TestData
                     CreatedAt = DateTime.UtcNow.AddYears(-1)
                 };
 
-                product.Attribute.Add(await BuildProductAttribute(context, product, columns[8], columns[9]));
-                product.Attribute.Add(await BuildProductAttribute(context, product, columns[10], columns[11]));
-                product.Attribute.Add(await BuildProductAttribute(context, product, columns[12], columns[13]));
-                product.Attribute.Add(await BuildProductAttribute(context, product, columns[14], columns[15]));
-                product.Attribute.Add(await BuildProductAttribute(context, product, columns[16], columns[17]));
-                product.Attribute.Add(await BuildProductAttribute(context, product, columns[18], columns[19]));
-                product.Attribute.Add(await BuildProductAttribute(context, product, columns[20], columns[21]));
-                product.Attribute.Add(await BuildProductAttribute(context, product, columns[22], columns[23]));
-                product.Attribute.Add(await BuildProductAttribute(context, product, columns[24], columns[25]));
+                product.Attributes.Add(await BuildProductAttribute(context, columns[8], columns[9]));
+                product.Attributes.Add(await BuildProductAttribute(context, columns[10], columns[11]));
+                product.Attributes.Add(await BuildProductAttribute(context, columns[12], columns[13]));
+                product.Attributes.Add(await BuildProductAttribute(context, columns[14], columns[15]));
+                product.Attributes.Add(await BuildProductAttribute(context, columns[16], columns[17]));
+                product.Attributes.Add(await BuildProductAttribute(context, columns[18], columns[19]));
+                product.Attributes.Add(await BuildProductAttribute(context, columns[20], columns[21]));
+                product.Attributes.Add(await BuildProductAttribute(context, columns[22], columns[23]));
+                product.Attributes.Add(await BuildProductAttribute(context, columns[24], columns[25]));
 
                 if(columns.Length == 28)
-                    product.Attribute.Add(await BuildProductAttribute(context, product, columns[26], columns[27]));
+                    product.Attributes.Add(await BuildProductAttribute(context, columns[26], columns[27]));
 
                 context.Product.Add(product);
                 await context.SaveChangesAsync();
@@ -139,7 +139,7 @@ namespace Api.Data.TestData
             }
         }
 
-        private static async Task<ProductAttribute> BuildProductAttribute(OnlineShopContext context, Product product, string name, string value)
+        private static async Task<ProductAttribute> BuildProductAttribute(OnlineShopContext context, string name, string value)
         {
             var productAttribute = new ProductAttribute
             {

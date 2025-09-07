@@ -1,5 +1,4 @@
-﻿@using OnlineShopUI.Components.Layout
-@using OnlineShopUI.Services
+﻿@using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
 @inject BasketService BasketService
 @inject WishlistService WishlistService
@@ -48,7 +47,6 @@
 
 @code {
     [Parameter] public ProductViewModel Product { get; set; }
-    [CascadingParameter] public MainLayout? MainLayout { get; set; }
     private string? ErrorMessage;
     private bool isOnWishlist;
 
