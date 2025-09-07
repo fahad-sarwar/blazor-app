@@ -158,6 +158,7 @@
                 currentPage = 1;
             }
             var result = await ReviewService.GetPagedReviewsAsync(ProductId, currentPage, pageSize);
+
             if (result != null)
             {
                 Reviews.AddRange(result.Reviews);
