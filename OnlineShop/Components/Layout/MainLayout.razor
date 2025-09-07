@@ -7,7 +7,6 @@
         <Header />
 
         <div class="main-content">
-            <BasketToast @ref="toast" />
             <CategoryMenu />
 
             <main>
@@ -26,12 +25,3 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
-
-@code {
-    private BasketToast? toast;
-
-    public void ShowBasketPopup(string message)
-    {
-        toast?.Show(message);
-    }
-}

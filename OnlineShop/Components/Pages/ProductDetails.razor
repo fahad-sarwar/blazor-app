@@ -78,11 +78,7 @@ else
     {
         var result = await BasketService.AddToBasketAsync(product.Id, 1);
 
-        if (result)
-        {
-            MainLayout?.ShowBasketPopup("Item added to basket!");
-        }
-        else
+        if (!result)
         {
             ErrorMessage = "Failed to add item to basket. Please try again.";
         }
@@ -97,7 +93,6 @@ else
         if (success)
         {
             isOnWishlist = true;
-            MainLayout?.ShowBasketPopup("Item added to wishlist!");
         }
         else
         {

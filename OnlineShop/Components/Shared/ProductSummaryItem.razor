@@ -46,8 +46,7 @@
 
         if(result)
         {
-            MainLayout?.ShowBasketPopup("Item added to basket!");
-            ErrorMessage = null; // Clear any previous error message
+            ErrorMessage = null;
         }
         else
         {
@@ -64,7 +63,6 @@
         if (success)
         {
             isOnWishlist = true;
-            MainLayout?.ShowBasketPopup("Item added to wishlist!");
         }
         else
         {

@@ -106,8 +106,7 @@
         if (success)
         {
             products.RemoveAll(p => p.Id == productId);
-            MainLayout?.ShowBasketPopup("Product removed from your wishlist!");
-            ErrorMessage = null; // Clear any previous error message
+            ErrorMessage = null;
         }
         else
         {
@@ -121,8 +120,7 @@
 
         if (result)
         {
-            MainLayout?.ShowBasketPopup("Item added to basket!");
-            ErrorMessage = null; // Clear any previous error message
+            ErrorMessage = null;
         }
         else
         {
