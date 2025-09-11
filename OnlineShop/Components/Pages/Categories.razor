@@ -1,21 +1,23 @@
 ﻿@page "/categories"
+
+@using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
-@inject IHttpClientFactory HttpClientFactory
+@inject CategoryService CategoryService
 
 <h3>Categories</h3>
 
-@if (categories == null)
+@if (_categories == null)
 {
     <p><em>Loading...</em></p>
 }
-else if (categories.Count == 0)
+else if (_categories.Count == 0)
 {
     <p>No categories found.</p>
 }
 else
 {
     <ul>
-        @foreach (var category in categories)
+        @foreach (var category in _categories)
         {
             <li>
                 <strong>@category.Name</strong>: @category.Description
@@ -25,19 +27,10 @@ else
 }
 
 @code {
-    private List<CategoryViewModel>? categories;
+    private List<CategoryViewModel>? _categories;
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            var httpClient = HttpClientFactory.CreateClient("Api");
-            categories = await httpClient.GetFromJsonAsync<List<CategoryViewModel>>("api/categories");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching categories: {ex.Message}");
-            categories = new List<CategoryViewModel>();
-        }
+        _categories = await CategoryService.GetCategoriesAsync();
     }
 }

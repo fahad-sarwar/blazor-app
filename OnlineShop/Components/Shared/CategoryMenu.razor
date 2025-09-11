@@ -1,20 +1,24 @@
-﻿@using OnlineShopUI.ViewModels
-﻿@using OnlineShopUI.ViewModels
-@inject IHttpClientFactory HttpClientFactory
+﻿@using OnlineShopUI.Services
+@using OnlineShopUI.ViewModels
+@inject CategoryService CategoryService
 @rendermode InteractiveServer
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom px-3">
     <ul class="navbar-nav me-auto">
-        @if (CategoryLinks == null)
+        @if (_categoryLinks == null)
         {
             <li class="nav-item"><span class="nav-link">Loading...</span></li>
         }
+        else if (_categoryLinks.Count == 0)
+        {
+            <li class="nav-item"><span class="nav-link">No categories found.</span></li>
+        })
         else
         {
-            @foreach (var category in CategoryLinks)
+            @foreach (var categoryLink in _categoryLinks)
             {
                 <li class="nav-item">
-                    <NavLink class="nav-link" href="@category.Url">@category.Text</NavLink>
+                    <NavLink class="nav-link" href="@categoryLink.Url">@categoryLink.Text</NavLink>
                 </li>
             }
         }
@@ -22,27 +26,15 @@
 </nav>
 
 @code {
-    private List<NavLinkItemViewModel>? CategoryLinks;
-    private List<CategoryViewModel>? categories;
+    private List<NavLinkItemViewModel>? _categoryLinks;
+    private List<CategoryViewModel>? _categories;
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            var httpClient = HttpClientFactory.CreateClient("Api");
-            categories = await httpClient.GetFromJsonAsync<List<CategoryViewModel>>("api/categories");
+        _categories = await CategoryService.GetCategoriesAsync();
 
-            CategoryLinks = categories?.Select(c => new NavLinkItemViewModel
-                {
-                    Text = c.Name,
-                    Url = $"/categories/{c.Id}"
-                })
-                .ToList() ?? new List<NavLinkItemViewModel>();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching categories: {ex.Message}");
-            categories = new List<CategoryViewModel>();
-        }
+        _categoryLinks = _categories?
+            .Select(c => new NavLinkItemViewModel { Text = c.Name, Url = $"/categories/{c.Id}" })
+            .ToList() ?? [];
     }
 }

@@ -45,6 +45,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStatePr
 builder.Services.AddTransient<CheckoutDummyDataService>();
 builder.Services.AddTransient<BasketService>();
 builder.Services.AddScoped<AnonymousUserService>();
+builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<CustomerService>();
 builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<BasketCountService>();
