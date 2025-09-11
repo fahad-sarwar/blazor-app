@@ -9,7 +9,7 @@
         <div class="card-body">
             <h2 class="card-title">@Product.Name</h2>
             <p class="card-text">
-                @if (Product.IsOnSale())
+                @if (Product.ForSale)
                 {
                     <div>
                         <p><del>Was: @Product.GetFormattedPrice()</del></p>

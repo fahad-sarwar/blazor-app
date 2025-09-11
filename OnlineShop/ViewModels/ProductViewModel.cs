@@ -40,15 +40,5 @@
                 _ => "text-success"
             };
         }
-
-        public bool IsOnSale()
-        {
-            return SalePrice.HasValue && SalePrice.Value > 0 && SalePrice < Price;
-        }
-
-        public double EffectivePrice()
-        {
-            return IsOnSale() ? SalePrice!.Value : Price;
-        }
     }
 }

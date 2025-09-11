@@ -65,7 +65,7 @@
                         </div>
 
                         <div class="mb-3">
-                            @if (_product.IsOnSale())
+                            @if (_product.ForSale)
                             {
                                 <div class="price-container">
                                     <span class="text-muted text-decoration-line-through me-2 fs-5">£@_product.Price.ToString("0.00")</span>
