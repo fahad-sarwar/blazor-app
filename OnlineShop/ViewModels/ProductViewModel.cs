@@ -13,6 +13,16 @@
         public List<ProductAttributeViewModel> Attributes { get; set; }
         public double AverageRating { get; set; }
 
+        public string GetFormattedPrice()
+        {
+            return $"£{Price:0.00}";
+        }
+
+        public string GetFormattedSalePrice()
+        {
+            return $"£{SalePrice.Value:0.00}";
+        }
+
         public string GetStockStatus()
         {
             if (Stock > 10)

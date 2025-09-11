@@ -1,61 +1,59 @@
 ﻿@page "/"
+
 @using OnlineShopUI.Components.Layout
 @using OnlineShopUI.Components.Shared
+@using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
-@inject IHttpClientFactory HttpClientFactory
+@inject ProductService ProductService
 @layout MainLayout
 @rendermode InteractiveServer
 
-<style>
-    .carousel-inner {
-    height: 400px;
-    }
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger" role="alert">
+        @_errorMessage
+    </div>
+}
 
-    .carousel-item img {
-    height: 100%;
-    object-fit: cover;
-    width: 100%;
-    }
-</style>
-
-<div id="carouselExampleIndicators" class="carousel slide mb-5" data-bs-ride="carousel">
+<div id="carouselIndicators" class="carousel slide mb-3" data-bs-ride="carousel">
     <div class="carousel-indicators">
-        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
-        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
-        <button type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
+        <button type="button" data-bs-target="#carouselIndicators" data-bs-slide-to="0" class="active" aria-current="true" aria-label="Slide 1"></button>
+        <button type="button" data-bs-target="#carouselIndicators" data-bs-slide-to="1" aria-label="Slide 2"></button>
+        <button type="button" data-bs-target="#carouselIndicators" data-bs-slide-to="2" aria-label="Slide 3"></button>
     </div>
-    <div class="carousel-inner">
+    <div class="carousel-inner" style="height: 400px;">
         <div class="carousel-item active">
-            <img src="/images/CarouselImageOne.png" class="d-block w-100" alt="...">
+            <img src="/images/CarouselImageOne.jpg" class="d-block w-100" alt="..." style="height: 100%; object-fit: cover; width: 100%;">
         </div>
         <div class="carousel-item">
-            <img src="/images/CarouselImageTwo.png" class="d-block w-100" alt="...">
+            <img src="/images/CarouselImageTwo.jpg" class="d-block w-100" alt="..." style="height: 100%; object-fit: cover; width: 100%;">
         </div>
         <div class="carousel-item">
-            <img src="/images/CarouselImageThree.png" class="d-block w-100" alt="...">
+            <img src="/images/CarouselImageThree.jpg" class="d-block w-100" alt="..." style="height: 100%; object-fit: cover; width: 100%;">
         </div>
     </div>
-    <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="prev">
+    <button class="carousel-control-prev" type="button" data-bs-target="#carouselIndicators" data-bs-slide="prev">
         <span class="carousel-control-prev-icon" aria-hidden="true"></span>
         <span class="visually-hidden">Previous</span>
     </button>
-    <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleIndicators" data-bs-slide="next">
+    <button class="carousel-control-next" type="button" data-bs-target="#carouselIndicators" data-bs-slide="next">
         <span class="carousel-control-next-icon" aria-hidden="true"></span>
         <span class="visually-hidden">Next</span>
     </button>
 </div>
 
-@if (products == null)
+
+@if (_products == null)
 {
     <p>Loading...</p>
 }
 
-@if (products is not null && products.Any())
+@if (_products != null && _products.Count > 0)
 {
     <h3>Sale Items</h3>
 
     <div class="row row-cols-1 row-cols-md-3 g-4">
-        @foreach (var product in products)
+        @foreach (var product in _products)
         {
             <ProductSummaryItem Product="product" />
         }
@@ -63,23 +61,21 @@
 }
 
 @code {
-    private List<ProductViewModel> products = new();
-    private string selectedSort = "name-asc";
+    private List<ProductViewModel> _products = new();
+    private string? _errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            var httpClient = HttpClientFactory.CreateClient("Api");
-            var pagedProductResult = await httpClient.GetFromJsonAsync<PagedProductResultViewModel>(
-                $"api/products?forSale=true&sort={selectedSort}&page={1}&pageSize={6}");
+        var pagedProductResult = await ProductService.GetProductsAsync("name-asc", 1, 6);
 
-            products.AddRange(pagedProductResult.Products);
-        }
-        catch (Exception ex)
+        if (pagedProductResult != null)
         {
-            Console.WriteLine($"Error fetching products on sale : {ex.Message}");
-            products = new List<ProductViewModel>();
+            _products.AddRange(pagedProductResult.Products);
+        }
+        else
+        {
+            _products = new List<ProductViewModel>();
+            _errorMessage = "Failed to load products.";
         }
     }
 }

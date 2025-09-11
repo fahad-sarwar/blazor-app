@@ -4,42 +4,38 @@
 @inject WishlistService WishlistService
 
 <div class="col">
-    <div class="card h-100 shadow-sm">
-        <img src="@Product.ImageURL"
-             class="card-img-top" alt="@Product.Name" style="height: 200px; object-fit: cover;" />
-
+    <div class="card h-100">
+        <img src="@Product.ImageURL" class="img-fluid rounded-start" alt="@Product.Name" style="height: 200px; object-fit: cover;">
         <div class="card-body">
-            <h5 class="card-title">@Product.Name</h5>
-            <div class="card-text">
+            <h2 class="card-title">@Product.Name</h2>
+            <p class="card-text">
                 @if (Product.IsOnSale())
                 {
-                    <div class="price-container">
-                        <span class="text-muted text-decoration-line-through me-2">£@Product.Price.ToString("0.00")</span>
-                        <span class="text-danger fw-bold fs-5">£@Product.SalePrice.Value.ToString("0.00")</span>
-                        <span class="badge bg-danger ms-2">SALE</span>
+                    <div>
+                        <p><del>Was: @Product.GetFormattedPrice()</del></p>
+                        <p class="text-danger"><strong>Now: @Product.GetFormattedSalePrice()</strong></p>
                     </div>
-                    <small class="text-success">
-                        Save £@((Product.Price - Product.SalePrice.Value).ToString("0.00"))
-                    </small>
                 }
                 else
                 {
-                    <span class="text-muted fw-bold">£@Product.Price.ToString("0.00")</span>
+                    <p>Was: @Product.GetFormattedPrice()</p>
                 }
-            </div>
-
+            </p>
+        </div>
+        <div class="card-footer">
             <a class="btn btn-primary" href="/product/@Product.Id">View</a>
             <button class="btn btn-secondary" @onclick="AddToBasket">Add to Basket</button>
             <AuthorizeView>
                 <Authorized>
-                    <button class="btn @GetWishlistButtonClass()" @onclick="AddToWishlist" disabled="@isOnWishlist">
-                        <i class="@GetWishlistIconClass()"></i> Wishlist
+                    <button class="btn @GetWishlistButtonClass()" @onclick="AddToWishlist" disabled="@_isOnWishlist">
+                        Wishlist
                     </button>
                 </Authorized>
             </AuthorizeView>
-            @if (!string.IsNullOrEmpty(ErrorMessage))
+
+            @if (!string.IsNullOrEmpty(_errorMessage))
             {
-                <div class="text-danger mt-2">@ErrorMessage</div>
+                <div class="text-danger mt-2">@_errorMessage</div>
             }
         </div>
     </div>
@@ -47,45 +43,41 @@
 
 @code {
     [Parameter] public ProductViewModel Product { get; set; }
-    private string? ErrorMessage;
-    private bool isOnWishlist;
+
+    private string? _errorMessage;
+    private bool _isOnWishlist;
 
     protected override async Task OnInitializedAsync()
     {
-        isOnWishlist = await WishlistService.IsOnWishlistAsync(Product.Id);
+        _isOnWishlist = await WishlistService.IsOnWishlistAsync(Product.Id);
     }
 
     private async Task AddToBasket()
     {
         var result = await BasketService.AddToBasketAsync(Product.Id, 1);
 
-        if (result)
-        {
-            ErrorMessage = null;
-        }
-        else
-        {
-            ErrorMessage = "Failed to add item to basket. Please try again.";
-        }
+        _errorMessage = result
+            ? null
+            : "Failed to add item to basket. Please try again.";
     }
 
     private async Task AddToWishlist()
     {
-        if (isOnWishlist) return;
+        if (_isOnWishlist)
+            return;
 
         var success = await WishlistService.AddToWishlistAsync(Product.Id);
 
         if (success)
         {
-            isOnWishlist = true;
-            ErrorMessage = null;
+            _isOnWishlist = true;
+            _errorMessage = null;
         }
         else
         {
-            ErrorMessage = "Failed to add item to wishlist. Please try again.";
+            _errorMessage = "Failed to add item to wishlist. Please try again.";
         }
     }
 
-    private string GetWishlistIconClass() => isOnWishlist ? "bi bi-heart-fill text-danger" : "bi bi-heart";
-    private string GetWishlistButtonClass() => isOnWishlist ? "btn-danger" : "btn-outline-danger";
+    private string GetWishlistButtonClass() => _isOnWishlist ? "btn-danger" : "btn-outline-danger";
 }
