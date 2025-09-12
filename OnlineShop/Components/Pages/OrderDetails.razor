@@ -2,6 +2,7 @@
 
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
+@using OnlineShopUI.Components.Shared
 @inject OrderService OrderService
 @rendermode InteractiveServer
 
@@ -211,11 +212,7 @@
         }
     </Authorized>
     <NotAuthorized>
-        <div class="alert alert-warning">
-            <p>You need to be logged in to view order details.</p>
-            <a href="/account/login?returnUrl=%2Forder-details%2F@OrderId" class="btn btn-primary">Login</a>
-            <a href="/account/register?returnUrl=%2Forder-details%2F@OrderId" class="btn btn-secondary">Register</a>
-        </div>
+        <LoginRegisterAlert ReturnUrl="%2Forder-details%2F@OrderId" />
     </NotAuthorized>
 </AuthorizeView>
 

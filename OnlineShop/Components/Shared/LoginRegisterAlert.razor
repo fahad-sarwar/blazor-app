@@ -1,0 +1,12 @@
+﻿@rendermode InteractiveServer
+
+<div class="alert alert-warning">
+    <p>You need to be logged in to view order details.</p>
+    <a href="/account/login?returnUrl=@ReturnUrl" class="btn btn-primary">Login</a>
+    <a href="/account/register?returnUrl=@ReturnUrl" class="btn btn-secondary">Register</a>
+</div>
+
+@code {
+    [Parameter]
+    public required string ReturnUrl { get; set; }
+}

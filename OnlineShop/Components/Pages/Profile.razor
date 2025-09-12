@@ -2,6 +2,7 @@
 
 @using OnlineShopUI.ViewModels
 @using OnlineShopUI.Services
+@using OnlineShopUI.Components.Shared
 @inject IAuthService AuthService
 @inject CustomerService CustomerService
 @inject NavigationManager Navigation
@@ -173,21 +174,7 @@
                     </div>
                 </Authorized>
                 <NotAuthorized>
-                    <div class="card">
-                        <div class="card-body text-center p-5">
-                            <i class="bi bi-shield-lock display-1 text-muted mb-3"></i>
-                            <h4 class="mb-3">Access Restricted</h4>
-                            <p class="text-muted mb-4">You need to be logged in to view your profile.</p>
-                            <div class="d-flex gap-2 justify-content-center">
-                                <a href="/account/login?returnUrl=%2Fprofile" class="btn btn-primary">
-                                    <i class="bi bi-box-arrow-in-right me-2"></i>Login
-                                </a>
-                                <a href="/account/register?returnUrl=%2Fprofile" class="btn btn-outline-secondary">
-                                    <i class="bi bi-person-plus me-2"></i>Register
-                                </a>
-                            </div>
-                        </div>
-                    </div>
+                    <LoginRegisterAlert ReturnUrl="%2Fprofile" />
                 </NotAuthorized>
             </AuthorizeView>
         </div>

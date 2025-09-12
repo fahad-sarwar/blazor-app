@@ -3,6 +3,7 @@
 @using System.Security.Claims
 @using OnlineShopUI.ViewModels
 @using OnlineShopUI.Services
+@using OnlineShopUI.Components.Shared
 @rendermode InteractiveServer
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Navigation
@@ -172,11 +173,7 @@
         }
     </Authorized>
     <NotAuthorized>
-        <div class="alert alert-warning">
-            <p>You need to be logged in to access checkout.</p>
-            <a href="/account/login?returnUrl=%2Fcheckout" class="btn btn-primary">Login</a>
-            <a href="/account/register?returnUrl=%2Fcheckout" class="btn btn-secondary">Register</a>
-        </div>
+        <LoginRegisterAlert ReturnUrl="%2Fcheckout" />
     </NotAuthorized>
 </AuthorizeView>
 

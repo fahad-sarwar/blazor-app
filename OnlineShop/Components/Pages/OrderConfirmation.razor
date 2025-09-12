@@ -2,6 +2,7 @@
 
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
+@using OnlineShopUI.Components.Shared
 @inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Navigation
 @inject BasketCountService BasketCountService
@@ -57,11 +58,7 @@
         </div>
     </Authorized>
     <NotAuthorized>
-        <div class="alert alert-warning">
-            <p>You need to be logged in to access checkout.</p>
-            <a href="/account/login?returnUrl=%2Fcheckout" class="btn btn-primary">Login</a>
-            <a href="/account/register?returnUrl=%2Fcheckout" class="btn btn-secondary">Register</a>
-        </div>
+        <LoginRegisterAlert ReturnUrl="%2Fcheckout" />
     </NotAuthorized>
 </AuthorizeView>
 
