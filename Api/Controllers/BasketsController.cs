@@ -16,7 +16,7 @@ namespace Api.Controllers
             {
                 var basket = await context.Basket
                     .Include(b => b.Items)
-                    .ThenInclude(bi => bi.Product)
+                        .ThenInclude(bi => bi.Product)
                     .Where(b => b.AnonymousId == anonymousUserId)
                     .SingleOrDefaultAsync();
 

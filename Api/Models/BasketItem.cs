@@ -9,7 +9,6 @@
         public double Price { get; set; }
         public double TotalPrice => Quantity * Price;
         public double VATRate { get; set; }
-        public double VATAmount => TotalPrice * VATRate;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

@@ -50,6 +50,16 @@ namespace Api.Controllers
         {
             try
             {
+                var taxRate = await context.TaxRate
+                    .Where(t =>
+                        t.EffectiveFrom <= DateTime.UtcNow &&
+                        (t.EffectiveTo == null || t.EffectiveTo > DateTime.UtcNow))
+                    .OrderByDescending(t => t.EffectiveFrom)
+                    .FirstOrDefaultAsync();
+
+                if (taxRate == null)
+                    return BadRequest("No valid tax rate found");
+
                 var product = await context.Product.SingleOrDefaultAsync(p => p.Id == addBasketItem.ProductId);
 
                 if (product == null)
@@ -86,7 +96,8 @@ namespace Api.Controllers
                     BasketId = basket.Id,
                     Product = product,
                     Quantity = addBasketItem.Quantity,
-                    Price = product.Price,
+                    Price = product.ForSale ? product.SalePrice.Value : product.Price,
+                    VATRate = taxRate.Rate,
                     CreatedAt = DateTime.UtcNow
                 };
 

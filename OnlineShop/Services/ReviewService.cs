@@ -2,7 +2,7 @@
 
 namespace OnlineShopUI.Services
 {
-    public class ReviewService(IHttpClientFactory httpClientFactory, ILogger<CategoryService> logger)
+    public class ReviewService(IHttpClientFactory httpClientFactory, ILogger<ReviewService> logger)
     {
         public async Task<PagedReviewResultViewModel?> GetPagedReviewsAsync(int productId, int page, int pageSize)
         {

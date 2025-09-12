@@ -118,7 +118,7 @@ namespace Api.Controllers
                 if (customer == null)
                     return BadRequest("Customer not found");
 
-                var billingAddress = new Address
+                var customerBillingAddress = new Address
                 {
                     AddressLineOne = createOrderRequest.Customer.BillingAddress.AddressLineOne,
                     AddressLineTwo = createOrderRequest.Customer.BillingAddress.AddressLineTwo,
@@ -128,7 +128,7 @@ namespace Api.Controllers
                     Country = createOrderRequest.Customer.BillingAddress.Country,
                 };
 
-                var shippingAddress = new Address
+                var customerShippingAddress = new Address
                 {
                     AddressLineOne = createOrderRequest.Customer.ShippingAddress.AddressLineOne,
                     AddressLineTwo = createOrderRequest.Customer.ShippingAddress.AddressLineTwo,
@@ -138,24 +138,48 @@ namespace Api.Controllers
                     Country = createOrderRequest.Customer.ShippingAddress.Country,
                 };
 
-                context.Address.Add(billingAddress);
-                context.Address.Add(shippingAddress);
+                context.Address.Add(customerBillingAddress);
+                context.Address.Add(customerShippingAddress);
                 await context.SaveChangesAsync();
 
                 customer.PhoneNumber = createOrderRequest.Customer.PhoneNumber;
-                customer.BillingAddress = billingAddress;
-                customer.ShippingAddress = shippingAddress;
+                customer.BillingAddress = customerBillingAddress;
+                customer.ShippingAddress = customerShippingAddress;
 
                 context.Entry(customer).State = EntityState.Modified;
                 await context.SaveChangesAsync();
 
                 var totalPrice = basket.Items.Sum(bi => bi.TotalPrice);
-                var totalVAT = totalPrice * taxRate.Rate / 100;
-                totalPrice += totalVAT;
+
+                var orderBillingAddress = new Address
+                {
+                    AddressLineOne = createOrderRequest.Customer.BillingAddress.AddressLineOne,
+                    AddressLineTwo = createOrderRequest.Customer.BillingAddress.AddressLineTwo,
+                    Town = createOrderRequest.Customer.BillingAddress.Town,
+                    County = createOrderRequest.Customer.BillingAddress.County,
+                    PostCode = createOrderRequest.Customer.BillingAddress.PostCode,
+                    Country = createOrderRequest.Customer.BillingAddress.Country,
+                };
+
+                var orderShippingAddress = new Address
+                {
+                    AddressLineOne = createOrderRequest.Customer.ShippingAddress.AddressLineOne,
+                    AddressLineTwo = createOrderRequest.Customer.ShippingAddress.AddressLineTwo,
+                    Town = createOrderRequest.Customer.ShippingAddress.Town,
+                    County = createOrderRequest.Customer.ShippingAddress.County,
+                    PostCode = createOrderRequest.Customer.ShippingAddress.PostCode,
+                    Country = createOrderRequest.Customer.ShippingAddress.Country,
+                };
+
+                context.Address.Add(orderBillingAddress);
+                context.Address.Add(orderShippingAddress);
+                await context.SaveChangesAsync();
 
                 var order = new Order
                 {
                     Customer = customer,
+                    BillingAddress = orderBillingAddress,
+                    ShippingAddress = orderShippingAddress,
                     TotalPrice = totalPrice,
                     VATRate = taxRate.Rate,
                     Status = "Pending",
@@ -213,9 +237,8 @@ namespace Api.Controllers
         {
             var order = await context.Order
                 .Include(o => o.Customer)
-                    .ThenInclude(c => c.ShippingAddress)
-                .Include(o => o.Customer)
-                    .ThenInclude(c => c.BillingAddress)
+                .Include(o => o.BillingAddress)
+                .Include(o => o.ShippingAddress)
                 .Include(o => o.OrderItems)
                     .ThenInclude(oi => oi.Product)
                 .Include(o => o.Payment)

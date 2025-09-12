@@ -1,6 +1,5 @@
 ﻿@page "/checkout"
 
-@using System.Security.Claims
 @using OnlineShopUI.ViewModels
 @using OnlineShopUI.Services
 @using OnlineShopUI.Components.Shared
@@ -147,23 +146,19 @@
                                     <tr>
                                         <td>@item.Product.Name</td>
                                         <td class="text-end">@item.Quantity</td>
-                                        <td class="text-end">£@item.Price.ToString("0.00")</td>
-                                        <td class="text-end">£@item.LineTotal.ToString("0.00")</td>
+                                        <td class="text-end">@item.FormattedPrice()</td>
+                                        <td class="text-end">@item.FormattedLineTotal()</td>
                                     </tr>
                                 }
                             </tbody>
                             <tfoot class="table-group-divider">
                                 <tr>
-                                    <td colspan="3" class="text-end fw-semibold">Subtotal</td>
-                                    <td class="text-end">@_basket.Subtotal.ToString("C")</td>
-                                </tr>
-                                <tr>
                                     <td colspan="3" class="text-end fw-semibold">VAT (20%)</td>
-                                    <td class="text-end">@_basket.Vat.ToString("C")</td>
+                                    <td class="text-end">@_basket.FormattedVat()</td>
                                 </tr>
                                 <tr class="table-primary">
                                     <td colspan="3" class="text-end fw-bold">Total</td>
-                                    <td class="text-end fw-bold">@_basket.Total.ToString("C")</td>
+                                    <td class="text-end fw-bold">@_basket.FormattedTotal()</td>
                                 </tr>
                             </tfoot>
                         </table>

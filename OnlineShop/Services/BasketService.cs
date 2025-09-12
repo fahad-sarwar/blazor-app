@@ -2,11 +2,11 @@
 
 namespace OnlineShopUI.Services
 {
-    public class BasketService(IHttpClientFactory httpClientFactory, AnonymousUserService anonymousUserService, BasketCountService basketCountService)
+    public class BasketService(IHttpClientFactory httpClientFactory, AnonymousUserService anonymousUserService, BasketCountService basketCountService, ILogger<BasketService> logger)
     {
         private readonly HttpClient _httpClient = httpClientFactory.CreateClient("Api");
 
-        public async Task<BasketViewModel> GetBasket()
+        public async Task<BasketViewModel?> GetBasket()
         {
             try
             {
@@ -14,12 +14,12 @@ namespace OnlineShopUI.Services
 
                 var basketViewModel = await _httpClient.GetFromJsonAsync<BasketViewModel>($"api/Baskets?anonymousUserId={anonymousUserId}");
 
-                return basketViewModel ?? new BasketViewModel();
+                return basketViewModel;
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error loading basket: {ex.Message}");
-                throw new Exception("Failed to load basket", ex);
+                logger.LogError(ex, "Error loading basket");
+                return null;
             }
         }
 
@@ -29,14 +29,12 @@ namespace OnlineShopUI.Services
             {
                 var anonymousUserId = await anonymousUserService.GetOrCreateAnonymousIdAsync();
 
-                // Check if product exists in the basket
                 var existingBasket = await GetBasket();
 
                 var existingItem = existingBasket.Items.FirstOrDefault(item => item.Product.Id == productId);
 
                 if (existingItem != null)
                 {
-                    // Update quantity if item already exists
                     return await UpdateBasketQuantity(existingItem.Id, existingItem.Quantity + quantity);
                 }
 
@@ -57,7 +55,7 @@ namespace OnlineShopUI.Services
             }
             catch(Exception ex)
             {
-                Console.WriteLine($"Error adding to basket: {ex.Message}");
+                logger.LogError(ex, "Error adding product {ProductId} to basket", productId);
             }
 
             return false;
@@ -78,7 +76,7 @@ namespace OnlineShopUI.Services
             }
             catch(Exception ex)
             {
-                Console.WriteLine($"Error updating basket quantity: {ex.Message}");
+                logger.LogError(ex, "Error updating basket item {BasketItemId} quantity", basketItemId);
             }
 
             return false;
@@ -98,7 +96,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error removing item from basket: {ex.Message}");
+                logger.LogError(ex, "Error removing basket item {BasketItemId} quantity", basketItemId);
             }
 
             return false;

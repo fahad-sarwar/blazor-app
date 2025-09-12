@@ -9,13 +9,14 @@
 
 <h3>Basket</h3>
 
-@if (!string.IsNullOrEmpty(ErrorMessage))
+@if (!string.IsNullOrEmpty(_errorMessage))
 {
     <div class="alert alert-danger" role="alert">
-        @ErrorMessage
+        @_errorMessage
     </div>
 }
-else if (!_loaded)
+
+@if (!_loaded)
 {
     <p>Loading basket...</p>
 }
@@ -49,7 +50,7 @@ else
                                 <span>@item.Product.Name</span>
                             </div>
                         </td>
-                        <td class="text-end">@item.Price.ToString("C")</td>
+                        <td class="text-end">@item.FormattedPrice()</td>
                         <td class="text-end">
                             <div class="btn-group" role="group">
                                 <button class="btn btn-sm btn-outline-secondary" @onclick="() => UpdateQuantity(item, item.Quantity - 1)">–</button>
@@ -57,27 +58,22 @@ else
                                 <button class="btn btn-sm btn-outline-secondary" @onclick="() => UpdateQuantity(item, item.Quantity + 1)">+</button>
                             </div>
                         </td>
-                        <td class="text-end">@item.LineTotal.ToString("C")</td>
+                        <td class="text-end">@item.FormattedLineTotal()</td>
                         <td class="text-end">
-                            <button class="btn btn-sm btn-outline-danger" @onclick="() => RemoveItem(item)">Remove</button>
+                            <button class="btn btn-sm btn-danger" @onclick="() => RemoveItem(item)">Remove</button>
                         </td>
                     </tr>
                 }
             </tbody>
             <tfoot class="table-group-divider">
                 <tr>
-                    <td colspan="3" class="text-end fw-bold">Subtotal</td>
-                    <td class="text-end">@BasketViewModel.Subtotal.ToString("C")</td>
-                    <td></td>
-                </tr>
-                <tr>
                     <td colspan="3" class="text-end fw-bold">VAT (20%)</td>
-                    <td class="text-end">@BasketViewModel.Vat.ToString("C")</td>
+                    <td class="text-end">@BasketViewModel.FormattedVat()</td>
                     <td></td>
                 </tr>
                 <tr>
                     <td colspan="3" class="text-end fw-bold">Total</td>
-                    <td class="text-end">@BasketViewModel.Total.ToString("C")</td>
+                    <td class="text-end">@BasketViewModel.FormattedTotal()</td>
                     <td></td>
                 </tr>
             </tfoot>
@@ -90,7 +86,8 @@ else
 
 @code {
     public BasketViewModel? BasketViewModel { get; set; }
-    private string? ErrorMessage;
+
+    private string? _errorMessage;
     private bool _loaded;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -103,14 +100,15 @@ else
 
     private async Task LoadBasketAsync()
     {
-        try
+        BasketViewModel = await BasketService.GetBasket();
+
+        if (BasketViewModel != null)
         {
-            BasketViewModel = await BasketService.GetBasket();
-            ErrorMessage = null;
+            _errorMessage = null; 
         }
-        catch (Exception ex)
+        else
         {
-            ErrorMessage = "Failed to load basket.";
+            _errorMessage = "Failed to load basket.";
             BasketViewModel = new BasketViewModel();
         }
 
@@ -128,7 +126,7 @@ else
 
         if (newQuantity == item.Quantity)
         {
-            return; // No change needed
+            return;
         }
 
         var result = await BasketService.UpdateBasketQuantity(item.Id, newQuantity);
@@ -139,7 +137,7 @@ else
         }
         else
         {
-            ErrorMessage = "Failed to update quantity.";
+            _errorMessage = "Failed to update quantity.";
             return;
         }
 
@@ -156,7 +154,7 @@ else
         }
         else
         {
-            ErrorMessage = "Failed to remove item.";
+            _errorMessage = "Failed to remove item.";
         }
 
         StateHasChanged();

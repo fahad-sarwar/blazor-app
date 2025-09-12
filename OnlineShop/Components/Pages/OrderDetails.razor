@@ -8,12 +8,12 @@
 
 <AuthorizeView Context="authContext">
     <Authorized>
-        @if (!string.IsNullOrEmpty(ErrorMessage))
+        @if (!string.IsNullOrEmpty(_errorMessage))
         {
-            <div class="alert alert-danger">@ErrorMessage</div>
+            <div class="alert alert-danger">@_errorMessage</div>
         }
 
-        @if (isLoading)
+        @if (_isLoading)
         {
             <div class="text-center p-5">
                 <div class="spinner-border text-primary mb-3" role="status">
@@ -22,7 +22,7 @@
                 <p>Loading order details...</p>
             </div>
         }
-        else if (Order == null)
+        else if (_order == null)
         {
             <div class="alert alert-warning">
                 <p>Order not found or you don't have permission to view this order.</p>
@@ -32,13 +32,12 @@
         else
         {
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>Order Details - @Order.OrderNumber</h2>
+                <h2>Order Details - @_order.OrderNumber</h2>
                 <a href="/orders" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left me-2"></i>Back to Orders
                 </a>
             </div>
 
-            <!-- Status Milestones -->
             <div class="d-flex gap-3 justify-content-between mb-5">
                 @foreach (var status in StatusMilestones)
                 {
@@ -50,17 +49,16 @@
                 }
             </div>
 
-            <!-- Order Tracking Timeline -->
             <div class="card mb-5 p-4">
                 <h5 class="mb-3">Tracking History</h5>
-                @if (Order.TrackingUpdates == null || !Order.TrackingUpdates.Any())
+                @if (_order.TrackingUpdates == null || !_order.TrackingUpdates.Any())
                 {
                     <p class="text-muted">No tracking updates yet.</p>
                 }
                 else
                 {
                     <ul class="timeline list-unstyled">
-                        @foreach (var update in Order.TrackingUpdates.OrderByDescending(u => u.CreatedAt))
+                        @foreach (var update in _order.TrackingUpdates.OrderByDescending(u => u.CreatedAt))
                         {
                             <li class="mb-4">
                                 <div class="fw-bold">@update.Status</div>
@@ -94,56 +92,50 @@
                     }
             </style>
 
-            <!-- Order Summary Cards -->
             <div class="row g-3 mb-4">
-                <!-- Order & Payment Info -->
                 <div class="col-md-6">
                     <div class="card p-3">
                         <h5>Order & Payment</h5>
-                        <p><strong>Order Number:</strong> @Order.OrderNumber</p>
-                        <p><strong>Status:</strong> @Order.Status</p>
-                        <p><strong>Total:</strong> £@Order.TotalPrice</p>
-                        <p><strong>Paid With:</strong> @Order.Payment.PaymentMethod</p>
-                        <p><strong>Card:</strong> @Order.Payment.MaskedCardNumber</p>
-                        <p><strong>Cardholder:</strong> @Order.Payment.CardName</p>
-                        <p><strong>Estimated Delivery:</strong> @Order.EstimatedDelivery?.ToString("dd MMM yyyy")</p>
+                        <p><strong>Order Number:</strong> @_order.OrderNumber</p>
+                        <p><strong>Status:</strong> @_order.Status</p>
+                        <p><strong>Total:</strong> £@_order.TotalPrice</p>
+                        <p><strong>Paid With:</strong> @_order.Payment.PaymentMethod</p>
+                        <p><strong>Card:</strong> @_order.Payment.MaskedCardNumber</p>
+                        <p><strong>Cardholder:</strong> @_order.Payment.CardName</p>
+                        <p><strong>Estimated Delivery:</strong> @_order.EstimatedDelivery?.ToString("dd MMM yyyy")</p>
                     </div>
                 </div>
 
-                <!-- Customer Info -->
                 <div class="col-md-6">
                     <div class="card p-3">
                         <h5>Customer Info</h5>
-                        <p><strong>Name:</strong> @Order.Customer.FirstName @Order.Customer.LastName</p>
-                        <p><strong>Email:</strong> @Order.Customer.Email</p>
-                        <p><strong>Phone:</strong> @Order.Customer.PhoneNumber</p>
+                        <p><strong>Name:</strong> @_order.Customer.FirstName @_order.Customer.LastName</p>
+                        <p><strong>Email:</strong> @_order.Customer.Email</p>
+                        <p><strong>Phone:</strong> @_order.Customer.PhoneNumber</p>
                     </div>
                 </div>
 
-                <!-- Billing Address -->
                 <div class="col-md-6">
                     <div class="card p-3">
                         <h5>Billing Address</h5>
-                        <p>@Order.Customer.BillingAddress.AddressLineOne</p>
-                        <p>@Order.Customer.BillingAddress.AddressLineTwo</p>
-                        <p>@Order.Customer.BillingAddress.Town, @Order.Customer.BillingAddress.County</p>
-                        <p>@Order.Customer.BillingAddress.PostCode, @Order.Customer.BillingAddress.Country</p>
+                        <p>@_order.BillingAddress.AddressLineOne</p>
+                        <p>@_order.BillingAddress.AddressLineTwo</p>
+                        <p>@_order.BillingAddress.Town, @_order.BillingAddress.County</p>
+                        <p>@_order.BillingAddress.PostCode, @_order.BillingAddress.Country</p>
                     </div>
                 </div>
 
-                <!-- Shipping Address -->
                 <div class="col-md-6">
                     <div class="card p-3">
                         <h5>Shipping Address</h5>
-                        <p>@Order.Customer.ShippingAddress.AddressLineOne</p>
-                        <p>@Order.Customer.ShippingAddress.AddressLineTwo</p>
-                        <p>@Order.Customer.ShippingAddress.Town, @Order.Customer.ShippingAddress.County</p>
-                        <p>@Order.Customer.ShippingAddress.PostCode, @Order.Customer.ShippingAddress.Country</p>
+                        <p>@_order.ShippingAddress.AddressLineOne</p>
+                        <p>@_order.ShippingAddress.AddressLineTwo</p>
+                        <p>@_order.ShippingAddress.Town, @_order.ShippingAddress.County</p>
+                        <p>@_order.ShippingAddress.PostCode, @_order.ShippingAddress.Country</p>
                     </div>
                 </div>
             </div>
 
-            <!-- Order Summary -->
             <div class="mt-5">
                 <h4 class="mb-3">Order Summary</h4>
                 <div class="table-responsive">
@@ -157,7 +149,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var item in Order.OrderItems)
+                            @foreach (var item in _order.OrderItems)
                             {
                                 <tr>
                                     <td>@item.Product.Name</td>
@@ -168,9 +160,13 @@
                             }
                         </tbody>
                         <tfoot class="table-group-divider">
+                        <tr>
+                            <td colspan="3" class="text-end fw-semibold">VAT (20%)</td>
+                                <td class="text-end">@_order.FormattedVat()</td>
+                        </tr>
                             <tr>
                                 <td colspan="3" class="text-end fw-semibold">Total</td>
-                                <td class="text-end fw-bold">@Order.TotalPrice.ToString("C")</td>
+                                <td class="text-end fw-bold">@_order.TotalPrice.ToString("C")</td>
                             </tr>
                         </tfoot>
                     </table>
@@ -219,10 +215,11 @@
 @code {
     [Parameter] public int OrderId { get; set; }
 
-    private OrderViewModel? Order;
     private readonly string[] StatusMilestones = new[] { "Pending", "Processing", "Packed", "Shipped", "Out for Delivery", "Delivered" };
-    private string? ErrorMessage;
-    private bool isLoading = true;
+
+    private OrderViewModel? _order;
+    private string? _errorMessage;
+    private bool _isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -233,32 +230,32 @@
     {
         try
         {
-            isLoading = true;
-            Order = await OrderService.GetOrderByIdAsync(OrderId);
+            _isLoading = true;
+            _order = await OrderService.GetOrderByIdAsync(OrderId);
 
-            if (Order == null)
+            if (_order == null)
             {
-                ErrorMessage = "Order not found or you don't have permission to view this order.";
+                _errorMessage = "Order not found or you don't have permission to view this order.";
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = "Failed to load order details. Please try again.";
+            _errorMessage = "Failed to load order details. Please try again.";
         }
         finally
         {
-            isLoading = false;
+            _isLoading = false;
         }
     }
 
     private string GetMilestoneClass(string status)
     {
-        if (Order == null) return "";
+        if (_order == null) return "";
 
-        var currentIndex = Array.IndexOf(StatusMilestones, Order.Status);
+        var currentIndex = Array.IndexOf(StatusMilestones, _order.Status);
         var statusIndex = Array.IndexOf(StatusMilestones, status);
 
-        if (statusIndex < currentIndex || Order.Status == "Delivered")
+        if (statusIndex < currentIndex || _order.Status == "Delivered")
         {
             return "bg-success text-white"; // Completed - green
         }

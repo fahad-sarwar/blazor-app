@@ -16,23 +16,19 @@
         <tr>
             <td>@item.Product.Name</td>
             <td class="text-end">@item.Quantity</td>
-            <td class="text-end">£@item.Price.ToString("0.00")</td>
-            <td class="text-end">£@item.LineTotal.ToString("0.00")</td>
+            <td class="text-end">£@item.FormattedPrice()</td>
+                <td class="text-end">£@item.FormattedLineTotal()</td>
         </tr>
     }
     </tbody>
     <tfoot class="table-group-divider">
     <tr>
-        <td colspan="3" class="text-end fw-bold">Subtotal</td>
-        <td class="text-end">@Basket.Subtotal.ToString("C")</td>
-    </tr>
-    <tr>
         <td colspan="3" class="text-end fw-bold">VAT (20%)</td>
-        <td class="text-end">@Basket.Vat.ToString("C")</td>
+        <td class="text-end">@Basket.FormattedVat()</td>
     </tr>
     <tr>
         <td colspan="3" class="text-end fw-bold">Total</td>
-        <td class="text-end">@Basket.Total.ToString("C")</td>
+        <td class="text-end">@Basket.FormattedTotal()</td>
     </tr>
     </tfoot>
 </table>

@@ -5,9 +5,10 @@
         public int Id { get; set; }
         public string OrderNumber { get; set; } = string.Empty;
         public Customer Customer { get; set; } = new Customer();
+        public Address BillingAddress { get; set; }
+        public Address ShippingAddress { get; set; }
         public double TotalPrice { get; set; }
         public double VATRate { get; set; }
-        public double VATAmount => TotalPrice * VATRate;
         public List<OrderItem> OrderItems { get; set; }
         public string Status { get; set; } = "Pending"; // Pending, Processing, Completed, Cancelled
         public Payment Payment { get; set; } = new Payment();

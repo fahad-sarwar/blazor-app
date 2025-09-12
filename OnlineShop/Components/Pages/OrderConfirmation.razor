@@ -4,20 +4,18 @@
 @using OnlineShopUI.ViewModels
 @using OnlineShopUI.Components.Shared
 @inject IHttpClientFactory HttpClientFactory
-@inject NavigationManager Navigation
 @inject BasketCountService BasketCountService
-@inject ApiAuthenticationStateProvider ApiAuthenticationStateProvider
 @rendermode InteractiveServer
 
 <h3>Order Confirmation</h3>
 
 <AuthorizeView Context="authContext">
     <Authorized>
-        @if (!string.IsNullOrEmpty(ErrorMessage))
+        @if (!string.IsNullOrEmpty(_errorMessage))
         {
-            <div class="alert alert-danger">@ErrorMessage</div>
+            <div class="alert alert-danger">@_errorMessage</div>
         }
-        else if (Order == null)
+        else if (_order == null)
         {
             <div class="alert alert-success">
                 <p>Thank you for your order!</p>
@@ -32,16 +30,16 @@
         {
             <div class="card mb-4">
                 <div class="card-body">
-                    <h5 class="card-title">Order #@Order.OrderNumber</h5>
-                    <p><strong>Status:</strong> @Order.Status</p>
-                    <p><strong>Placed on:</strong> @Order.CreatedAt.ToLocalTime().ToString("f")</p>
-                    <p><strong>Total:</strong> £@Order.TotalPrice.ToString("0.00")</p>
+                    <h5 class="card-title">Order #@_order.OrderNumber</h5>
+                    <p><strong>Status:</strong> @_order.Status</p>
+                    <p><strong>Placed on:</strong> @_order.CreatedAt.ToLocalTime().ToString("f")</p>
+                    <p><strong>Total:</strong> £@_order.TotalPrice.ToString("0.00")</p>
                 </div>
             </div>
 
             <h5>Items</h5>
             <ul class="list-group mb-4">
-                @foreach (var item in Order.OrderItems)
+                @foreach (var item in _order.OrderItems)
                 {
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <span>@item.Product.Name (x @item.Quantity)</span>
@@ -64,20 +62,21 @@
 
 @code {
     [Parameter] public int OrderId { get; set; }
-    private OrderViewModel? Order;
-    private string? ErrorMessage;
+
+    private OrderViewModel? _order;
+    private string? _errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
             var httpClient = HttpClientFactory.CreateClient("Api");
-            Order = await httpClient.GetFromJsonAsync<OrderViewModel>($"api/Orders/{OrderId}");
-            BasketCountService.SetCount(0); // Reset basket count after order confirmation
+            _order = await httpClient.GetFromJsonAsync<OrderViewModel>($"api/Orders/{OrderId}");
+            BasketCountService.SetCount(0);
         }
         catch (Exception ex)
         {
-            ErrorMessage = "We couldn't load your order details.";
+            _errorMessage = "We couldn't load your order details.";
         }
     }
 }
