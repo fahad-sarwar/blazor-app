@@ -67,7 +67,7 @@
                 @if (!_showForm)
                 {
                     <div class="text-center">
-                        <button class="btn btn-primary btn-lg" @onclick="() => _showForm = true">
+                        <button class="btn btn-primary btn-lg" @onclick="ShowForm">
                             Write a Review
                         </button>
                     </div>
@@ -184,6 +184,11 @@
     {
         NewReview.Rating = rating;
         StateHasChanged();
+    }
+
+    private void ShowForm()
+    {
+        _showForm = true;
     }
 
     private void CancelForm()
