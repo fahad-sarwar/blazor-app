@@ -118,33 +118,38 @@ namespace Api.Controllers
                 if (customer == null)
                     return BadRequest("Customer not found");
 
-                var customerBillingAddress = new Address
+                if (customer.BillingAddress == null && customer.ShippingAddress == null)
                 {
-                    AddressLineOne = createOrderRequest.Customer.BillingAddress.AddressLineOne,
-                    AddressLineTwo = createOrderRequest.Customer.BillingAddress.AddressLineTwo,
-                    Town = createOrderRequest.Customer.BillingAddress.Town,
-                    County = createOrderRequest.Customer.BillingAddress.County,
-                    PostCode = createOrderRequest.Customer.BillingAddress.PostCode,
-                    Country = createOrderRequest.Customer.BillingAddress.Country,
-                };
+                    var customerBillingAddress = new Address
+                    {
+                        AddressLineOne = createOrderRequest.Customer.BillingAddress.AddressLineOne,
+                        AddressLineTwo = createOrderRequest.Customer.BillingAddress.AddressLineTwo,
+                        Town = createOrderRequest.Customer.BillingAddress.Town,
+                        County = createOrderRequest.Customer.BillingAddress.County,
+                        PostCode = createOrderRequest.Customer.BillingAddress.PostCode,
+                        Country = createOrderRequest.Customer.BillingAddress.Country,
+                    };
 
-                var customerShippingAddress = new Address
-                {
-                    AddressLineOne = createOrderRequest.Customer.ShippingAddress.AddressLineOne,
-                    AddressLineTwo = createOrderRequest.Customer.ShippingAddress.AddressLineTwo,
-                    Town = createOrderRequest.Customer.ShippingAddress.Town,
-                    County = createOrderRequest.Customer.ShippingAddress.County,
-                    PostCode = createOrderRequest.Customer.ShippingAddress.PostCode,
-                    Country = createOrderRequest.Customer.ShippingAddress.Country,
-                };
+                    var customerShippingAddress = new Address
+                    {
+                        AddressLineOne = createOrderRequest.Customer.ShippingAddress.AddressLineOne,
+                        AddressLineTwo = createOrderRequest.Customer.ShippingAddress.AddressLineTwo,
+                        Town = createOrderRequest.Customer.ShippingAddress.Town,
+                        County = createOrderRequest.Customer.ShippingAddress.County,
+                        PostCode = createOrderRequest.Customer.ShippingAddress.PostCode,
+                        Country = createOrderRequest.Customer.ShippingAddress.Country,
+                    };
 
-                context.Address.Add(customerBillingAddress);
-                context.Address.Add(customerShippingAddress);
-                await context.SaveChangesAsync();
+                    context.Address.Add(customerBillingAddress);
+                    context.Address.Add(customerShippingAddress);
+                    await context.SaveChangesAsync();
 
-                customer.PhoneNumber = createOrderRequest.Customer.PhoneNumber;
-                customer.BillingAddress = customerBillingAddress;
-                customer.ShippingAddress = customerShippingAddress;
+                    customer.BillingAddress = customerBillingAddress;
+                    customer.ShippingAddress = customerShippingAddress;
+                }
+
+                if(string.IsNullOrEmpty(customer.PhoneNumber))
+                    customer.PhoneNumber = createOrderRequest.Customer.PhoneNumber;
 
                 context.Entry(customer).State = EntityState.Modified;
                 await context.SaveChangesAsync();
@@ -194,6 +199,7 @@ namespace Api.Controllers
                     },
                     DeliveryMethod = "Royal Mail",
                     EstimatedDelivery = DateTime.UtcNow.AddDays(3),
+                    ContactPhoneNumber = customer.PhoneNumber,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
                 };

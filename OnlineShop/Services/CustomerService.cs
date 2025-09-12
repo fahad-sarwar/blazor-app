@@ -2,13 +2,21 @@
 
 namespace OnlineShopUI.Services
 {
-    public class CustomerService(IHttpClientFactory httpClientFactory)
+    public class CustomerService(IHttpClientFactory httpClientFactory, ILogger<CustomerService> logger)
     {
-        public async Task<CustomerViewModel> GetCustomerAsync()
+        public async Task<CustomerViewModel?> GetCustomerAsync()
         {
-            var httpClient = httpClientFactory.CreateClient("Api");
-            var response = await httpClient.GetFromJsonAsync<CustomerViewModel>($"api/customers");
-            return response;
+            try
+            {
+                var httpClient = httpClientFactory.CreateClient("Api");
+                var response = await httpClient.GetFromJsonAsync<CustomerViewModel>($"api/customers");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting customer");
+                return null;
+            }
         }
 
         public async Task<bool> UpdateCustomerAsync(UpdateCustomerViewModel request)
