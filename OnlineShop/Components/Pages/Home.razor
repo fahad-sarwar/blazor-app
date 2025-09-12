@@ -47,8 +47,7 @@
 {
     <p>Loading...</p>
 }
-
-@if (_products != null && _products.Count > 0)
+else if (_products != null && _products.Count > 0)
 {
     <h3>Sale Items</h3>
 
@@ -61,7 +60,7 @@
 }
 
 @code {
-    private List<ProductViewModel> _products = new();
+    private List<ProductViewModel>? _products;
     private string? _errorMessage;
 
     protected override async Task OnInitializedAsync()
@@ -70,7 +69,7 @@
 
         if (pagedProductResult != null)
         {
-            _products.AddRange(pagedProductResult.Products);
+            _products = new List<ProductViewModel>(pagedProductResult.Products);
         }
         else
         {
