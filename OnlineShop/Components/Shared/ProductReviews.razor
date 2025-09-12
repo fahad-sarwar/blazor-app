@@ -2,7 +2,7 @@
 @using OnlineShopUI.Services
 @inject ReviewService ReviewService
 
-<div class="reviews-container">
+<div class="container">
     @if (!string.IsNullOrEmpty(_successMessage))
     {
         <div class="alert alert-success">@_successMessage</div>
@@ -45,6 +45,7 @@
                     </div>
                 </div>
             }
+
             @if (HasMore)
             {
                 <div class="text-center mt-4">
@@ -67,7 +68,7 @@
                 {
                     <div class="text-center">
                         <button class="btn btn-primary btn-lg" @onclick="() => _showForm = true">
-                            <i class="bi bi-pencil-square me-2"></i>Write a Review
+                            Write a Review
                         </button>
                     </div>
                 }
@@ -107,16 +108,15 @@
 
                                 <div class="mb-4">
                                     <label class="form-label fw-semibold">Comment</label>
-                                    <InputTextArea class="form-control" @bind-Value="NewReview.Comment"
-                                                   rows="4" placeholder="Share your experience with this product..." />
+                                    <InputTextArea class="form-control" @bind-Value="NewReview.Comment" rows="4" placeholder="Share your experience with this product..." />
                                 </div>
 
                                 <div class="d-flex gap-2">
                                     <button type="submit" class="btn btn-success">
-                                        <i class="bi bi-check-circle me-2"></i>Submit Review
+                                        Submit Review
                                     </button>
                                     <button type="button" class="btn btn-outline-secondary" @onclick="CancelForm">
-                                        <i class="bi bi-x-circle me-2"></i>Cancel
+                                        Cancel
                                     </button>
                                 </div>
                             </EditForm>
