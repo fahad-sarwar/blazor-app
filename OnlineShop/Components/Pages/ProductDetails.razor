@@ -110,7 +110,6 @@
                             <AuthorizeView>
                                 <Authorized>
                                     <button class="btn @GetWishlistButtonClass()" @onclick="AddToWishlist" disabled="@_isOnWishlist">
-                                        <i class="@GetWishlistIconClass() me-1"></i>
                                         @(_isOnWishlist ? "In Wishlist" : "Add to Wishlist")
                                     </button>
                                 </Authorized>
@@ -239,6 +238,5 @@
         }
     }
 
-    private string GetWishlistIconClass() => _isOnWishlist ? "bi bi-heart-fill" : "bi bi-heart";
     private string GetWishlistButtonClass() => _isOnWishlist ? "btn-danger" : "btn-outline-danger";
 }
