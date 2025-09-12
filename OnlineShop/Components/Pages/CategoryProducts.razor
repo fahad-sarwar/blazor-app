@@ -39,7 +39,7 @@ else if (!string.IsNullOrEmpty(_categoryViewModel?.Name))
         }
     </div>
 
-    @if (HasMore)
+    @if (HasMore())
     {
         <div class="text-center mt-4">
             <button class="btn btn-outline-primary" @onclick="LoadMore">Load More</button>
@@ -64,7 +64,6 @@ else
     private int _pageSize = 9;
     private int _totalProducts = 0;
     private string _selectedSort = "name-asc";
-    private bool HasMore => _currentPage * _pageSize < _totalProducts;
 
     protected override async Task OnInitializedAsync()
     {
@@ -113,6 +112,11 @@ else
             _products = new List<ProductViewModel>();
             _totalProducts = 0;
         }
+    }
+
+    private bool HasMore()
+    {
+        return _currentPage * _pageSize < _totalProducts;
     }
 
     private async Task LoadMore()

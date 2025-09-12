@@ -46,7 +46,7 @@
                 </div>
             }
 
-            @if (HasMore)
+            @if (HasMore())
             {
                 <div class="text-center mt-4">
                     <button class="btn btn-outline-primary" @onclick="LoadMore">Load More Reviews</button>
@@ -86,7 +86,7 @@
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Subject</label>
                                     <InputText class="form-control" @bind-Value="NewReview.Subject"
-                                               placeholder="Brief summary of your review" />
+                                    placeholder="Brief summary of your review" />
                                 </div>
 
                                 <div class="mb-3">
@@ -96,9 +96,9 @@
                                         {
                                             int currentStar = i;
                                             <button type="button"
-                                                    class="btn btn-link p-1 me-1"
-                                                    style="font-size: 2rem; line-height: 1;"
-                                                    @onclick="() => SetRating(currentStar)">
+                                            class="btn btn-link p-1 me-1"
+                                            style="font-size: 2rem; line-height: 1;"
+                                            @onclick="() => SetRating(currentStar)">
                                                 <i class="bi @(currentStar <= NewReview.Rating ? "bi-star-fill text-warning" : "bi-star text-secondary")"></i>
                                             </button>
                                         }
@@ -112,12 +112,8 @@
                                 </div>
 
                                 <div class="d-flex gap-2">
-                                    <button type="submit" class="btn btn-success">
-                                        Submit Review
-                                    </button>
-                                    <button type="button" class="btn btn-outline-secondary" @onclick="CancelForm">
-                                        Cancel
-                                    </button>
+                                    <button type="submit" class="btn btn-success">Submit Review</button>
+                                    <button type="button" class="btn btn-outline-secondary" @onclick="CancelForm">Cancel</button>
                                 </div>
                             </EditForm>
                         </div>
@@ -140,8 +136,6 @@
     private int _totalCount = 0;
     private string? _successMessage;
     private string? _errorMessage;
-
-    private bool HasMore => Reviews.Count < _totalCount;
 
     protected override async Task OnInitializedAsync()
     {
@@ -173,6 +167,11 @@
         }
 
         _isLoading = false;
+    }
+
+    private bool HasMore()
+    {
+        return Reviews.Count < _totalCount;
     }
 
     private async Task LoadMore()

@@ -107,7 +107,7 @@
                                 </div>
                             </div>
 
-                            @if (hasMore)
+                            @if (HasMore())
                             {
                                 <div class="card-footer text-center">
                                     <button class="btn btn-outline-primary" @onclick="LoadMore" disabled="@isLoadingMore">
@@ -174,7 +174,6 @@
     private int currentPage = 1;
     private int pageSize = 10;
     private int totalCount = 0;
-    private bool hasMore => orders.Count < totalCount;
     private string? ErrorMessage;
 
     protected override async Task OnInitializedAsync()
@@ -215,6 +214,11 @@
             isLoading = false;
             isLoadingMore = false;
         }
+    }
+
+    private bool HasMore()
+    {
+        return orders.Count < totalCount;
     }
 
     private async Task LoadMore()
