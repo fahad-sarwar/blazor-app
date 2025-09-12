@@ -27,14 +27,27 @@
 
 @code {
     private List<NavLinkItemViewModel>? _categoryLinks;
-    private List<CategoryViewModel>? _categories;
 
     protected override async Task OnInitializedAsync()
     {
-        _categories = await CategoryService.GetCategoriesAsync();
+        var categories = await CategoryService.GetCategoriesAsync();
 
-        _categoryLinks = _categories?
-            .Select(c => new NavLinkItemViewModel { Text = c.Name, Url = $"/categories/{c.Id}" })
-            .ToList() ?? [];
+        _categoryLinks = new List<NavLinkItemViewModel>();
+
+        if (categories == null)
+        {
+            return;
+        }
+
+        foreach (var category in categories)
+        {
+            var categoryLink = new NavLinkItemViewModel
+                {
+                    Text = category.Name,
+                    Url = $"/categories/{category.Id}"
+                };
+
+            _categoryLinks.Add(categoryLink);
+        }
     }
 }
