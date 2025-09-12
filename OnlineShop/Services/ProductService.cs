@@ -16,7 +16,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting for sale product");
+                logger.LogError(ex, "Error getting for sale products");
                 return null;
             }
         }
@@ -39,7 +39,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting product in category {CategoryId}", categoryId);
+                logger.LogError(ex, "Error getting products in category {CategoryId}", categoryId);
                 return null;
             }
         }

@@ -3,48 +3,49 @@
 @inject ReviewService ReviewService
 
 <div class="reviews-container">
-    @if (!string.IsNullOrEmpty(SuccessMessage))
+    @if (!string.IsNullOrEmpty(_successMessage))
     {
-        <div class="alert alert-success">@SuccessMessage</div>
-    }
-    @if (!string.IsNullOrEmpty(ErrorMessage))
-    {
-        <div class="alert alert-danger">@ErrorMessage</div>
+        <div class="alert alert-success">@_successMessage</div>
     }
 
-    @if (isLoading)
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="alert alert-danger">@_errorMessage</div>
+    }
+
+    @if (_isLoading)
     {
         <div class="text-center p-4">
             <p>Loading reviews...</p>
         </div>
     }
-    else if (Reviews.Any())
+    else if (Reviews.Count > 0)
     {
         <div class="reviews-section">
             <h4 class="mb-4">Customer Reviews</h4>
             @foreach (var review in Reviews)
             {
-                <div class="card mb-3 shadow-sm">
+                <div class="card mb-3">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <div>
                                 <strong class="text-primary">@review.CustomerName</strong>
                                 <div class="rating-stars mt-1">
-                                    @for (int i = 1; i <= 5; i++)
+                                    @for (var i = 1; i <= 5; i++)
                                     {
                                         <i class="bi @(i <= review.Rating ? "bi-star-fill text-warning" : "bi-star text-muted")"></i>
                                     }
                                     <span class="ms-2 text-muted">(@review.Rating/5)</span>
                                 </div>
                             </div>
-                            <span class="text-muted small">@review.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</span>
+                            <span class="text-muted small">@review.GetFormattedDate()</span>
                         </div>
                         <h6 class="fw-semibold mb-2">@review.Subject</h6>
                         <p class="mb-0 text-secondary">@review.Comment</p>
                     </div>
                 </div>
             }
-            @if (hasMore)
+            @if (HasMore)
             {
                 <div class="text-center mt-4">
                     <button class="btn btn-outline-primary" @onclick="LoadMore">Load More Reviews</button>
@@ -55,24 +56,24 @@
     else
     {
         <div class="text-center p-4">
-            <p class="text-muted">No reviews yet. Be the first to leave one!</p>
+            <p class="text-muted">No reviews yet. Be the first to write a review!</p>
         </div>
     }
 
     <AuthorizeView Context="authContext">
         <Authorized>
             <div class="review-form-section mt-5">
-                @if (!showForm)
+                @if (!_showForm)
                 {
                     <div class="text-center">
-                        <button class="btn btn-primary btn-lg" @onclick="() => showForm = true">
+                        <button class="btn btn-primary btn-lg" @onclick="() => _showForm = true">
                             <i class="bi bi-pencil-square me-2"></i>Write a Review
                         </button>
                     </div>
                 }
                 else
                 {
-                    <div class="card shadow-sm">
+                    <div class="card">
                         <div class="card-header bg-primary text-white">
                             <h5 class="mb-0">Add Your Review</h5>
                         </div>
@@ -132,14 +133,15 @@
 
     private List<ReviewViewModel> Reviews { get; set; } = new();
     private CreateReviewViewModel NewReview { get; set; } = new() { Rating = 5 };
-    private bool showForm = false;
-    private bool isLoading = true;
-    private int currentPage = 1;
-    private int pageSize = 5;
-    private int totalCount = 0;
-    private bool hasMore => Reviews.Count < totalCount;
-    private string? SuccessMessage;
-    private string? ErrorMessage;
+    private bool _showForm = false;
+    private bool _isLoading = true;
+    private int _currentPage = 1;
+    private int _pageSize = 5;
+    private int _totalCount = 0;
+    private string? _successMessage;
+    private string? _errorMessage;
+
+    private bool HasMore => Reviews.Count < _totalCount;
 
     protected override async Task OnInitializedAsync()
     {
@@ -148,37 +150,34 @@
 
     private async Task LoadReviews(bool reset = false)
     {
-        try
-        {
-            isLoading = true;
-            ErrorMessage = null;
-            if (reset)
-            {
-                Reviews.Clear();
-                currentPage = 1;
-            }
-            var result = await ReviewService.GetPagedReviewsAsync(ProductId, currentPage, pageSize);
+        _isLoading = true;
+        _errorMessage = null;
 
-            if (result != null)
-            {
-                Reviews.AddRange(result.Reviews);
-                totalCount = result.TotalCount;
-            }
-        }
-        catch (Exception ex)
+        if (reset)
         {
-            ErrorMessage = $"Error loading reviews: {ex.Message}";
-            Reviews = new();
+            Reviews.Clear();
+            _currentPage = 1;
         }
-        finally
+
+        var result = await ReviewService.GetPagedReviewsAsync(ProductId, _currentPage, _pageSize);
+
+        if (result != null)
         {
-            isLoading = false;
+            Reviews.AddRange(result.Reviews);
+            _totalCount = result.TotalCount;
         }
+        else
+        {
+            _errorMessage = "Error loading product reviews.";
+            Reviews = new List<ReviewViewModel>();
+        }
+
+        _isLoading = false;
     }
 
     private async Task LoadMore()
     {
-        currentPage++;
+        _currentPage++;
         await LoadReviews();
     }
 
@@ -190,36 +189,31 @@
 
     private void CancelForm()
     {
-        showForm = false;
+        _showForm = false;
         NewReview = new CreateReviewViewModel { Rating = 5 };
-        SuccessMessage = null;
-        ErrorMessage = null;
+        _successMessage = null;
+        _errorMessage = null;
     }
 
     private async Task HandleSubmit()
     {
-        try
+        _errorMessage = null;
+
+        NewReview.ProductId = ProductId;
+
+        var success = await ReviewService.CreateReviewAsync(NewReview);
+
+        if (success)
         {
-            ErrorMessage = null;
-            NewReview.ProductId = ProductId;
-            var success = await ReviewService.CreateReviewAsync(NewReview);
-            if (success)
-            {
-                showForm = false;
-                NewReview = new CreateReviewViewModel { Rating = 5 };
-                SuccessMessage = "Your review has been submitted and is pending approval.";
-                await LoadReviews(reset: true);
-            }
-            else
-            {
-                ErrorMessage = "Failed to submit review. Please try again.";
-                SuccessMessage = null;
-            }
+            _showForm = false;
+            NewReview = new CreateReviewViewModel { Rating = 5 };
+            _successMessage = "Your review has been submitted and is pending approval.";
+            await LoadReviews(reset: true);
         }
-        catch (Exception ex)
+        else
         {
-            ErrorMessage = $"Failed to submit review: {ex.Message}";
-            SuccessMessage = null;
+            _errorMessage = "Failed to submit review. Please try again.";
+            _successMessage = null;
         }
     }
 }

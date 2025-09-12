@@ -9,5 +9,8 @@
         public string CustomerName => $"{Customer.FirstName} {Customer.LastName}";
         public CustomerViewModel Customer { get; set; }
         public DateTime CreatedAt { get; set; }
+
+        public string GetFormattedDate()
+            => CreatedAt.ToLocalTime().ToString("dd MMM yyyy");
     }
 }

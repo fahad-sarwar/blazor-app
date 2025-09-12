@@ -2,21 +2,38 @@
 
 namespace OnlineShopUI.Services
 {
-    public class ReviewService(IHttpClientFactory httpClientFactory)
+    public class ReviewService(IHttpClientFactory httpClientFactory, ILogger<CategoryService> logger)
     {
-        public async Task<PagedReviewResultViewModel> GetPagedReviewsAsync(int productId, int page, int pageSize)
+        public async Task<PagedReviewResultViewModel?> GetPagedReviewsAsync(int productId, int page, int pageSize)
         {
-            var httpClient = httpClientFactory.CreateClient("Api");
-            var response = await httpClient.GetFromJsonAsync<PagedReviewResultViewModel>($"api/reviews?productId={productId}&page={page}&pageSize={pageSize}");
-            return response ?? new PagedReviewResultViewModel();
+            try
+            {
+                var httpClient = httpClientFactory.CreateClient("Api");
+                var response = await httpClient.GetFromJsonAsync<PagedReviewResultViewModel>($"api/reviews?productId={productId}&page={page}&pageSize={pageSize}");
+                return response ?? null;
+            }
+
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting for product reviews for id {ProductId}", productId);
+                return null;
+            }
         }
 
         public async Task<bool> CreateReviewAsync(CreateReviewViewModel createReviewViewModel)
         {
-            var httpClient = httpClientFactory.CreateClient("Api");
+            try
+            {
+                var httpClient = httpClientFactory.CreateClient("Api");
 
-            var response = await httpClient.PostAsJsonAsync("api/reviews", createReviewViewModel);
-            return response.IsSuccessStatusCode;
+                var response = await httpClient.PostAsJsonAsync("api/reviews", createReviewViewModel);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error creating review for product id {ProductId}", createReviewViewModel.ProductId);
+                return false;
+            }
         }
     }
 }
