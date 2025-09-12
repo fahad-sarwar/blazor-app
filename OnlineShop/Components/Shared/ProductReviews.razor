@@ -85,16 +85,16 @@
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Subject</label>
-                                    <InputText class="form-control" @bind-Value="NewReview.Subject"
-                                    placeholder="Brief summary of your review" />
+                                    <InputText class="form-control" @bind-Value="NewReview.Subject" placeholder="Brief summary of your review" />
                                 </div>
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">Rating</label>
+
                                     <div class="rating-input d-flex align-items-center">
-                                        @for (int i = 1; i <= 5; i++)
+                                        @for (var i = 1; i <= 5; i++)
                                         {
-                                            int currentStar = i;
+                                            var currentStar = i;
                                             <button type="button"
                                             class="btn btn-link p-1 me-1"
                                             style="font-size: 2rem; line-height: 1;"
