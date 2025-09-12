@@ -55,7 +55,7 @@ builder.Services.AddScoped<ReviewService>();
 builder.Services.AddScoped<MessageService>();
 builder.Services.AddScoped<ProtectedSessionStorage>();
 builder.Services.AddScoped<ApiAuthenticationStateProvider>();
-builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<AuthService>();
 
 var app = builder.Build();
 

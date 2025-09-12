@@ -4,43 +4,19 @@ using System.Text.Json;
 
 namespace OnlineShopUI.Services
 {
-    public interface IAuthService
+    public class AuthService(IHttpClientFactory httpClientFactory, AuthenticationStateProvider authenticationStateProvider, ILogger<AuthService> logger)
     {
-        Task<bool> LoginAsync(LoginViewModel loginModel);
-        Task<bool> RegisterAsync(RegisterViewModel registerModel);
-        Task LogoutAsync();
-        Task<UserInfo?> GetCurrentUserAsync();
-        Task<bool> UpdateProfileAsync(UpdateCustomerViewModel updateModel);
-        Task RefreshAuthenticationStateAsync();
-    }
-
-    public class AuthService : IAuthService
-    {
-        private readonly IHttpClientFactory _httpClientFactory;
-        private readonly AuthenticationStateProvider _authenticationStateProvider;
-        private readonly ILogger<AuthService> _logger;
-
-        public AuthService(
-            IHttpClientFactory httpClientFactory,
-            AuthenticationStateProvider authenticationStateProvider,
-            ILogger<AuthService> logger)
-        {
-            _httpClientFactory = httpClientFactory;
-            _authenticationStateProvider = authenticationStateProvider;
-            _logger = logger;
-        }
-
         public async Task<bool> LoginAsync(LoginViewModel loginModel)
         {
             try
             {
-                var httpClient = _httpClientFactory.CreateClient("Api");
+                var httpClient = httpClientFactory.CreateClient("Api");
                 var result = await httpClient.PostAsJsonAsync("api/auth/login", loginModel);
 
                 if (result.IsSuccessStatusCode)
                 {
                     var user = await GetUserFromApiAsync();
-                    if (user != null && _authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
+                    if (user != null && authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
                     {
                         await apiProvider.NotifyAuthenticationStateChangedAsync();
                         return true;
@@ -49,7 +25,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during login");
+                logger.LogError(ex, "Error during login");
             }
 
             return false;
@@ -59,13 +35,13 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = _httpClientFactory.CreateClient("Api");
+                var httpClient = httpClientFactory.CreateClient("Api");
                 var result = await httpClient.PostAsJsonAsync("api/auth/register", registerModel);
 
                 if (result.IsSuccessStatusCode)
                 {
                     var user = await GetUserFromApiAsync();
-                    if (user != null && _authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
+                    if (user != null && authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
                     {
                         await apiProvider.NotifyAuthenticationStateChangedAsync();
                         return true;
@@ -74,7 +50,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during registration");
+                logger.LogError(ex, "Error during registration");
             }
 
             return false;
@@ -84,17 +60,17 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = _httpClientFactory.CreateClient("Api");
+                var httpClient = httpClientFactory.CreateClient("Api");
                 await httpClient.PostAsync("api/auth/logout", null);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during API logout");
+                logger.LogError(ex, "Error during API logout");
             }
             finally
             {
                 // Always clear local state
-                if (_authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
+                if (authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
                 {
                     await apiProvider.NotifyAuthenticationStateChangedAsync();
                 }
@@ -110,7 +86,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = _httpClientFactory.CreateClient("Api");
+                var httpClient = httpClientFactory.CreateClient("Api");
                 var response = await httpClient.PutAsJsonAsync($"api/customers/{updateModel.Id}", updateModel);
 
                 if (response.IsSuccessStatusCode)
@@ -122,7 +98,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating profile");
+                logger.LogError(ex, "Error updating profile");
             }
 
             return false;
@@ -132,17 +108,17 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = _httpClientFactory.CreateClient("Api");
+                var httpClient = httpClientFactory.CreateClient("Api");
                 await httpClient.PostAsync("api/auth/refresh-claims", null);
 
-                if (_authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
+                if (authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
                 {
                     await apiProvider.NotifyAuthenticationStateChangedAsync();
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error refreshing authentication state");
+                logger.LogError(ex, "Error refreshing authentication state");
             }
         }
 
@@ -150,7 +126,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = _httpClientFactory.CreateClient("Api");
+                var httpClient = httpClientFactory.CreateClient("Api");
                 var userResponse = await httpClient.GetAsync("api/auth/user");
 
                 if (userResponse.IsSuccessStatusCode)
@@ -162,7 +138,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting user from API");
+                logger.LogError(ex, "Error getting user from API");
             }
 
             return null;

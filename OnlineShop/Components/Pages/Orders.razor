@@ -20,14 +20,14 @@
                         </a>
                     </div>
 
-                    @if (!string.IsNullOrEmpty(ErrorMessage))
+                    @if (!string.IsNullOrEmpty(_errorMessage))
                     {
                         <div class="alert alert-danger">
-                            <i class="bi bi-exclamation-triangle me-2"></i>@ErrorMessage
+                            <i class="bi bi-exclamation-triangle me-2"></i>@_errorMessage
                         </div>
                     }
 
-                    @if (isLoading && !orders.Any())
+                    @if (_isLoading && !_orders.Any())
                     {
                         <div class="text-center p-5">
                             <div class="spinner-border text-primary mb-3" role="status">
@@ -36,7 +36,7 @@
                             <p>Loading your orders...</p>
                         </div>
                     }
-                    else if (!orders.Any())
+                    else if (!_orders.Any())
                     {
                         <div class="card">
                             <div class="card-body text-center p-5">
@@ -66,7 +66,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @foreach (var order in orders)
+                                            @foreach (var order in _orders)
                                             {
                                                 <tr>
                                                     <td>
@@ -110,8 +110,8 @@
                             @if (HasMore())
                             {
                                 <div class="card-footer text-center">
-                                    <button class="btn btn-outline-primary" @onclick="LoadMore" disabled="@isLoadingMore">
-                                        @if (isLoadingMore)
+                                    <button class="btn btn-outline-primary" @onclick="LoadMore" disabled="@_isLoadingMore">
+                                        @if (_isLoadingMore)
                                         {
                                             <span class="spinner-border spinner-border-sm me-2"></span>
                                         }
@@ -168,13 +168,13 @@
 </div>
 
 @code {
-    private List<OrderViewModel> orders = new();
-    private bool isLoading = true;
-    private bool isLoadingMore = false;
-    private int currentPage = 1;
-    private int pageSize = 10;
-    private int totalCount = 0;
-    private string? ErrorMessage;
+    private readonly List<OrderViewModel> _orders = new();
+    private bool _isLoading = true;
+    private bool _isLoadingMore = false;
+    private int _currentPage = 1;
+    private int _pageSize = 10;
+    private int _totalCount = 0;
+    private string? _errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -183,47 +183,43 @@
 
     private async Task LoadOrders(bool reset = false)
     {
-        try
+        if (reset)
         {
-            if (reset)
-            {
-                isLoading = true;
-                orders.Clear();
-                currentPage = 1;
-            }
-            else
-            {
-                isLoadingMore = true;
-            }
+            _isLoading = true;
+            _orders.Clear();
+            _currentPage = 1;
+        }
+        else
+        {
+            _isLoadingMore = true;
+        }
 
-            ErrorMessage = null;
+        _errorMessage = null;
 
-            var result = await OrderService.GetOrdersAsync(currentPage, pageSize);
-            if (result != null)
-            {
-                orders.AddRange(result.Orders);
-                totalCount = result.TotalCount;
-            }
-        }
-        catch (Exception ex)
+        var result = await OrderService.GetOrdersAsync(_currentPage, _pageSize);
+
+        if (result != null)
         {
-            ErrorMessage = "Failed to load orders. Please try again.";
+            _orders.AddRange(result.Orders);
+            _totalCount = result.TotalCount;
         }
-        finally
+        else
         {
-            isLoading = false;
-            isLoadingMore = false;
+            _errorMessage = "Failed to load orders. Please try again.";
         }
+
+        _isLoading = false;
+        _isLoadingMore = false;
     }
 
     private bool HasMore()
     {
-        return orders.Count < totalCount;
+        return _orders.Count < _totalCount;
     }
 
     private async Task LoadMore()
     {
-        currentPage++;
+        _currentPage++;
         await LoadOrders();
     }
 

@@ -39,7 +39,7 @@
             </div>
 
             <div class="d-flex gap-3 justify-content-between mb-5">
-                @foreach (var status in StatusMilestones)
+                @foreach (var status in _statusMilestones)
                 {
                     <div class="text-center flex-fill">
                         <div class="p-2 rounded text-white fw-semibold @GetMilestoneClass(status)">
@@ -215,7 +215,7 @@
 @code {
     [Parameter] public int OrderId { get; set; }
 
-    private readonly string[] StatusMilestones = new[] { "Pending", "Processing", "Packed", "Shipped", "Out for Delivery", "Delivered" };
+    private readonly string[] _statusMilestones = new[] { "Pending", "Processing", "Packed", "Shipped", "Out for Delivery", "Delivered" };
 
     private OrderViewModel? _order;
     private string? _errorMessage;
@@ -228,40 +228,33 @@
 
     private async Task LoadOrderDetails()
     {
-        try
-        {
-            _isLoading = true;
-            _order = await OrderService.GetOrderByIdAsync(OrderId);
+        _isLoading = true;
+        _errorMessage = null;
 
-            if (_order == null)
-            {
-                _errorMessage = "Order not found or you don't have permission to view this order.";
-            }
-        }
-        catch (Exception ex)
+        _order = await OrderService.GetOrderByIdAsync(OrderId);
+
+        if (_order == null)
         {
-            _errorMessage = "Failed to load order details. Please try again.";
+            _errorMessage = "Order not found or you don't have permission to view this order.";
         }
-        finally
-        {
-            _isLoading = false;
-        }
+
+        _isLoading = false;
     }
 
     private string GetMilestoneClass(string status)
     {
         if (_order == null) return "";
 
-        var currentIndex = Array.IndexOf(StatusMilestones, _order.Status);
-        var statusIndex = Array.IndexOf(StatusMilestones, status);
+        var currentIndex = Array.IndexOf(_statusMilestones, _order.Status);
+        var statusIndex = Array.IndexOf(_statusMilestones, status);
 
         if (statusIndex < currentIndex || _order.Status == "Delivered")
         {
-            return "bg-success text-white"; // Completed - green
+            return "bg-success text-white";
         }
 
         return statusIndex == currentIndex
-            ? "bg-warning text-dark" // Current - orange
-            : "bg-light text-muted"; // Upcoming - light gray
+            ? "bg-warning text-dark"
+            : "bg-light text-muted";
     }
 }

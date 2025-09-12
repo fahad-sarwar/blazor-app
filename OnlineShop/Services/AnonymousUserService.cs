@@ -14,7 +14,9 @@ namespace OnlineShopUI.Services
                 return result.Value;
 
             var anonymousUserIdValue = Guid.NewGuid().ToString();
+
             await protectedSessionStorage.SetAsync(AnonymousUserIdKey, anonymousUserIdValue);
+
             return anonymousUserIdValue;
         }
     }

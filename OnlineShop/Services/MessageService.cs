@@ -2,14 +2,22 @@
 
 namespace OnlineShopUI.Services
 {
-    public class MessageService(IHttpClientFactory httpClientFactory)
+    public class MessageService(IHttpClientFactory httpClientFactory, ILogger<MessageService> logger)
     {
         public async Task<bool> SendMessageAsync(SendMessageViewModel message)
         {
-            var httpClient = httpClientFactory.CreateClient("Api");
+            try
+            {
+                var httpClient = httpClientFactory.CreateClient("Api");
 
-            var response = await httpClient.PostAsJsonAsync("api/messages", message);
-            return response.IsSuccessStatusCode;
+                var response = await httpClient.PostAsJsonAsync("api/messages", message);
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error sending message");
+                return false;
+            }
         }
     }
 }

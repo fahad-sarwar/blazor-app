@@ -15,23 +15,23 @@
                     <i class="bi bi-envelope me-2"></i>Send us a message
                 </h4>
 
-                @if (!string.IsNullOrEmpty(SuccessMessage))
+                @if (!string.IsNullOrEmpty(_successMessage))
                 {
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="bi bi-check-circle me-2"></i>@SuccessMessage
+                        <i class="bi bi-check-circle me-2"></i>@_successMessage
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 }
 
-                @if (!string.IsNullOrEmpty(ErrorMessage))
+                @if (!string.IsNullOrEmpty(_errorMessage))
                 {
                     <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="bi bi-exclamation-triangle me-2"></i>@ErrorMessage
+                        <i class="bi bi-exclamation-triangle me-2"></i>@_errorMessage
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 }
 
-                <EditForm Model="messageModel" OnValidSubmit="SendMessage">
+                <EditForm Model="_messageModel" OnValidSubmit="SendMessage">
                     <DataAnnotationsValidator />
                     <ValidationSummary class="text-danger mb-3" />
 
@@ -39,40 +39,40 @@
                         <label for="name" class="form-label fw-semibold">
                             <i class="bi bi-person me-1"></i>Your Name
                         </label>
-                        <InputText id="name" class="form-control" @bind-Value="messageModel.Name"
+                        <InputText id="name" class="form-control" @bind-Value="_messageModel.Name"
                                    placeholder="John Doe" />
-                        <ValidationMessage For="@(() => messageModel.Name)" class="text-danger" />
+                        <ValidationMessage For="@(() => _messageModel.Name)" class="text-danger" />
                     </div>
 
                     <div class="mb-3">
                         <label for="email" class="form-label fw-semibold">
                             <i class="bi bi-envelope me-1"></i>Your Email
                         </label>
-                        <InputText id="email" class="form-control" @bind-Value="messageModel.Email"
+                        <InputText id="email" class="form-control" @bind-Value="_messageModel.Email"
                                    placeholder="you@example.com" type="email" />
-                        <ValidationMessage For="@(() => messageModel.Email)" class="text-danger" />
+                        <ValidationMessage For="@(() => _messageModel.Email)" class="text-danger" />
                     </div>
 
                     <div class="mb-3">
                         <label for="subject" class="form-label fw-semibold">
                             <i class="bi bi-chat-text me-1"></i>Subject
                         </label>
-                        <InputText id="subject" class="form-control" @bind-Value="messageModel.Subject"
+                        <InputText id="subject" class="form-control" @bind-Value="_messageModel.Subject"
                                    placeholder="Order Inquiry" />
-                        <ValidationMessage For="@(() => messageModel.Subject)" class="text-danger" />
+                        <ValidationMessage For="@(() => _messageModel.Subject)" class="text-danger" />
                     </div>
 
                     <div class="mb-3">
                         <label for="message" class="form-label fw-semibold">
                             <i class="bi bi-chat-dots me-1"></i>Your Message
                         </label>
-                        <InputTextArea id="message" class="form-control" @bind-Value="messageModel.Content"
+                        <InputTextArea id="message" class="form-control" @bind-Value="_messageModel.Content"
                                        rows="5" placeholder="Write your message..." />
-                        <ValidationMessage For="@(() => messageModel.Content)" class="text-danger" />
+                        <ValidationMessage For="@(() => _messageModel.Content)" class="text-danger" />
                     </div>
 
-                    <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
-                        @if (isSubmitting)
+                    <button type="submit" class="btn btn-primary" disabled="@_isSubmitting">
+                        @if (_isSubmitting)
                         {
                             <span class="spinner-border spinner-border-sm me-2"></span>
                         }
@@ -156,38 +156,29 @@
 </div>
 
 @code {
-    private SendMessageViewModel messageModel = new();
-    private bool isSubmitting;
-    private string? SuccessMessage;
-    private string? ErrorMessage;
+    private SendMessageViewModel _messageModel = new();
+    private bool _isSubmitting;
+    private string? _successMessage;
+    private string? _errorMessage;
 
     private async Task SendMessage()
     {
-        try
-        {
-            isSubmitting = true;
-            ErrorMessage = null;
-            SuccessMessage = null;
+        _isSubmitting = true;
+        _errorMessage = null;
+        _successMessage = null;
 
-            var success = await MessageService.SendMessageAsync(messageModel);
+        var success = await MessageService.SendMessageAsync(_messageModel);
 
-            if (success)
-            {
-                SuccessMessage = "Thank you for your message! We'll get back to you within 24 hours.";
-                messageModel = new SendMessageViewModel();
-            }
-            else
-            {
-                ErrorMessage = "Failed to send your message. Please try again or contact us directly.";
-            }
-        }
-        catch (Exception ex)
+        if (success)
         {
-            ErrorMessage = "An unexpected error occurred. Please try again later.";
+            _successMessage = "Thank you for your message! We'll get back to you within 24 hours.";
+            _messageModel = new SendMessageViewModel();
         }
-        finally
+        else
         {
-            isSubmitting = false;
+            _errorMessage = "Failed to send your message. Please try again or contact us directly.";
         }
+
+        _isSubmitting = false;
     }
 }

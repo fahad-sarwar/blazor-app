@@ -14,23 +14,23 @@
 
             <p class="text-center mb-4">Enter your order number to check the status of your delivery.</p>
 
-            @if (!string.IsNullOrEmpty(ErrorMessage))
+            @if (!string.IsNullOrEmpty(_errorMessage))
             {
                 <div class="alert alert-danger" role="alert">
-                    <i class="bi bi-exclamation-triangle me-2"></i>@ErrorMessage
+                    <i class="bi bi-exclamation-triangle me-2"></i>@_errorMessage
                 </div>
             }
 
-            @if (!string.IsNullOrEmpty(SuccessMessage))
+            @if (!string.IsNullOrEmpty(_successMessage))
             {
                 <div class="alert alert-success" role="alert">
-                    <i class="bi bi-check-circle me-2"></i>@SuccessMessage
+                    <i class="bi bi-check-circle me-2"></i>@_successMessage
                 </div>
             }
 
             <div class="row justify-content-center mb-5">
                 <div class="col-md-6">
-                    <EditForm Model="@trackingModel" OnValidSubmit="TrackMyOrder" Context="editContext">
+                    <EditForm Model="@_trackingModel" OnValidSubmit="TrackMyOrder" Context="editContext">
                         <DataAnnotationsValidator />
                         <ValidationSummary class="text-danger mb-3" />
 
@@ -38,16 +38,16 @@
                             <label for="orderNumber" class="form-label fw-semibold">
                                 <i class="bi bi-box-seam me-2"></i>Order Number
                             </label>
-                            <InputText id="orderNumber" class="form-control" @bind-Value="trackingModel.OrderNumber"
-                                       placeholder="e.g. ORD0000123" />
-                            <ValidationMessage For="@(() => trackingModel.OrderNumber)" class="text-danger" />
+                            <InputText id="orderNumber" class="form-control" @bind-Value="_trackingModel.OrderNumber"
+                            placeholder="e.g. ORD0000123" />
+                            <ValidationMessage For="@(() => _trackingModel.OrderNumber)" class="text-danger" />
                             <div class="form-text">
                                 <i class="bi bi-info-circle me-1"></i>Your order number starts with "ORD" followed by numbers
                             </div>
                         </div>
 
-                        <button type="submit" class="btn btn-primary w-100" disabled="@isSearching">
-                            @if (isSearching)
+                        <button type="submit" class="btn btn-primary w-100" disabled="@_isSearching">
+                            @if (_isSearching)
                             {
                                 <span class="spinner-border spinner-border-sm me-2"></span>
                             }
@@ -119,52 +119,43 @@
 </div>
 
 @code {
-    private TrackingModelViewModel trackingModel = new();
-    private bool isSearching = false;
-    private string? ErrorMessage;
-    private string? SuccessMessage;
+    private TrackingModelViewModel _trackingModel = new();
+    private bool _isSearching = false;
+    private string? _errorMessage;
+    private string? _successMessage;
 
     private async Task TrackMyOrder()
     {
-        if (string.IsNullOrWhiteSpace(trackingModel.OrderNumber))
+        if (string.IsNullOrWhiteSpace(_trackingModel.OrderNumber))
         {
-            ErrorMessage = "Please enter an order number.";
+            _errorMessage = "Please enter an order number.";
             return;
         }
 
-        try
+        _isSearching = true;
+        _errorMessage = null;
+        _successMessage = null;
+
+        var result = await OrderService.GetOrderByOrderNumberAsync(_trackingModel.OrderNumber.Trim().ToUpper());
+
+        if (result == null)
         {
-            isSearching = true;
-            ErrorMessage = null;
-            SuccessMessage = null;
-
-            var result = await OrderService.GetOrderByOrderNumberAsync(trackingModel.OrderNumber.Trim().ToUpper());
-
-            if (result?.Orders?.Any() == true)
-            {
-                var order = result.Orders.First();
-                SuccessMessage = $"Order found! Redirecting to order details...";
-
-                // Small delay to show success message
-                await Task.Delay(1500);
-
-                // Redirect to order details page
-                Navigation.NavigateTo($"/order-details/{order.Id}");
-            }
-            else
-            {
-                ErrorMessage = $"Order '{trackingModel.OrderNumber}' not found. Please check your order number and try again.";
-                trackingModel.OrderNumber = string.Empty; // Clear the input
-            }
+            _errorMessage = $"Order '{_trackingModel.OrderNumber}' not found. Please check your order number and try again.";
+            _trackingModel.OrderNumber = string.Empty;            
         }
-        catch (Exception ex)
+        else if (result?.TotalCount == 1)
         {
-            ErrorMessage = "An error occurred while searching for your order. Please try again.";
+            var order = result.Orders.First();
+            _successMessage = "Order found! Redirecting to order details...";
+            Navigation.NavigateTo($"/order-details/{order.Id}");
         }
-        finally
+        else
         {
-            isSearching = false;
+            _errorMessage = $"Invalid '{_trackingModel.OrderNumber}' order number, please try again.";
+            _trackingModel.OrderNumber = string.Empty;
         }
+
+        _isSearching = false;
     }
 }
 
