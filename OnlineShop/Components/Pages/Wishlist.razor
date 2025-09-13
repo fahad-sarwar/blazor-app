@@ -3,7 +3,6 @@
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
 @using OnlineShopUI.Components.Shared
-@inject BasketService BasketService
 @inject WishlistService WishlistService
 @rendermode InteractiveServer
 
@@ -24,37 +23,7 @@
             <div class="row row-cols-1 row-cols-md-3 g-4">
                 @foreach (var product in _products)
                 {
-                    <div class="col">
-                        <div class="card h-100">
-                            <img src="@product.ImageURL" class="img-fluid rounded-start" alt="@product.Name" style="height: 200px; object-fit: cover;">
-                            <div class="card-body">
-                                <h2 class="card-title">@product.Name</h2>
-                                <p class="card-text">
-                                    @if (product.ForSale)
-                                    {
-                                        <div>
-                                            <p><del>Was: @product.GetFormattedPrice()</del></p>
-                                            <p class="text-danger"><strong>Now: @product.GetFormattedSalePrice()</strong></p>
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <p>Was: @product.GetFormattedPrice()</p>
-                                    }
-                                </p>
-                            </div>
-                            <div class="card-footer">
-                                <a class="btn btn-primary" href="/product/@product.Id">View</a>
-                                <button class="btn btn-secondary" @onclick="async () => await AddToBasket(product.Id)">Add to Basket</button>
-                                <button class="btn btn-danger" @onclick="async () => await RemoveFromWishlist(product.Id)">Remove</button>
-
-                                @if (!string.IsNullOrEmpty(_errorMessage))
-                                {
-                                    <div class="text-danger mt-2">@_errorMessage</div>
-                                }
-                            </div>
-                        </div>
-                    </div>
+                    <ProductSummaryItem Product="product" ShowRemoveButton="true" OnProductRemovedFromWishlist="HandleItemRemoved" />
                 }
             </div>
 
@@ -73,7 +42,6 @@
 
 @code {
     private List<ProductViewModel> _products = new();
-    private string? _errorMessage;
     private int _currentPage = 1;
     private readonly int _pageSize = 9;
     private int _totalProducts = 0;
@@ -110,27 +78,9 @@
         await LoadWishlist();
     }
 
-    private async Task RemoveFromWishlist(int productId)
+    private async Task HandleItemRemoved(int productId)
     {
-        var success = await WishlistService.RemoveFromWishlistAsync(productId);
-
-        if (success)
-        {
-            _products.RemoveAll(p => p.Id == productId);
-            _errorMessage = null;
-        }
-        else
-        {
-            _errorMessage = "Failed to remove product from the wishlist. Please try again.";
-        }
-    }
-
-    private async Task AddToBasket(int productId)
-    {
-        var result = await BasketService.AddToBasketAsync(productId, 1);
-
-        _errorMessage = result 
-            ? null 
-            : "Failed to add item to basket. Please try again.";
+        _products.RemoveAll(p => p.Id == productId);
+        //StateHasChanged();
     }
 }

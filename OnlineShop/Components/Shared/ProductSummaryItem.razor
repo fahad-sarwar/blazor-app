@@ -18,7 +18,7 @@
                 }
                 else
                 {
-                    <p>@Product.GetFormattedPrice()</p>
+                <p>@Product.GetFormattedPrice()</p>
                 }
             </p>
         </div>
@@ -27,9 +27,17 @@
             <button class="btn btn-secondary" @onclick="AddToBasket">Add to Basket</button>
             <AuthorizeView>
                 <Authorized>
-                    <button class="btn @GetWishlistButtonClass()" @onclick="AddToWishlist" disabled="@_isOnWishlist">
-                        Wishlist
-                    </button>
+                    @if (ShowRemoveButton.HasValue && !ShowRemoveButton.Value)
+                    {
+                        <button class="btn @GetWishlistButtonClass()" @onclick="AddToWishlist" disabled="@_isOnWishlist">
+                            Add to Wishlist
+                        </button>
+                    }
+
+                    @if (ShowRemoveButton.HasValue && ShowRemoveButton.Value)
+                    {
+                        <button class="btn btn-danger" @onclick="RemoveFromWishlist">Remove from Wishlist</button>
+                    }
                 </Authorized>
             </AuthorizeView>
 
@@ -43,6 +51,8 @@
 
 @code {
     [Parameter] public ProductViewModel Product { get; set; }
+    [Parameter] public bool? ShowRemoveButton { get; set; } = false;
+    [Parameter] public EventCallback<int> OnProductRemovedFromWishlist { get; set; }
 
     private string? _errorMessage;
     private bool _isOnWishlist;
@@ -76,6 +86,21 @@
         else
         {
             _errorMessage = "Failed to add item to wishlist. Please try again.";
+        }
+    }
+
+    private async Task RemoveFromWishlist()
+    {
+        var success = await WishlistService.RemoveFromWishlistAsync(Product.Id);
+
+        if (success)
+        {
+            _errorMessage = null;
+            await OnProductRemovedFromWishlist.InvokeAsync(Product.Id);
+        }
+        else
+        {
+            _errorMessage = "Failed to remove product from the wishlist. Please try again.";
         }
     }
 
