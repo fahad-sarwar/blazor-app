@@ -6,33 +6,31 @@
     <tr>
         <th>Product</th>
         <th class="text-end">Qty</th>
-        <th class="text-end">Unit Price</th>
         <th class="text-end">Total</th>
     </tr>
     </thead>
     <tbody>
-    @foreach (var item in Basket.Items)
+        @foreach (var item in Order.OrderItems)
     {
         <tr>
             <td>@item.Product.Name</td>
             <td class="text-end">@item.Quantity</td>
-            <td class="text-end">@item.FormattedPrice()</td>
-            <td class="text-end">@item.FormattedLineTotal()</td>
+            <td class="text-end">@item.FormattedTotalPrice()</td>
         </tr>
     }
     </tbody>
     <tfoot class="table-group-divider">
     <tr>
-        <td colspan="3" class="text-end fw-bold">VAT (20%)</td>
-        <td class="text-end">@Basket.FormattedVat()</td>
+        <td colspan="2" class="text-end fw-bold">VAT (20%)</td>
+        <td class="text-end">@Order.FormattedVat()</td>
     </tr>
     <tr>
-        <td colspan="3" class="text-end fw-bold">Total</td>
-        <td class="text-end">@Basket.FormattedTotal()</td>
+        <td colspan="2" class="text-end fw-bold">Total</td>
+        <td class="text-end">@Order.FormattedTotalPrice()</td>
     </tr>
     </tfoot>
 </table>
 
 @code {
-    [Parameter] public BasketViewModel Basket { get; set; }
+    [Parameter] public OrderViewModel Order { get; set; }
 }

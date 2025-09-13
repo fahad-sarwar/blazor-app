@@ -7,6 +7,13 @@
 @inject OrderService OrderService
 @rendermode InteractiveServer
 
+@if (_showSuccessMessage)
+{
+    <div class="alert alert-success">
+        <p>Thank you for your order!</p>
+        <p>Your order has been successfully placed.</p>
+    </div>
+}
 <h3>Order Confirmation</h3>
 
 <AuthorizeView Context="authContext">
@@ -15,42 +22,28 @@
         {
             <div class="alert alert-danger">@_errorMessage</div>
         }
-        else if (_order == null)
+        
+        @if (_loading)
         {
-            <div class="alert alert-success">
-                <p>Thank you for your order!</p>
-                <p>Your order has been successfully placed.</p>
-                @if (OrderId > 0)
-                {
-                    <p><strong>Order ID:</strong> @OrderId</p>
-                }
-            </div>
+            <p>Loading order...</p>
         }
         else
         {
             <div class="card mb-4">
                 <div class="card-body">
-                    <h5 class="card-title">Order @_order.OrderNumber</h5>
-                    <p><strong>Status:</strong> @_order.Status</p>
-                    <p><strong>Placed on:</strong> @_order.GetFormattedCreatedAtDate()</p>
-                    <p><strong>Total:</strong> @_order.FormattedTotalPrice()</p>
+                    <h5 class="card-title">#@_order.OrderNumber</h5>
+                    <strong>Status:</strong> @_order.Status
+                    <br />
+                    <strong>Placed on:</strong> @_order.GetFormattedCreatedAtDate()
                 </div>
             </div>
 
-            <h5>Items</h5>
-            <ul class="list-group mb-4">
-                @foreach (var item in _order.OrderItems)
-                {
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <span>@item.Product.Name (x @item.Quantity)</span>
-                        <span>@item.FormattedTotalPrice()</span>
-                    </li>
-                }
-            </ul>
+            <div class="col-md-12">
+                <OrderSummary Order="@_order" />
+            </div>
         }
 
         <div class="mt-4">
-
             <a class="btn btn-primary me-2" href="/">Continue Shopping</a>
             <a class="btn btn-secondary" href="/order-details/@OrderId">View Order</a>
         </div>
@@ -65,18 +58,26 @@
 
     private OrderViewModel? _order;
     private string? _errorMessage;
+    private bool _loading = true;
+    private bool _showSuccessMessage = false;
 
     protected override async Task OnInitializedAsync()
     {
+        _loading = true;
+
         _order = await OrderService.GetOrderById(OrderId);
 
         if (_order != null)
         {
             BasketCountService.SetCount(0);
+            _showSuccessMessage = true;
         }
         else
         {
             _errorMessage = "Failed to load your order details.";
+            _showSuccessMessage = false;
         }
+
+        _loading = false;
     }
 }
