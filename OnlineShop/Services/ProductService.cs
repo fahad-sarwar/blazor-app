@@ -4,6 +4,23 @@ namespace OnlineShopUI.Services
 {
     public class ProductService(IHttpClientFactory httpClientFactory, ILogger<ProductService> logger)
     {
+        public async Task<PagedProductResultViewModel?> GetProductsAsync(string searchTerm, string selectedSort, int currentPage, int pageSize)
+        {
+            try
+            {
+                var httpClient = httpClientFactory.CreateClient("Api");
+                var pagedProductResult = await httpClient.GetFromJsonAsync<PagedProductResultViewModel>(
+                    $"api/products?searchTerm={searchTerm}&sort={selectedSort}&page={currentPage}&pageSize={pageSize}");
+
+                return pagedProductResult;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error searching for products using search term '{SearchTerm}'", searchTerm);
+                return null;
+            }
+        }
+
         public async Task<PagedProductResultViewModel?> GetProductsAsync(string selectedSort, int currentPage, int pageSize)
         {
             try

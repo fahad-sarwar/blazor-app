@@ -1,8 +1,9 @@
 ﻿@page "/search-results/{SearchTerm}"
 
 @using OnlineShopUI.Components.Shared
+@using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
-@inject IHttpClientFactory HttpClientFactory
+@inject ProductService ProductService
 @rendermode InteractiveServer
 
 <h3>Search Results</h3>
@@ -83,18 +84,15 @@ else
 
     private async Task GetProducts()
     {
-        try
-        {
-            var httpClient = HttpClientFactory.CreateClient("Api");
-            var pagedProductResult = await httpClient.GetFromJsonAsync<PagedProductResultViewModel>(
-                    $"api/products?searchTerm={SearchTerm}&sort={_selectedSort}&page={_currentPage}&pageSize={_pageSize}");
+        var pagedProductResult = await ProductService.GetProductsAsync(SearchTerm, _selectedSort, _currentPage, _pageSize);
 
+        if(pagedProductResult != null)
+        {
             _products.AddRange(pagedProductResult.Products);
             _totalProducts = pagedProductResult.TotalCount;
         }
-        catch (Exception ex)
+        else
         {
-            Console.WriteLine($"Error fetching products: {ex.Message}");
             _products = new List<ProductViewModel>();
             _totalProducts = 0;
         }
