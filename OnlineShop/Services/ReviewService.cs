@@ -4,7 +4,7 @@ namespace OnlineShopUI.Services
 {
     public class ReviewService(IHttpClientFactory httpClientFactory, ILogger<ReviewService> logger)
     {
-        public async Task<PagedReviewResultViewModel?> GetPagedReviewsAsync(int productId, int page, int pageSize)
+        public async Task<PagedReviewResultViewModel?> GetPagedReviews(int productId, int page, int pageSize)
         {
             try
             {
@@ -20,7 +20,7 @@ namespace OnlineShopUI.Services
             }
         }
 
-        public async Task<bool> CreateReviewAsync(CreateReviewViewModel createReviewViewModel)
+        public async Task<bool> CreateReview(CreateReviewViewModel createReviewViewModel)
         {
             try
             {

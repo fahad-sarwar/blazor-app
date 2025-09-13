@@ -136,7 +136,7 @@
         _errorMessage = null;
         _successMessage = null;
 
-        var result = await OrderService.GetOrderByOrderNumberAsync(_trackingModel.OrderNumber.Trim().ToUpper());
+        var result = await OrderService.GetOrderByOrderNumber(_trackingModel.OrderNumber.Trim().ToUpper());
 
         if (result == null)
         {

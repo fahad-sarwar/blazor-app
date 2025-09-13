@@ -35,7 +35,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.SameSite = SameSiteMode.Lax;
         options.LoginPath = "/account/login";
         options.AccessDeniedPath = "/access-denied";
-        options.ExpireTimeSpan = TimeSpan.FromDays(7);
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(15);
         options.SlidingExpiration = true;
     });
 

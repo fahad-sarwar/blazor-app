@@ -17,7 +17,36 @@ namespace OnlineShopUI.ViewModels
         [Phone(ErrorMessage = "Invalid phone number format")]
         public string PhoneNumber { get; set; } = string.Empty;
 
-        public UpdateAddressViewModel ShippingAddress { get; set; }
-        public UpdateAddressViewModel BillingAddress { get; set; }
+        [Required(ErrorMessage = "Shipping address line 1 is required")]
+        public string ShippingAddressLineOne { get; set; } = string.Empty;
+
+        public string ShippingAddressLineTwo { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Shipping town is required")]
+        public string ShippingTown { get; set; } = string.Empty;
+
+        public string ShippingCounty { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Shipping postcode is required")]
+        public string ShippingPostCode { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Shipping country is required")]
+        public string ShippingCountry { get; set; } = "UK";
+
+        [Required(ErrorMessage = "Billing address line 1 is required")]
+        public string BillingAddressLineOne { get; set; } = string.Empty;
+
+        public string BillingAddressLineTwo { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Billing town is required")]
+        public string BillingTown { get; set; } = string.Empty;
+
+        public string BillingCounty { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Billing postcode is required")]
+        public string BillingPostCode { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Billing country is required")]
+        public string BillingCountry { get; set; } = "UK";
     }
 }

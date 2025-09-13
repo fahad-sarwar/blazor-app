@@ -10,7 +10,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var anonymousUserId = await anonymousUserService.GetOrCreateAnonymousIdAsync();
+                var anonymousUserId = await anonymousUserService.GetOrCreateAnonymousId();
 
                 var basketViewModel = await _httpClient.GetFromJsonAsync<BasketViewModel>($"api/Baskets?anonymousUserId={anonymousUserId}");
 
@@ -23,11 +23,11 @@ namespace OnlineShopUI.Services
             }
         }
 
-        public async Task<bool> AddToBasketAsync(int productId, int quantity)
+        public async Task<bool> AddToBasket(int productId, int quantity)
         {
             try
             {
-                var anonymousUserId = await anonymousUserService.GetOrCreateAnonymousIdAsync();
+                var anonymousUserId = await anonymousUserService.GetOrCreateAnonymousId();
 
                 var existingBasket = await GetBasket();
 

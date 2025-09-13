@@ -53,7 +53,7 @@
 
     private async Task LoadWishlist()
     {
-        var pagedProductResult = await WishlistService.GetWishlistAsync(_currentPage, _pageSize);
+        var pagedProductResult = await WishlistService.GetWishlist(_currentPage, _pageSize);
 
         if (pagedProductResult != null)
         {

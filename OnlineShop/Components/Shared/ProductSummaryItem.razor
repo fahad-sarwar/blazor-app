@@ -59,12 +59,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _isOnWishlist = await WishlistService.IsOnWishlistAsync(Product.Id);
+        _isOnWishlist = await WishlistService.IsOnWishlist(Product.Id);
     }
 
     private async Task AddToBasket()
     {
-        var result = await BasketService.AddToBasketAsync(Product.Id, 1);
+        var result = await BasketService.AddToBasket(Product.Id, 1);
 
         _errorMessage = result
             ? null
@@ -76,7 +76,7 @@
         if (_isOnWishlist)
             return;
 
-        var success = await WishlistService.AddToWishlistAsync(Product.Id);
+        var success = await WishlistService.AddToWishlist(Product.Id);
 
         if (success)
         {
@@ -91,7 +91,7 @@
 
     private async Task RemoveFromWishlist()
     {
-        var success = await WishlistService.RemoveFromWishlistAsync(Product.Id);
+        var success = await WishlistService.RemoveFromWishlist(Product.Id);
 
         if (success)
         {

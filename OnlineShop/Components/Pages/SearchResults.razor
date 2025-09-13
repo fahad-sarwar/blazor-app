@@ -84,7 +84,7 @@ else
 
     private async Task GetProducts()
     {
-        var pagedProductResult = await ProductService.GetProductsAsync(SearchTerm, _selectedSort, _currentPage, _pageSize);
+        var pagedProductResult = await ProductService.GetProducts(SearchTerm, _selectedSort, _currentPage, _pageSize);
 
         if(pagedProductResult != null)
         {

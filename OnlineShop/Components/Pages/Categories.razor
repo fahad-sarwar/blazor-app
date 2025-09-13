@@ -31,6 +31,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _categories = await CategoryService.GetCategoriesAsync();
+        _categories = await CategoryService.GetCategories();
     }
 }

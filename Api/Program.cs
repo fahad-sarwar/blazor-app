@@ -28,6 +28,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.SameSite = SameSiteMode.Lax;
         options.LoginPath = "/login";
         options.AccessDeniedPath = "/access-denied";
+        options.ExpireTimeSpan = TimeSpan.FromMinutes(15);
+        options.SlidingExpiration = true;
+
     });
 
 builder.Services.AddCors(options =>

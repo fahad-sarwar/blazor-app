@@ -4,7 +4,7 @@ namespace OnlineShopUI.Services
 {
     public class OrderService(IHttpClientFactory httpClientFactory, ILogger<OrderService> logger)
     {
-        public async Task<PagedOrderResultViewModel?> GetOrdersAsync(int page, int pageSize)
+        public async Task<PagedOrderResultViewModel?> GetOrders(int page, int pageSize)
         {
             try
             {
@@ -19,7 +19,7 @@ namespace OnlineShopUI.Services
             }
         }
 
-        public async Task<PagedOrderResultViewModel?> GetOrderByOrderNumberAsync(string orderNumber)
+        public async Task<PagedOrderResultViewModel?> GetOrderByOrderNumber(string orderNumber)
         {
             try
             {
@@ -34,7 +34,7 @@ namespace OnlineShopUI.Services
             }
         }
 
-        public async Task<OrderViewModel?> GetOrderByIdAsync(int orderId)
+        public async Task<OrderViewModel?> GetOrderById(int orderId)
         {
             try
             {

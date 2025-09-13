@@ -6,7 +6,7 @@ namespace OnlineShopUI.Services
     {
         private const string AnonymousUserIdKey = "anonymous_user_id";
 
-        public async Task<string> GetOrCreateAnonymousIdAsync()
+        public async Task<string> GetOrCreateAnonymousId()
         {
             var result = await protectedSessionStorage.GetAsync<string>(AnonymousUserIdKey);
 

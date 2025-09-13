@@ -4,7 +4,7 @@ namespace OnlineShopUI.Services
 {
     public class CategoryService(IHttpClientFactory httpClientFactory, ILogger<CategoryService> logger)
     {
-        public async Task<List<CategoryViewModel>?> GetCategoriesAsync()
+        public async Task<List<CategoryViewModel>?> GetCategories()
         {
             try
             {
@@ -19,7 +19,8 @@ namespace OnlineShopUI.Services
                 return null;
             }
         }
-        public async Task<CategoryViewModel?> GetCategoryAsync(int? categoryId)
+
+        public async Task<CategoryViewModel?> GetCategory(int? categoryId)
         {
             try
             {

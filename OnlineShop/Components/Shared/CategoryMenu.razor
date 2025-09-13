@@ -30,7 +30,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var categories = await CategoryService.GetCategoriesAsync();
+        var categories = await CategoryService.GetCategories();
 
         _categoryLinks = new List<NavLinkItemViewModel>();
 

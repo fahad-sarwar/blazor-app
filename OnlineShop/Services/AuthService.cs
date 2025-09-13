@@ -77,11 +77,6 @@ namespace OnlineShopUI.Services
             }
         }
 
-        public async Task<UserInfo?> GetCurrentUserAsync()
-        {
-            return await GetUserFromApiAsync();
-        }
-
         public async Task<bool> UpdateProfileAsync(UpdateCustomerViewModel updateModel)
         {
             try
@@ -91,7 +86,6 @@ namespace OnlineShopUI.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    // Refresh authentication state to update claims
                     await RefreshAuthenticationStateAsync();
                     return true;
                 }
@@ -104,7 +98,7 @@ namespace OnlineShopUI.Services
             return false;
         }
 
-        public async Task RefreshAuthenticationStateAsync()
+        public async Task<bool> RefreshAuthenticationStateAsync()
         {
             try
             {
@@ -114,12 +108,15 @@ namespace OnlineShopUI.Services
                 if (authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
                 {
                     await apiProvider.NotifyAuthenticationStateChangedAsync();
+                    return true;
                 }
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error refreshing authentication state");
             }
+
+            return false;
         }
 
         private async Task<UserInfo?> GetUserFromApiAsync()

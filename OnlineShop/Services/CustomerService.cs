@@ -4,7 +4,7 @@ namespace OnlineShopUI.Services
 {
     public class CustomerService(IHttpClientFactory httpClientFactory, ILogger<CustomerService> logger)
     {
-        public async Task<CustomerViewModel?> GetCustomerAsync()
+        public async Task<CustomerViewModel?> GetCustomer()
         {
             try
             {
@@ -19,12 +19,29 @@ namespace OnlineShopUI.Services
             }
         }
 
-        public async Task<bool> UpdateCustomerAsync(UpdateCustomerViewModel request)
+        public async Task<bool> UpdateCustomer(UpdateCustomerViewModel request)
         {
-            var httpClient = httpClientFactory.CreateClient("Api");
+            try
+            {
+                var httpClient = httpClientFactory.CreateClient("Api");
 
-            var response = await httpClient.PutAsJsonAsync($"api/customers/{request.Id}", request);
-            return response.IsSuccessStatusCode;
+                var response = await httpClient.PutAsJsonAsync($"api/customers/{request.Id}", request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return response.IsSuccessStatusCode;
+                }
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                logger.LogError("Error updating customer with id {CustomerId}.  Response content is '{ResponseContent}'", request.Id, responseContent);
+
+                return response.IsSuccessStatusCode;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error updating customer with id {CustomerId}", request.Id);
+                return false;
+            }
         }
     }
 }

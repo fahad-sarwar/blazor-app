@@ -4,7 +4,7 @@ namespace OnlineShopUI.Services
 {
     public class ProductService(IHttpClientFactory httpClientFactory, ILogger<ProductService> logger)
     {
-        public async Task<PagedProductResultViewModel?> GetProductsAsync(string searchTerm, string selectedSort, int currentPage, int pageSize)
+        public async Task<PagedProductResultViewModel?> GetProducts(string searchTerm, string selectedSort, int currentPage, int pageSize)
         {
             try
             {
@@ -21,7 +21,7 @@ namespace OnlineShopUI.Services
             }
         }
 
-        public async Task<PagedProductResultViewModel?> GetProductsAsync(string selectedSort, int currentPage, int pageSize)
+        public async Task<PagedProductResultViewModel?> GetProducts(string selectedSort, int currentPage, int pageSize)
         {
             try
             {
@@ -38,7 +38,7 @@ namespace OnlineShopUI.Services
             }
         }
 
-        public async Task<PagedProductResultViewModel?> GetProductsAsync(int? categoryId, string selectedSort, int currentPage, int pageSize)
+        public async Task<PagedProductResultViewModel?> GetProducts(int? categoryId, string selectedSort, int currentPage, int pageSize)
         {
             try
             {
@@ -61,7 +61,7 @@ namespace OnlineShopUI.Services
             }
         }
 
-        public async Task<ProductViewModel> GetProductAsync(int productId)
+        public async Task<ProductViewModel> GetProduct(int productId)
         {
             try
             {

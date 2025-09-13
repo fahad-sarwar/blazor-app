@@ -179,11 +179,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _product = await ProductService.GetProductAsync(Id);
+        _product = await ProductService.GetProduct(Id);
 
         if (_product != null)
         {
-            _isOnWishlist = await WishlistService.IsOnWishlistAsync(_product.Id);
+            _isOnWishlist = await WishlistService.IsOnWishlist(_product.Id);
         }
         else
         {
@@ -197,7 +197,7 @@
 
         try
         {
-            var result = await BasketService.AddToBasketAsync(_product.Id, 1);
+            var result = await BasketService.AddToBasket(_product.Id, 1);
 
             if (!result)
             {
@@ -220,7 +220,7 @@
 
         try
         {
-            var success = await WishlistService.AddToWishlistAsync(_product.Id);
+            var success = await WishlistService.AddToWishlist(_product.Id);
 
             if (success)
             {

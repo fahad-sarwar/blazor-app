@@ -68,7 +68,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _order = await OrderService.GetOrderByIdAsync(OrderId);
+        _order = await OrderService.GetOrderById(OrderId);
 
         if (_order != null)
         {

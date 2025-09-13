@@ -34,7 +34,7 @@ namespace OnlineShopUI.Services
 
             var checkoutViewModel = testUser.Generate();
 
-            var customer = await customerService.GetCustomerAsync();
+            var customer = await customerService.GetCustomer();
 
             if (customer != null)
             {

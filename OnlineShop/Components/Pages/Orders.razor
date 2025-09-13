@@ -196,7 +196,7 @@
 
         _errorMessage = null;
 
-        var result = await OrderService.GetOrdersAsync(_currentPage, _pageSize);
+        var result = await OrderService.GetOrders(_currentPage, _pageSize);
 
         if (result != null)
         {

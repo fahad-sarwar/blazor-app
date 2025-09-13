@@ -231,7 +231,7 @@
         _isLoading = true;
         _errorMessage = null;
 
-        _order = await OrderService.GetOrderByIdAsync(OrderId);
+        _order = await OrderService.GetOrderById(OrderId);
 
         if (_order == null)
         {

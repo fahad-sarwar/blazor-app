@@ -4,7 +4,7 @@ namespace OnlineShopUI.Services
 {
     public class MessageService(IHttpClientFactory httpClientFactory, ILogger<MessageService> logger)
     {
-        public async Task<bool> SendMessageAsync(SendMessageViewModel message)
+        public async Task<bool> SendMessage(SendMessageViewModel message)
         {
             try
             {

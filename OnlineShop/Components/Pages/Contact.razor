@@ -167,7 +167,7 @@
         _errorMessage = null;
         _successMessage = null;
 
-        var success = await MessageService.SendMessageAsync(_messageModel);
+        var success = await MessageService.SendMessage(_messageModel);
 
         if (success)
         {

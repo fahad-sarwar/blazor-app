@@ -78,24 +78,69 @@ namespace Api.Controllers
                 var shippingAddress = customer.ShippingAddress;
                 var billingAddress = customer.BillingAddress;
 
-                shippingAddress.AddressLineOne = request.ShippingAddress.AddressLineOne;
-                shippingAddress.AddressLineTwo = request.ShippingAddress.AddressLineTwo;
-                shippingAddress.Town = request.ShippingAddress.Town;
-                shippingAddress.County = request.ShippingAddress.County;
-                shippingAddress.PostCode = request.ShippingAddress.PostCode;
-                shippingAddress.Country = request.ShippingAddress.Country;
+                var createShippingAddress = customer.ShippingAddress == null;
+                var createBillingAddress = customer.BillingAddress == null;
 
-                billingAddress.AddressLineOne = request.BillingAddress.AddressLineOne;
-                billingAddress.AddressLineTwo = request.BillingAddress.AddressLineTwo;
-                billingAddress.Town = request.BillingAddress.Town;
-                billingAddress.County = request.BillingAddress.County;
-                billingAddress.PostCode = request.BillingAddress.PostCode;
-                billingAddress.Country = request.BillingAddress.Country;
+                if (createShippingAddress)
+                {
+                    shippingAddress = new Address
+                    {
+                        AddressLineOne = request.ShippingAddressLineOne,
+                        AddressLineTwo = request.ShippingAddressLineTwo,
+                        Town = request.ShippingTown,
+                        County = request.ShippingCounty,
+                        PostCode = request.ShippingPostCode,
+                        Country = request.ShippingCountry
+                    };
+                    context.Address.Add(shippingAddress);
+                    customer.ShippingAddress = shippingAddress;
+                }
+
+                if (createBillingAddress)
+                {
+                    billingAddress = new Address
+                    {
+                        AddressLineOne = request.BillingAddressLineOne,
+                        AddressLineTwo = request.BillingAddressLineTwo,
+                        Town = request.BillingTown,
+                        County = request.BillingCounty,
+                        PostCode = request.BillingPostCode,
+                        Country = request.BillingCountry
+                    };
+                    context.Address.Add(billingAddress);
+                    customer.BillingAddress = billingAddress;
+                }
+
+                if (!createShippingAddress)
+                {
+                    shippingAddress.AddressLineOne = request.ShippingAddressLineOne;
+                    shippingAddress.AddressLineTwo = request.ShippingAddressLineTwo;
+                    shippingAddress.Town = request.ShippingTown;
+                    shippingAddress.County = request.ShippingCounty;
+                    shippingAddress.PostCode = request.ShippingPostCode;
+                    shippingAddress.Country = request.ShippingCountry;
+                }
+
+                if(!createBillingAddress)
+                {
+                    billingAddress.AddressLineOne = request.BillingAddressLineOne;
+                    billingAddress.AddressLineTwo = request.BillingAddressLineTwo;
+                    billingAddress.Town = request.BillingTown;
+                    billingAddress.County = request.BillingCounty;
+                    billingAddress.PostCode = request.BillingPostCode;
+                    billingAddress.Country = request.BillingCountry;
+                }
 
                 context.Entry(customer).State = EntityState.Modified;
                 context.Entry(user).State = EntityState.Modified;
-                context.Entry(shippingAddress).State = EntityState.Modified;
-                context.Entry(billingAddress).State = EntityState.Modified;
+                
+                context.Entry(shippingAddress).State = createShippingAddress 
+                    ? EntityState.Added 
+                    : EntityState.Modified;
+
+                context.Entry(billingAddress).State = createBillingAddress
+                    ? EntityState.Added
+                    : EntityState.Modified;
 
                 try
                 {

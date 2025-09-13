@@ -65,7 +65,7 @@ else if (_products != null && _products.Count > 0)
 
     protected override async Task OnInitializedAsync()
     {
-        var pagedProductResult = await ProductService.GetProductsAsync("name-asc", 1, 6);
+        var pagedProductResult = await ProductService.GetProducts("name-asc", 1, 6);
 
         if (pagedProductResult != null)
         {

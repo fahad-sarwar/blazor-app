@@ -4,7 +4,7 @@ namespace OnlineShopUI.Services
 {
     public class WishlistService(IHttpClientFactory httpClientFactory, ILogger<WishlistService> logger)
     {
-        public async Task<PagedProductResultViewModel?> GetWishlistAsync(int page, int pageSize)
+        public async Task<PagedProductResultViewModel?> GetWishlist(int page, int pageSize)
         {
             try
             {
@@ -20,7 +20,7 @@ namespace OnlineShopUI.Services
             }
         }
 
-        public async Task<bool> IsOnWishlistAsync(int productId)
+        public async Task<bool> IsOnWishlist(int productId)
         {
             try
             {
@@ -36,7 +36,7 @@ namespace OnlineShopUI.Services
             }
         }
 
-        public async Task<bool> AddToWishlistAsync(int productId)
+        public async Task<bool> AddToWishlist(int productId)
         {
             try
             {
@@ -57,7 +57,7 @@ namespace OnlineShopUI.Services
             }
         }
 
-        public async Task<bool> RemoveFromWishlistAsync(int productId)
+        public async Task<bool> RemoveFromWishlist(int productId)
         {
             try
             {

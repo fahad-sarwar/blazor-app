@@ -89,7 +89,7 @@ else
 
     private async Task GetCategory()
     {
-        _categoryViewModel = await CategoryService.GetCategoryAsync(Id);
+        _categoryViewModel = await CategoryService.GetCategory(Id);
 
         if (_categoryViewModel == null)
         {
@@ -100,7 +100,7 @@ else
 
     private async Task GetProducts()
     {
-        var pagedProductResult = await ProductService.GetProductsAsync(Id, _selectedSort, _currentPage, _pageSize);
+        var pagedProductResult = await ProductService.GetProducts(Id, _selectedSort, _currentPage, _pageSize);
 
         if (pagedProductResult != null)
         {
