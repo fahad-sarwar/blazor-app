@@ -48,5 +48,66 @@ namespace OnlineShopUI.Services
                 return null;
             }
         }
+
+        public async Task<OrderViewModel?> CreateOrder(CheckoutViewModel checkoutViewModel, BasketViewModel? basketViewModel)
+        {
+            try
+            {
+                var createOrderRequest = new CreateOrderRequest
+                {
+                    Customer = new CustomerViewModel
+                    {
+                        Id = checkoutViewModel.CustomerId,
+                        FirstName = checkoutViewModel.FirstName,
+                        LastName = checkoutViewModel.LastName,
+                        Email = checkoutViewModel.Email,
+                        PhoneNumber = checkoutViewModel.PhoneNumber,
+                        BillingAddress = new AddressViewModel
+                        {
+                            AddressLineOne = checkoutViewModel.BillingAddressLineOne,
+                            AddressLineTwo = checkoutViewModel.BillingAddressLineTwo,
+                            Town = checkoutViewModel.BillingTown,
+                            County = checkoutViewModel.BillingCounty,
+                            PostCode = checkoutViewModel.BillingPostCode,
+                            Country = checkoutViewModel.BillingCountry
+                        },
+                        ShippingAddress = new AddressViewModel
+                        {
+                            AddressLineOne = checkoutViewModel.ShippingAddressLineOne,
+                            AddressLineTwo = checkoutViewModel.ShippingAddressLineTwo,
+                            Town = checkoutViewModel.ShippingTown,
+                            County = checkoutViewModel.ShippingCounty,
+                            PostCode = checkoutViewModel.ShippingPostCode,
+                            Country = checkoutViewModel.ShippingCountry
+                        }
+                    },
+                    BasketId = basketViewModel.Id,
+                    Payment = new PaymentDetails
+                    {
+                        CardNumber = checkoutViewModel.CardNumber,
+                        CardName = checkoutViewModel.CardName,
+                        Expiry = checkoutViewModel.Expiry,
+                        CVV = checkoutViewModel.CVV
+                    }
+                };
+
+                var httpClient = httpClientFactory.CreateClient("Api");
+                var response = await httpClient.PostAsJsonAsync("api/orders", createOrderRequest);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var order = await response.Content.ReadFromJsonAsync<OrderViewModel>();
+                    return order;
+                }
+
+                logger.LogError("Error creating order: {StatusCode}", response.StatusCode);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error creating order");
+                return null;
+            }
+        }
     }
 }

@@ -4,11 +4,11 @@
 @using OnlineShopUI.Services
 @using OnlineShopUI.Components.Shared
 @rendermode InteractiveServer
-@inject IHttpClientFactory HttpClientFactory
 @inject NavigationManager Navigation
 @inject BasketService BasketService
 @inject CheckoutDummyDataService CheckoutDummyDataService
 @inject CustomerService CustomerService
+@inject OrderService OrderService
 @inject ApiAuthenticationStateProvider ApiAuthenticationStateProvider
 
 <h3>Checkout</h3>
@@ -185,7 +185,6 @@
     private bool _isCustomerValid = false;
     private bool _isBillingValid = false;
     private bool _isShippingValid = false;
-    private bool _isPaymentValid = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -260,62 +259,15 @@
 
     private async Task SubmitOrder()
     {
-        try
+        var createdOrder = await OrderService.CreateOrder(_checkoutModel, _basket);
+
+        if (createdOrder != null)
         {
-            var orderRequest = new CreateOrderRequest
-                {
-                    Customer = new CustomerViewModel
-                    {
-                        Id = _checkoutModel.CustomerId,
-                        FirstName = _checkoutModel.FirstName,
-                        LastName = _checkoutModel.LastName,
-                        Email = _checkoutModel.Email,
-                        PhoneNumber = _checkoutModel.PhoneNumber,
-                        BillingAddress = new AddressViewModel
-                        {
-                            AddressLineOne = _checkoutModel.BillingAddressLineOne,
-                            AddressLineTwo = _checkoutModel.BillingAddressLineTwo,
-                            Town = _checkoutModel.BillingTown,
-                            County = _checkoutModel.BillingCounty,
-                            PostCode = _checkoutModel.BillingPostCode,
-                            Country = _checkoutModel.BillingCountry
-                        },
-                        ShippingAddress = new AddressViewModel
-                        {
-                            AddressLineOne = _checkoutModel.ShippingAddressLineOne,
-                            AddressLineTwo = _checkoutModel.ShippingAddressLineTwo,
-                            Town = _checkoutModel.ShippingTown,
-                            County = _checkoutModel.ShippingCounty,
-                            PostCode = _checkoutModel.ShippingPostCode,
-                            Country = _checkoutModel.ShippingCountry
-                        }
-                    },
-                    BasketId = _basket!.Id,
-                    Payment = new PaymentDetails
-                    {
-                        CardNumber = _checkoutModel.CardNumber,
-                        CardName = _checkoutModel.CardName,
-                        Expiry = _checkoutModel.Expiry,
-                        CVV = _checkoutModel.CVV
-                    }
-                };
-
-            var httpClient = HttpClientFactory.CreateClient("Api");
-            var response = await httpClient.PostAsJsonAsync($"api/Orders", orderRequest);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var orderResponse = await response.Content.ReadFromJsonAsync<OrderViewModel>();
-                Navigation.NavigateTo($"/order-confirmation/{orderResponse.Id}");
-            }
-            else
-            {
-                _errorMessage = "Failed to place order.";
-            }
+            Navigation.NavigateTo($"/order-confirmation/{createdOrder.Id}");
         }
-        catch
+        else
         {
-            _errorMessage = "Unexpected error during order placement.";
+            _errorMessage = "Failed to place order.";
         }
     }
 }
