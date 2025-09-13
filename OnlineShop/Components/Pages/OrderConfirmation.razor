@@ -3,8 +3,8 @@
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
 @using OnlineShopUI.Components.Shared
-@inject IHttpClientFactory HttpClientFactory
 @inject BasketCountService BasketCountService
+@inject OrderService OrderService
 @rendermode InteractiveServer
 
 <h3>Order Confirmation</h3>
@@ -68,15 +68,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        try
+        _order = await OrderService.GetOrderByIdAsync(OrderId);
+
+        if (_order != null)
         {
-            var httpClient = HttpClientFactory.CreateClient("Api");
-            _order = await httpClient.GetFromJsonAsync<OrderViewModel>($"api/Orders/{OrderId}");
             BasketCountService.SetCount(0);
         }
-        catch (Exception ex)
+        else
         {
-            _errorMessage = "We couldn't load your order details.";
+            _errorMessage = "Failed to load your order details.";
         }
     }
 }
