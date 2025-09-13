@@ -26,7 +26,7 @@ namespace OnlineShopUI.Services
             {
                 if(categoryId == null)
                 {
-                    logger.LogWarning("CategoryId is null");
+                    logger.LogWarning("CategoryId is required.");
                     return null;
                 }
                     
