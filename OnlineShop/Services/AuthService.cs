@@ -5,13 +5,13 @@ using System.Text.Json;
 namespace OnlineShopUI.Services
 {
     public class AuthService(IHttpClientFactory httpClientFactory, AuthenticationStateProvider authenticationStateProvider, ILogger<AuthService> logger)
+        : BaseService(httpClientFactory)
     {
         public async Task<bool> LoginAsync(LoginViewModel loginModel)
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var result = await httpClient.PostAsJsonAsync("api/auth/login", loginModel);
+                var result = await GetClientFactory().PostAsJsonAsync("api/auth/login", loginModel);
 
                 if (result.IsSuccessStatusCode)
                 {
@@ -35,8 +35,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var result = await httpClient.PostAsJsonAsync("api/auth/register", registerModel);
+                var result = await GetClientFactory().PostAsJsonAsync("api/auth/register", registerModel);
 
                 if (result.IsSuccessStatusCode)
                 {
@@ -60,8 +59,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                await httpClient.PostAsync("api/auth/logout", null);
+                await GetClientFactory().PostAsync("api/auth/logout", null);
             }
             catch (Exception ex)
             {
@@ -81,8 +79,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var response = await httpClient.PutAsJsonAsync($"api/customers/{updateModel.Id}", updateModel);
+                var response = await GetClientFactory().PutAsJsonAsync($"api/customers/{updateModel.Id}", updateModel);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -102,8 +99,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                await httpClient.PostAsync("api/auth/refresh-claims", null);
+                await GetClientFactory().PostAsync("api/auth/refresh-claims", null);
 
                 if (authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
                 {
@@ -123,8 +119,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var userResponse = await httpClient.GetAsync("api/auth/user");
+                var userResponse = await GetClientFactory().GetAsync("api/auth/user");
 
                 if (userResponse.IsSuccessStatusCode)
                 {

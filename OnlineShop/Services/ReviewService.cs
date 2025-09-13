@@ -2,14 +2,13 @@
 
 namespace OnlineShopUI.Services
 {
-    public class ReviewService(IHttpClientFactory httpClientFactory, ILogger<ReviewService> logger)
+    public class ReviewService(IHttpClientFactory httpClientFactory, ILogger<ReviewService> logger) : BaseService(httpClientFactory)
     {
         public async Task<PagedReviewResultViewModel?> GetPagedReviews(int productId, int page, int pageSize)
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var response = await httpClient.GetFromJsonAsync<PagedReviewResultViewModel>($"api/reviews?productId={productId}&page={page}&pageSize={pageSize}");
+                var response = await GetClientFactory().GetFromJsonAsync<PagedReviewResultViewModel>($"api/reviews?productId={productId}&page={page}&pageSize={pageSize}");
                 return response ?? null;
             }
 
@@ -24,9 +23,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-
-                var response = await httpClient.PostAsJsonAsync("api/reviews", createReviewViewModel);
+                var response = await GetClientFactory().PostAsJsonAsync("api/reviews", createReviewViewModel);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)

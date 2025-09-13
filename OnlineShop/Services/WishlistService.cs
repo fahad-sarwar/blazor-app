@@ -2,14 +2,13 @@
 
 namespace OnlineShopUI.Services
 {
-    public class WishlistService(IHttpClientFactory httpClientFactory, ILogger<WishlistService> logger)
+    public class WishlistService(IHttpClientFactory httpClientFactory, ILogger<WishlistService> logger) : BaseService(httpClientFactory)
     {
         public async Task<PagedProductResultViewModel?> GetWishlist(int page, int pageSize)
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var response = await httpClient.GetFromJsonAsync<PagedProductResultViewModel>($"api/wishlist?page={page}&pageSize={pageSize}");
+                var response = await GetClientFactory().GetFromJsonAsync<PagedProductResultViewModel>($"api/wishlist?page={page}&pageSize={pageSize}");
                 return response;
             }
 
@@ -24,8 +23,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var response = await httpClient.GetAsync($"api/wishlist/{productId}/exists");
+                var response = await GetClientFactory().GetAsync($"api/wishlist/{productId}/exists");
 
                 return response.IsSuccessStatusCode;
             }
@@ -40,14 +38,12 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-
                 var request = new
                 {
                     ProductId = productId
                 };
 
-                var response = await httpClient.PostAsJsonAsync("api/wishlist", request);
+                var response = await GetClientFactory().PostAsJsonAsync("api/wishlist", request);
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
@@ -61,8 +57,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var response = await httpClient.DeleteAsync($"api/wishlist/{productId}");
+                var response = await GetClientFactory().DeleteAsync($"api/wishlist/{productId}");
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)

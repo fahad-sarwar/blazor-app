@@ -25,11 +25,9 @@
                 NotifyStateChanged();
                 return;
             }
-            else
-            {
-                ItemCount -= by;
-                NotifyStateChanged();
-            }
+
+            ItemCount -= by;
+            NotifyStateChanged();
         }
 
         private void NotifyStateChanged() => OnChange?.Invoke();

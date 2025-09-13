@@ -2,14 +2,13 @@
 
 namespace OnlineShopUI.Services
 {
-    public class CustomerService(IHttpClientFactory httpClientFactory, ILogger<CustomerService> logger)
+    public class CustomerService(IHttpClientFactory httpClientFactory, ILogger<CustomerService> logger) : BaseService(httpClientFactory)
     {
         public async Task<CustomerViewModel?> GetCustomer()
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var response = await httpClient.GetFromJsonAsync<CustomerViewModel>($"api/customers");
+                var response = await GetClientFactory().GetFromJsonAsync<CustomerViewModel>($"api/customers");
                 return response;
             }
             catch (Exception ex)
@@ -23,9 +22,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-
-                var response = await httpClient.PutAsJsonAsync($"api/customers/{request.Id}", request);
+                var response = await GetClientFactory().PutAsJsonAsync($"api/customers/{request.Id}", request);
 
                 if (response.IsSuccessStatusCode)
                 {

@@ -3,16 +3,15 @@
 namespace OnlineShopUI.Services
 {
     public class BasketService(IHttpClientFactory httpClientFactory, AnonymousUserService anonymousUserService, BasketCountService basketCountService, ILogger<BasketService> logger)
+        : BaseService(httpClientFactory)
     {
-        private readonly HttpClient _httpClient = httpClientFactory.CreateClient("Api");
-
         public async Task<BasketViewModel?> GetBasket()
         {
             try
             {
                 var anonymousUserId = await anonymousUserService.GetOrCreateAnonymousId();
 
-                var basketViewModel = await _httpClient.GetFromJsonAsync<BasketViewModel>($"api/Baskets?anonymousUserId={anonymousUserId}");
+                var basketViewModel = await GetClientFactory().GetFromJsonAsync<BasketViewModel>($"api/Baskets?anonymousUserId={anonymousUserId}");
 
                 return basketViewModel;
             }
@@ -45,7 +44,7 @@ namespace OnlineShopUI.Services
                     Quantity = quantity
                 };
 
-                var response = await _httpClient.PostAsJsonAsync("api/BasketItems", basketItem);
+                var response = await GetClientFactory().PostAsJsonAsync("api/BasketItems", basketItem);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -70,7 +69,7 @@ namespace OnlineShopUI.Services
                     Quantity = newQuantity
                 };
 
-                var response = await _httpClient.PutAsJsonAsync($"api/BasketItems/{basketItemId}", updatedItem);
+                var response = await GetClientFactory().PutAsJsonAsync($"api/BasketItems/{basketItemId}", updatedItem);
 
                 return response.IsSuccessStatusCode;
             }
@@ -86,7 +85,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var response = await _httpClient.DeleteAsync($"api/BasketItems/{basketItemId}");
+                var response = await GetClientFactory().DeleteAsync($"api/BasketItems/{basketItemId}");
 
                 if (response.IsSuccessStatusCode)
                 {

@@ -2,14 +2,13 @@
 
 namespace OnlineShopUI.Services
 {
-    public class OrderService(IHttpClientFactory httpClientFactory, ILogger<OrderService> logger)
+    public class OrderService(IHttpClientFactory httpClientFactory, ILogger<OrderService> logger) : BaseService(httpClientFactory)
     {
         public async Task<PagedOrderResultViewModel?> GetOrders(int page, int pageSize)
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var response = await httpClient.GetFromJsonAsync<PagedOrderResultViewModel>($"api/orders?page={page}&pageSize={pageSize}");
+                var response = await GetClientFactory().GetFromJsonAsync<PagedOrderResultViewModel>($"api/orders?page={page}&pageSize={pageSize}");
                 return response;
             }
             catch (Exception ex)
@@ -23,8 +22,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var response = await httpClient.GetFromJsonAsync<PagedOrderResultViewModel>($"api/orders?orderNumber={orderNumber}");
+                var response = await GetClientFactory().GetFromJsonAsync<PagedOrderResultViewModel>($"api/orders?orderNumber={orderNumber}");
                 return response;
             }
             catch (Exception ex)
@@ -38,8 +36,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var response = await httpClient.GetFromJsonAsync<OrderViewModel>($"api/orders/{orderId}");
+                var response = await GetClientFactory().GetFromJsonAsync<OrderViewModel>($"api/orders/{orderId}");
                 return response;
             }
             catch (Exception ex)
@@ -91,8 +88,7 @@ namespace OnlineShopUI.Services
                     }
                 };
 
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var response = await httpClient.PostAsJsonAsync("api/orders", createOrderRequest);
+                var response = await GetClientFactory().PostAsJsonAsync("api/orders", createOrderRequest);
 
                 if (response.IsSuccessStatusCode)
                 {

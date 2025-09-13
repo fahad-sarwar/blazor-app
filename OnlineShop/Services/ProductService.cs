@@ -2,14 +2,13 @@
 
 namespace OnlineShopUI.Services
 {
-    public class ProductService(IHttpClientFactory httpClientFactory, ILogger<ProductService> logger)
+    public class ProductService(IHttpClientFactory httpClientFactory, ILogger<ProductService> logger) : BaseService(httpClientFactory)
     {
         public async Task<PagedProductResultViewModel?> GetProducts(string searchTerm, string selectedSort, int currentPage, int pageSize)
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var pagedProductResult = await httpClient.GetFromJsonAsync<PagedProductResultViewModel>(
+                var pagedProductResult = await GetClientFactory().GetFromJsonAsync<PagedProductResultViewModel>(
                     $"api/products?searchTerm={searchTerm}&sort={selectedSort}&page={currentPage}&pageSize={pageSize}");
 
                 return pagedProductResult;
@@ -25,8 +24,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var pagedProductResult = await httpClient.GetFromJsonAsync<PagedProductResultViewModel>(
+                var pagedProductResult = await GetClientFactory().GetFromJsonAsync<PagedProductResultViewModel>(
                     $"api/products?forSale=true&sort={selectedSort}&page={currentPage}&pageSize={pageSize}");
 
                 return pagedProductResult;
@@ -48,8 +46,7 @@ namespace OnlineShopUI.Services
                     return null;
                 }
 
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var pagedProductResult = await httpClient.GetFromJsonAsync<PagedProductResultViewModel>(
+                var pagedProductResult = await GetClientFactory().GetFromJsonAsync<PagedProductResultViewModel>(
                     $"api/products?categoryId={categoryId}&sort={selectedSort}&page={currentPage}&pageSize={pageSize}");
 
                 return pagedProductResult;
@@ -65,10 +62,9 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var httpClient = httpClientFactory.CreateClient("Api");
-                var response = await httpClient.GetFromJsonAsync<ProductViewModel>($"api/products/{productId}");
+                var response = await GetClientFactory().GetFromJsonAsync<ProductViewModel>($"api/products/{productId}");
 
-                var ratingResponse = await httpClient.GetFromJsonAsync<ProductReviewStatsViewModel>($"api/reviews/stats?productId={productId}");
+                var ratingResponse = await GetClientFactory().GetFromJsonAsync<ProductReviewStatsViewModel>($"api/reviews/stats?productId={productId}");
 
                 response.AverageRating = ratingResponse?.AverageRating ?? 0;
 

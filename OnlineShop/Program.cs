@@ -42,8 +42,9 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
 
-builder.Services.AddTransient<CheckoutDummyDataService>();
-builder.Services.AddTransient<BasketService>();
+builder.Services.AddScoped<CheckoutDummyDataService>();
+builder.Services.AddScoped<BaseService>();
+builder.Services.AddScoped<BasketService>();
 builder.Services.AddScoped<AnonymousUserService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<CustomerService>();
