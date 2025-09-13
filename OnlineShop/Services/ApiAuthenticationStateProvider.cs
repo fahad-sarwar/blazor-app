@@ -51,6 +51,15 @@ namespace OnlineShopUI.Services
         {
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
+
+        public string GetFirstname(AuthenticationState authenticationState)
+        {
+            var firstNameClaim = authenticationState.User.FindFirst(ClaimTypes.GivenName);
+
+            return !string.IsNullOrEmpty(firstNameClaim?.Value)
+                ? firstNameClaim.Value
+                : authenticationState.User.Identity?.Name ?? "User";
+        }
     }
 
     public class UserInfo

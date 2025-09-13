@@ -1,7 +1,7 @@
 ﻿﻿@using OnlineShopUI.ViewModels
 
+@inject ApiAuthenticationStateProvider AuthStateProvider
 @inject NavigationManager Navigation
-@using System.Security.Claims
 @using OnlineShopUI.Services
 @inject BasketCountService BasketCountService
 @implements IDisposable
@@ -11,7 +11,7 @@
     <a class="navbar-brand" href="/">Bob Kart</a>
 
     <form class="d-flex ms-3 me-auto" @onsubmit="HandleSearch" style="width: 40%;">
-        <input class="form-control me-2" @bind="SearchTerm" type="search" placeholder="Search..." />
+        <input class="form-control me-2" @bind="_searchTerm" type="search" placeholder="Search..." />
         <button class="btn btn-outline-light" type="submit">Search</button>
     </form>
 
@@ -19,7 +19,7 @@
         <li class="nav-item">
             <NavLink class="nav-link" href="/basket">
                 Basket
-                <span class="badge bg-danger">@basketCount</span>
+                <span class="badge bg-danger">@_basketCount</span>
             </NavLink>
         </li>
         <AuthorizeView>
@@ -50,19 +50,19 @@
 </nav>
 
 @code {
-    private string SearchTerm = string.Empty;
-    private int basketCount;
+    private string _searchTerm = string.Empty;
+    private int _basketCount;
 
     protected override async Task OnInitializedAsync()
     {
         BasketCountService.OnChange += UpdateCount;
-        basketCount = BasketCountService.ItemCount;
+        _basketCount = BasketCountService.ItemCount;
     }
 
     private void UpdateCount()
     {
-        basketCount = BasketCountService.ItemCount;
-        InvokeAsync(StateHasChanged);
+        _basketCount = BasketCountService.ItemCount;
+        StateHasChanged();
     }
 
     public void Dispose()
@@ -70,22 +70,19 @@
         BasketCountService.OnChange -= UpdateCount;
     }
 
-    private Task HandleSearch()
+    private void HandleSearch()
     {
-        if (!string.IsNullOrWhiteSpace(SearchTerm))
+        if (string.IsNullOrWhiteSpace(_searchTerm))
         {
-            var encoded = Uri.EscapeDataString(SearchTerm);
-            Navigation.NavigateTo($"/search-results/{encoded}");
+            return;
         }
 
-        return Task.CompletedTask;
+        var encoded = Uri.EscapeDataString(_searchTerm);
+        Navigation.NavigateTo($"/search-results/{encoded}");
     }
 
     private string GetFirstName(AuthenticationState context)
     {
-        var firstNameClaim = context.User.FindFirst(ClaimTypes.GivenName);
-        return !string.IsNullOrEmpty(firstNameClaim?.Value)
-            ? firstNameClaim.Value
-            : context.User.Identity?.Name ?? "User";
+        return AuthStateProvider.GetFirstname(context);
     }
 }
