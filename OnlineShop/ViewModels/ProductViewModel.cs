@@ -13,17 +13,19 @@
         public List<ProductAttributeViewModel> Attributes { get; set; }
         public double AverageRating { get; set; }
 
-        public string GetFormattedPrice()
+        public string FormattedPrice()
         {
-            return $"£{Price:0.00}";
+            return Price.ToString("C");
         }
 
-        public string GetFormattedSalePrice()
+        public string FormattedSalePrice()
         {
-            return $"£{SalePrice.Value:0.00}";
+            return SalePrice.HasValue
+                ? SalePrice.Value.ToString("C")
+                : string.Empty;
         }
 
-        public string GetStockStatus()
+        public string StockStatus()
         {
             if (Stock > 10)
                 return "In Stock";
@@ -31,7 +33,7 @@
             return Stock == 0 ? "Out of Stock" : "Low Stock";
         }
 
-        public string GetStockStatusClass()
+        public string StockStatusClass()
         {
             return Stock switch
             {

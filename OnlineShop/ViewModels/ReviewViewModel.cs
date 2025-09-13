@@ -11,6 +11,8 @@
         public DateTime CreatedAt { get; set; }
 
         public string GetFormattedDate()
-            => CreatedAt.ToLocalTime().ToString("dd MMM yyyy");
+        {
+            return CreatedAt.ToLocalTime().ToString("dd MMM yyyy");
+        }
     }
 }

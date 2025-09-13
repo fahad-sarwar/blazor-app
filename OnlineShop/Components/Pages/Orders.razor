@@ -73,9 +73,7 @@
                                                         <span class="fw-bold text-primary">@order.OrderNumber</span>
                                                     </td>
                                                     <td>
-                                                        <span class="text-muted">@order.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</span>
-                                                        <br>
-                                                        <small class="text-muted">@order.CreatedAt.ToLocalTime().ToString("HH:mm")</small>
+                                                        <span class="text-muted">@order.GetFormattedCreatedAtDate()</span>
                                                     </td>
                                                     <td>
                                                         <span class="badge @GetStatusBadgeClass(order.Status)">
@@ -83,12 +81,12 @@
                                                         </span>
                                                     </td>
                                                     <td class="text-end">
-                                                        <span class="fw-bold">£@order.TotalPrice.ToString("0.00")</span>
+                                                        <span class="fw-bold">@order.FormattedTotalPrice()</span>
                                                     </td>
                                                     <td>
                                                         @if (order.EstimatedDelivery.HasValue)
                                                         {
-                                                            <span class="text-muted">@order.EstimatedDelivery.Value.ToString("dd MMM yyyy")</span>
+                                                            <span class="text-muted">@order.GetFormattedEstimatedDeliveryDate()</span>
                                                         }
                                                         else
                                                         {

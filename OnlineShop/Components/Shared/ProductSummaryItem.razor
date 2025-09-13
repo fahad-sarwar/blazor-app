@@ -12,13 +12,13 @@
                 @if (Product.ForSale)
                 {
                     <div>
-                        <p><del>Was: @Product.GetFormattedPrice()</del></p>
-                        <p class="text-danger"><strong>Now: @Product.GetFormattedSalePrice()</strong></p>
+                        <p><del>Was: @Product.FormattedPrice()</del></p>
+                        <p class="text-danger"><strong>Now: @Product.FormattedSalePrice()</strong></p>
                     </div>
                 }
                 else
                 {
-                <p>@Product.GetFormattedPrice()</p>
+                <p>@Product.FormattedPrice()</p>
                 }
             </p>
         </div>

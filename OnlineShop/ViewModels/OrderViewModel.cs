@@ -26,5 +26,20 @@
         {
             return Vat().ToString("C");
         }
+
+        public string FormattedTotalPrice()
+        {
+            return TotalPrice.ToString("C");
+        }
+
+        public string GetFormattedCreatedAtDate()
+        {
+            return CreatedAt.ToLocalTime().ToString("dd MMM yyyy");
+        }
+
+        public string? GetFormattedEstimatedDeliveryDate()
+        {
+            return EstimatedDelivery?.ToLocalTime().ToString("dd MMM yyyy");
+        }
     }
 }

@@ -98,11 +98,11 @@
                         <h5>Order & Payment</h5>
                         <p><strong>Order Number:</strong> @_order.OrderNumber</p>
                         <p><strong>Status:</strong> @_order.Status</p>
-                        <p><strong>Total:</strong> £@_order.TotalPrice</p>
+                        <p><strong>Total:</strong> @_order.FormattedTotalPrice()</p>
                         <p><strong>Paid With:</strong> @_order.Payment.PaymentMethod</p>
                         <p><strong>Card:</strong> @_order.Payment.MaskedCardNumber</p>
                         <p><strong>Cardholder:</strong> @_order.Payment.CardName</p>
-                        <p><strong>Estimated Delivery:</strong> @_order.EstimatedDelivery?.ToString("dd MMM yyyy")</p>
+                        <p><strong>Estimated Delivery:</strong> @_order.GetFormattedEstimatedDeliveryDate()</p>
                     </div>
                 </div>
 
@@ -154,8 +154,8 @@
                                 <tr>
                                     <td>@item.Product.Name</td>
                                     <td class="text-end">@item.Quantity</td>
-                                    <td class="text-end">£@item.Product.Price.ToString("0.00")</td>
-                                    <td class="text-end">£@item.TotalPrice.ToString("0.00")</td>
+                                    <td class="text-end">@item.Product.FormattedPrice()</td>
+                                    <td class="text-end">@item.FormattedTotalPrice()</td>
                                 </tr>
                             }
                         </tbody>
@@ -166,7 +166,7 @@
                         </tr>
                             <tr>
                                 <td colspan="3" class="text-end fw-semibold">Total</td>
-                                <td class="text-end fw-bold">@_order.TotalPrice.ToString("C")</td>
+                                <td class="text-end fw-bold">@_order.FormattedTotalPrice()</td>
                             </tr>
                         </tfoot>
                     </table>
