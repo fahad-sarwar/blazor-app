@@ -40,12 +40,12 @@
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="headingOne">
                                     <button class="accordion-button @(!_isCustomerValid ? "" : "collapsed text-success")" type="button"
-                                            data-bs-toggle="collapse" data-bs-target="#collapseOne">
+                                    data-bs-toggle="collapse" data-bs-target="#collapseOne">
                                         Step 1: Customer Details
                                     </button>
                                 </h2>
                                 <div id="collapseOne" class="accordion-collapse collapse @(_activeStep == 1 ? "show" : "")"
-                                     data-bs-parent="#checkoutAccordion">
+                                data-bs-parent="#checkoutAccordion">
                                     <div class="accordion-body">
                                         <InputText class="form-control mb-3" @bind-Value="_checkoutModel.FirstName" placeholder="First Name" disabled="true" />
                                         <InputText class="form-control mb-3" @bind-Value="_checkoutModel.LastName" placeholder="Last Name" disabled="true" />
@@ -59,12 +59,12 @@
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="headingTwo">
                                     <button class="accordion-button @(_activeStep == 2 ? "" : "collapsed text-success")" type="button"
-                                            data-bs-toggle="collapse" data-bs-target="#collapseTwo">
+                                    data-bs-toggle="collapse" data-bs-target="#collapseTwo">
                                         Step 2: Billing Address
                                     </button>
                                 </h2>
                                 <div id="collapseTwo" class="accordion-collapse collapse @(_activeStep == 2 ? "show" : "")"
-                                     data-bs-parent="#checkoutAccordion">
+                                data-bs-parent="#checkoutAccordion">
                                     <div class="accordion-body">
                                         <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingAddressLineOne" placeholder="Address Line 1" />
                                         <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingAddressLineTwo" placeholder="Address Line 2" />
@@ -81,12 +81,12 @@
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="headingThree">
                                     <button class="accordion-button @(_activeStep == 3 ? "" : "collapsed text-success")" type="button"
-                                            data-bs-toggle="collapse" data-bs-target="#collapseThree">
+                                    data-bs-toggle="collapse" data-bs-target="#collapseThree">
                                         Step 3: Shipping Address
                                     </button>
                                 </h2>
                                 <div id="collapseThree" class="accordion-collapse collapse @(_activeStep == 3 ? "show" : "")"
-                                     data-bs-parent="#checkoutAccordion">
+                                data-bs-parent="#checkoutAccordion">
                                     <div class="accordion-body">
                                         <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingAddressLineOne" placeholder="Address Line 1" />
                                         <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingAddressLineTwo" placeholder="Address Line 2" />
@@ -103,12 +103,12 @@
                             <div class="accordion-item">
                                 <h2 class="accordion-header" id="headingFour">
                                     <button class="accordion-button @(_activeStep == 4 ? "" : "collapsed text-success")" type="button"
-                                            data-bs-toggle="collapse" data-bs-target="#collapseFour">
+                                    data-bs-toggle="collapse" data-bs-target="#collapseFour">
                                         Step 4: Payment Details
                                     </button>
                                 </h2>
                                 <div id="collapseFour" class="accordion-collapse collapse @(_activeStep == 4 ? "show" : "")"
-                                     data-bs-parent="#checkoutAccordion">
+                                data-bs-parent="#checkoutAccordion">
                                     <div class="accordion-body">
                                         <InputText class="form-control mb-3" @bind-Value="_checkoutModel.CardNumber" placeholder="Card Number" />
                                         <InputText class="form-control mb-3" @bind-Value="_checkoutModel.CardName" placeholder="Name on Card" />
@@ -130,40 +130,7 @@
                 </div>
 
                 <div class="col-md-5">
-                    <h4 class="mb-3">Order Summary</h4>
-                    <div class="table-responsive">
-                        <table class="table table-striped align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Product</th>
-                                    <th class="text-end">Qty</th>
-                                    <th class="text-end">Price</th>
-                                    <th class="text-end">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var item in _basket.Items)
-                                {
-                                    <tr>
-                                        <td>@item.Product.Name</td>
-                                        <td class="text-end">@item.Quantity</td>
-                                        <td class="text-end">@item.FormattedPrice()</td>
-                                        <td class="text-end">@item.FormattedLineTotal()</td>
-                                    </tr>
-                                }
-                            </tbody>
-                            <tfoot class="table-group-divider">
-                                <tr>
-                                    <td colspan="3" class="text-end fw-semibold">VAT (20%)</td>
-                                    <td class="text-end">@_basket.FormattedVat()</td>
-                                </tr>
-                                <tr class="table-primary">
-                                    <td colspan="3" class="text-end fw-bold">Total</td>
-                                    <td class="text-end fw-bold">@_basket.FormattedTotal()</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
+                    <BasketSummary Basket="@_basket" />
                 </div>
             </div>
         }
@@ -200,15 +167,16 @@
 
     private async Task LoadBasketAsync()
     {
-        try
+        _basket = await BasketService.GetBasket();
+
+        if(_basket != null)
         {
-            _basket = await BasketService.GetBasket();
             _errorMessage = null;
         }
-        catch (Exception ex)
+        else
         {
             _errorMessage = "Failed to load basket.";
-            _basket = new BasketViewModel();
+            _basket = new BasketViewModel();            
         }
 
         _loaded = true;
