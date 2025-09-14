@@ -5,151 +5,76 @@
 @inject MessageService MessageService
 @rendermode InteractiveServer
 
-<div class="container py-5">
-    <h2 class="text-center mb-4">Contact Bob Kart</h2>
+@if (!string.IsNullOrEmpty(_successMessage))
+{
+    <div class="alert alert-success">@_successMessage</div>
+}
 
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card rounded-3 p-4">
-                <h4 class="mb-3">
-                    <i class="bi bi-envelope me-2"></i>Send us a message
-                </h4>
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
 
-                @if (!string.IsNullOrEmpty(_successMessage))
-                {
-                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                        <i class="bi bi-check-circle me-2"></i>@_successMessage
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                }
+<h3 class="mb-4">Contact Us</h3>
 
-                @if (!string.IsNullOrEmpty(_errorMessage))
-                {
-                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                        <i class="bi bi-exclamation-triangle me-2"></i>@_errorMessage
-                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                    </div>
-                }
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card rounded-3 p-4">
+            <h4 class="mb-3">Send us a message</h4>
+            <EditForm Model="_messageModel" OnValidSubmit="SendMessage">
+                <DataAnnotationsValidator />
+                <ValidationSummary class="text-danger mb-3" />
 
-                <EditForm Model="_messageModel" OnValidSubmit="SendMessage">
-                    <DataAnnotationsValidator />
-                    <ValidationSummary class="text-danger mb-3" />
+                <div class="mb-3">
+                    <label for="name" class="form-label fw-semibold">Your Name</label>
+                    <InputText id="name" class="form-control" @bind-Value="_messageModel.Name" placeholder="John Doe" />
+                    <ValidationMessage For="@(() => _messageModel.Name)" class="text-danger" />
+                </div>
 
-                    <div class="mb-3">
-                        <label for="name" class="form-label fw-semibold">
-                            <i class="bi bi-person me-1"></i>Your Name
-                        </label>
-                        <InputText id="name" class="form-control" @bind-Value="_messageModel.Name"
-                                   placeholder="John Doe" />
-                        <ValidationMessage For="@(() => _messageModel.Name)" class="text-danger" />
-                    </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label fw-semibold">Your Email</label>
+                    <InputText id="email" class="form-control" @bind-Value="_messageModel.Email" placeholder="you@example.com" type="email" />
+                    <ValidationMessage For="@(() => _messageModel.Email)" class="text-danger" />
+                </div>
 
-                    <div class="mb-3">
-                        <label for="email" class="form-label fw-semibold">
-                            <i class="bi bi-envelope me-1"></i>Your Email
-                        </label>
-                        <InputText id="email" class="form-control" @bind-Value="_messageModel.Email"
-                                   placeholder="you@example.com" type="email" />
-                        <ValidationMessage For="@(() => _messageModel.Email)" class="text-danger" />
-                    </div>
+                <div class="mb-3">
+                    <label for="subject" class="form-label fw-semibold">Subject</label>
+                    <InputText id="subject" class="form-control" @bind-Value="_messageModel.Subject" placeholder="Order Inquiry" />
+                    <ValidationMessage For="@(() => _messageModel.Subject)" class="text-danger" />
+                </div>
 
-                    <div class="mb-3">
-                        <label for="subject" class="form-label fw-semibold">
-                            <i class="bi bi-chat-text me-1"></i>Subject
-                        </label>
-                        <InputText id="subject" class="form-control" @bind-Value="_messageModel.Subject"
-                                   placeholder="Order Inquiry" />
-                        <ValidationMessage For="@(() => _messageModel.Subject)" class="text-danger" />
-                    </div>
+                <div class="mb-3">
+                    <label for="message" class="form-label fw-semibold">Your Message</label>
+                    <InputTextArea id="message" class="form-control" @bind-Value="_messageModel.Content" rows="4" placeholder="Write your message..." />
+                    <ValidationMessage For="@(() => _messageModel.Content)" class="text-danger" />
+                </div>
 
-                    <div class="mb-3">
-                        <label for="message" class="form-label fw-semibold">
-                            <i class="bi bi-chat-dots me-1"></i>Your Message
-                        </label>
-                        <InputTextArea id="message" class="form-control" @bind-Value="_messageModel.Content"
-                                       rows="5" placeholder="Write your message..." />
-                        <ValidationMessage For="@(() => _messageModel.Content)" class="text-danger" />
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" disabled="@_isSubmitting">
-                        @if (_isSubmitting)
-                        {
-                            <span class="spinner-border spinner-border-sm me-2"></span>
-                        }
-                        else
-                        {
-                            <i class="bi bi-send me-2"></i>
-                        }
-                        Send Message
-                    </button>
-                </EditForm>
-            </div>
+                <button type="submit" class="btn btn-primary">Send Message</button>
+            </EditForm>
         </div>
-
-        <div class="col-md-6">
-            <div class="card rounded-3 p-4 mb-4">
-                <h4 class="mb-3">
-                    <i class="bi bi-geo-alt me-2"></i>Get in Touch
-                </h4>
-                <div class="mb-3">
-                    <i class="bi bi-envelope text-primary me-2"></i>
-                    <strong>Email:</strong>
-                    <a href="mailto:support@bobkart.com" class="text-decoration-none">support@bobkart.com</a>
-                </div>
-                <div class="mb-3">
-                    <i class="bi bi-telephone text-success me-2"></i>
-                    <strong>Phone:</strong>
-                    <a href="tel:+441234567890" class="text-decoration-none">+44 1234 567890</a>
-                </div>
-                <div class="mb-3">
-                    <i class="bi bi-clock text-info me-2"></i>
-                    <strong>Hours:</strong><br>
-                    Monday - Friday: 9:00 AM - 6:00 PM<br>
-                    Saturday: 10:00 AM - 4:00 PM<br>
-                    Sunday: Closed
-                </div>
-                <div>
-                    <i class="bi bi-building text-warning me-2"></i>
-                    <strong>Address:</strong><br>
-                    123 Market Street<br>
-                    Rochdale, UK<br>
-                    OL16 1AA
-                </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card rounded-3 p-4 mb-4">
+            <h4 class="mb-3">Get in Touch</h4>
+            <div class="mb-3">
+                <strong>Email:</strong>
+                <a href="mailto:support@bobkart.com" class="text-decoration-none">support@bobkart.com</a>
             </div>
-
-            <div class="card rounded-3 p-2">
-                <iframe src="https://maps.google.com/maps?q=Rochdale%2C%20UK&t=&z=13&ie=UTF8&iwloc=&output=embed"
-                        width="100%"
-                        height="300"
-                        style="border:0;"
-                        allowfullscreen=""
-                        loading="lazy"
-                        title="Bob Kart Location">
-                </iframe>
+            <div class="mb-3">
+                <strong>Phone:</strong>
+                <a href="tel:+441234567890" class="text-decoration-none">+44 1234 567890</a>
             </div>
-
-            <div class="card rounded-3 p-4 mt-4">
-                <h5 class="mb-3">
-                    <i class="bi bi-link-45deg me-2"></i>Quick Links
-                </h5>
-                <div class="row">
-                    <div class="col-6">
-                        <a href="/faqs" class="btn btn-outline-primary btn-sm w-100 mb-2">
-                            <i class="bi bi-question-circle me-1"></i>FAQs
-                        </a>
-                        <a href="/delivery-and-returns" class="btn btn-outline-warning btn-sm w-100">
-                            <i class="bi bi-arrow-return-left me-1"></i>Delivery & Returns
-                        </a>
-                    </div>
-                    <div class="col-6">
-                        <a href="/track-order" class="btn btn-outline-success btn-sm w-100 mb-2">
-                            <i class="bi bi-truck me-1"></i>Track Order
-                        </a>
-                        <a href="/orders" class="btn btn-outline-info btn-sm w-100">
-                            <i class="bi bi-list-ul me-1"></i>My Orders
-                        </a>
-                    </div>
-                </div>
+            <div class="mb-3">
+                <strong>Hours:</strong><br>
+                Monday - Friday: 9:00 AM - 6:00 PM<br>
+                Saturday: 10:00 AM - 4:00 PM<br>
+                Sunday: Closed
+            </div>
+            <div>
+                <strong>Address:</strong><br>
+                123 Market Street<br>
+                Rochdale, UK<br>
+                OL16 1AA
             </div>
         </div>
     </div>
@@ -157,13 +82,11 @@
 
 @code {
     private SendMessageViewModel _messageModel = new();
-    private bool _isSubmitting;
     private string? _successMessage;
     private string? _errorMessage;
 
     private async Task SendMessage()
     {
-        _isSubmitting = true;
         _errorMessage = null;
         _successMessage = null;
 
@@ -178,7 +101,5 @@
         {
             _errorMessage = "Failed to send your message. Please try again or contact us directly.";
         }
-
-        _isSubmitting = false;
     }
 }
