@@ -34,7 +34,7 @@
 
         public string GetFormattedCreatedAtDate()
         {
-            return CreatedAt.ToLocalTime().ToString("dd MMM yyyy");
+            return CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm");
         }
 
         public string? GetFormattedEstimatedDeliveryDate()
