@@ -8,177 +8,138 @@
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <AuthorizeView Context="authContext">
-                <Authorized>
-                    <div class="card">
-                        <div class="card-header bg-primary text-white">
-                            <h4 class="mb-0">
-                                <i class="bi bi-person-circle me-2"></i>My Profile
-                            </h4>
-                        </div>
-                        <div class="card-body p-4">
-                            @if (!string.IsNullOrEmpty(_successMessage))
-                            {
-                                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                    <i class="bi bi-check-circle me-2"></i>@_successMessage
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            }
+<AuthorizeView Context="authContext">
+    <Authorized>
+        @if (!string.IsNullOrEmpty(_successMessage))
+        {
+            <div class="alert alert-success">@_successMessage</div>
+        }
 
-                            @if (!string.IsNullOrEmpty(_errorMessage))
-                            {
-                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    <i class="bi bi-exclamation-triangle me-2"></i>@_errorMessage
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            }
+        @if (!string.IsNullOrEmpty(_errorMessage))
+        {
+            <div class="alert alert-danger">@_errorMessage</div>
+        }
 
-                            @if (_isLoading)
-                            {
-                                <div class="text-center p-4">
-                                    <div class="spinner-border text-primary" role="status">
-                                        <span class="visually-hidden">Loading...</span>
-                                    </div>
-                                    <p class="mt-2">Loading your profile...</p>
-                                </div>
-                            }
-                            else if (_updateModel != null)
-                            {
-                                <EditForm Model="_updateModel" OnValidSubmit="HandleSubmit" Context="editContext">
-                                    <DataAnnotationsValidator />
+        <h3 class="mb-4">My Profile</h3>
 
-                                    <h5 class="mb-3">Personal Information</h5>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="firstName" class="form-label fw-semibold">
-                                                <i class="bi bi-person me-1"></i>First Name
-                                            </label>
-                                            <InputText id="firstName" class="form-control" @bind-Value="_updateModel.FirstName" />
-                                            <ValidationMessage For="@(() => _updateModel.FirstName)" class="text-danger" />
-                                        </div>
+        @if (_isLoading)
+        {
+            <p>Loading your profile...</p>
+        }
+        else if (_updateModel != null)
+        {
+            <EditForm Model="_updateModel" OnValidSubmit="HandleSubmit" Context="editContext">
+                <DataAnnotationsValidator />
 
-                                        <div class="col-md-6 mb-3">
-                                            <label for="lastName" class="form-label fw-semibold">
-                                                <i class="bi bi-person me-1"></i>Last Name
-                                            </label>
-                                            <InputText id="lastName" class="form-control" @bind-Value="_updateModel.LastName" />
-                                            <ValidationMessage For="@(() => _updateModel.LastName)" class="text-danger" />
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-4">
-                                        <label for="phoneNumber" class="form-label fw-semibold">
-                                            <i class="bi bi-telephone me-1"></i>Phone Number
-                                        </label>
-                                        <InputText id="phoneNumber" class="form-control" @bind-Value="_updateModel.PhoneNumber"
-                                                   placeholder="Enter your phone number" />
-                                        <ValidationMessage For="@(() => _updateModel.PhoneNumber)" class="text-danger" />
-                                    </div>
-
-                                    <h5 class="mb-3">Shipping Address</h5>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="shippingAddressLineOne" class="form-label fw-semibold">Address Line 1</label>
-                                            <InputText id="shippingAddressLineOne" class="form-control" @bind-Value="_updateModel.ShippingAddressLineOne" />
-                                            <ValidationMessage For="@(() => _updateModel.ShippingAddressLineOne)" class="text-danger" />
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label for="shippingAddressLineTwo" class="form-label fw-semibold">Address Line 2</label>
-                                            <InputText id="shippingAddressLineTwo" class="form-control" @bind-Value="_updateModel.ShippingAddressLineTwo" />
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="shippingTown" class="form-label fw-semibold">Town</label>
-                                            <InputText id="shippingTown" class="form-control" @bind-Value="_updateModel.ShippingTown" />
-                                            <ValidationMessage For="@(() => _updateModel.ShippingTown)" class="text-danger" />
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label for="shippingCounty" class="form-label fw-semibold">County</label>
-                                            <InputText id="shippingCounty" class="form-control" @bind-Value="_updateModel.ShippingCounty" />
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="shippingPostCode" class="form-label fw-semibold">Postcode</label>
-                                            <InputText id="shippingPostCode" class="form-control" @bind-Value="_updateModel.ShippingPostCode" />
-                                            <ValidationMessage For="@(() => _updateModel.ShippingPostCode)" class="text-danger" />
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label for="shippingCountry" class="form-label fw-semibold">Country</label>
-                                            <InputText id="shippingCountry" class="form-control" @bind-Value="_updateModel.ShippingCountry" />
-                                            <ValidationMessage For="@(() => _updateModel.ShippingCountry)" class="text-danger" />
-                                        </div>
-                                    </div>
-
-                                    <h5 class="mb-3">Billing Address</h5>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="billingAddressLineOne" class="form-label fw-semibold">Address Line 1</label>
-                                            <InputText id="billingAddressLineOne" class="form-control" @bind-Value="_updateModel.BillingAddressLineOne" />
-                                            <ValidationMessage For="@(() => _updateModel.BillingAddressLineOne)" class="text-danger" />
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label for="billingAddressLineTwo" class="form-label fw-semibold">Address Line 2</label>
-                                            <InputText id="billingAddressLineTwo" class="form-control" @bind-Value="_updateModel.BillingAddressLineTwo" />
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="billingTown" class="form-label fw-semibold">Town</label>
-                                            <InputText id="billingTown" class="form-control" @bind-Value="_updateModel.BillingTown" />
-                                            <ValidationMessage For="@(() => _updateModel.BillingTown)" class="text-danger" />
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label for="billingCounty" class="form-label fw-semibold">County</label>
-                                            <InputText id="billingCounty" class="form-control" @bind-Value="_updateModel.BillingCounty" />
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="billingPostCode" class="form-label fw-semibold">Postcode</label>
-                                            <InputText id="billingPostCode" class="form-control" @bind-Value="_updateModel.BillingPostCode" />
-                                            <ValidationMessage For="@(() => _updateModel.BillingPostCode)" class="text-danger" />
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label for="billingCountry" class="form-label fw-semibold">Country</label>
-                                            <InputText id="billingCountry" class="form-control" @bind-Value="_updateModel.BillingCountry" />
-                                            <ValidationMessage For="@(() => _updateModel.BillingCountry)" class="text-danger" />
-                                        </div>
-                                    </div>
-
-                                    <div class="d-flex gap-2">
-                                        <button type="submit" class="btn btn-success" disabled="@_isSubmitting">
-                                            @if (_isSubmitting)
-                                            {
-                                                <span class="spinner-border spinner-border-sm me-2"></span>
-                                            }
-                                            else
-                                            {
-                                                <i class="bi bi-check-circle me-2"></i>
-                                            }
-                                            Update Profile
-                                        </button>
-
-                                        <button type="button" class="btn btn-outline-secondary" @onclick="Cancel">
-                                            <i class="bi bi-x-circle me-2"></i>Cancel
-                                        </button>
-                                    </div>
-                                </EditForm>
-                            }
-                        </div>
+                <h5 class="mb-3">Personal Information</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="firstName" class="form-label fw-semibold">First Name</label>
+                        <InputText id="firstName" class="form-control" @bind-Value="_updateModel.FirstName" />
+                        <ValidationMessage For="@(() => _updateModel.FirstName)" class="text-danger" />
                     </div>
-                </Authorized>
-                <NotAuthorized>
-                    <LoginRegisterAlert ReturnUrl="%2Fprofile" />
-                </NotAuthorized>
-            </AuthorizeView>
-        </div>
-    </div>
-</div>
+
+                    <div class="col-md-6 mb-3">
+                        <label for="lastName" class="form-label fw-semibold">Last Name</label>
+                        <InputText id="lastName" class="form-control" @bind-Value="_updateModel.LastName" />
+                        <ValidationMessage For="@(() => _updateModel.LastName)" class="text-danger" />
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="phoneNumber" class="form-label fw-semibold">Phone Number</label>
+                    <InputText id="phoneNumber" class="form-control" @bind-Value="_updateModel.PhoneNumber" placeholder="Enter your phone number" />
+                    <ValidationMessage For="@(() => _updateModel.PhoneNumber)" class="text-danger" />
+                </div>
+
+                <h5 class="mb-3">Shipping Address</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="shippingAddressLineOne" class="form-label fw-semibold">Address Line 1</label>
+                        <InputText id="shippingAddressLineOne" class="form-control" @bind-Value="_updateModel.ShippingAddressLineOne" />
+                        <ValidationMessage For="@(() => _updateModel.ShippingAddressLineOne)" class="text-danger" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="shippingAddressLineTwo" class="form-label fw-semibold">Address Line 2</label>
+                        <InputText id="shippingAddressLineTwo" class="form-control" @bind-Value="_updateModel.ShippingAddressLineTwo" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="shippingTown" class="form-label fw-semibold">Town</label>
+                        <InputText id="shippingTown" class="form-control" @bind-Value="_updateModel.ShippingTown" />
+                        <ValidationMessage For="@(() => _updateModel.ShippingTown)" class="text-danger" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="shippingCounty" class="form-label fw-semibold">County</label>
+                        <InputText id="shippingCounty" class="form-control" @bind-Value="_updateModel.ShippingCounty" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="shippingPostCode" class="form-label fw-semibold">Postcode</label>
+                        <InputText id="shippingPostCode" class="form-control" @bind-Value="_updateModel.ShippingPostCode" />
+                        <ValidationMessage For="@(() => _updateModel.ShippingPostCode)" class="text-danger" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="shippingCountry" class="form-label fw-semibold">Country</label>
+                        <InputText id="shippingCountry" class="form-control" @bind-Value="_updateModel.ShippingCountry" />
+                        <ValidationMessage For="@(() => _updateModel.ShippingCountry)" class="text-danger" />
+                    </div>
+                </div>
+
+                <h5 class="mb-3">Billing Address</h5>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="billingAddressLineOne" class="form-label fw-semibold">Address Line 1</label>
+                        <InputText id="billingAddressLineOne" class="form-control" @bind-Value="_updateModel.BillingAddressLineOne" />
+                        <ValidationMessage For="@(() => _updateModel.BillingAddressLineOne)" class="text-danger" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="billingAddressLineTwo" class="form-label fw-semibold">Address Line 2</label>
+                        <InputText id="billingAddressLineTwo" class="form-control" @bind-Value="_updateModel.BillingAddressLineTwo" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="billingTown" class="form-label fw-semibold">Town</label>
+                        <InputText id="billingTown" class="form-control" @bind-Value="_updateModel.BillingTown" />
+                        <ValidationMessage For="@(() => _updateModel.BillingTown)" class="text-danger" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="billingCounty" class="form-label fw-semibold">County</label>
+                        <InputText id="billingCounty" class="form-control" @bind-Value="_updateModel.BillingCounty" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="billingPostCode" class="form-label fw-semibold">Postcode</label>
+                        <InputText id="billingPostCode" class="form-control" @bind-Value="_updateModel.BillingPostCode" />
+                        <ValidationMessage For="@(() => _updateModel.BillingPostCode)" class="text-danger" />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="billingCountry" class="form-label fw-semibold">Country</label>
+                        <InputText id="billingCountry" class="form-control" @bind-Value="_updateModel.BillingCountry" />
+                        <ValidationMessage For="@(() => _updateModel.BillingCountry)" class="text-danger" />
+                    </div>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success" disabled="@_isSubmitting">
+                        Update Profile
+                    </button>
+
+                    <button type="button" class="btn btn-outline-secondary" @onclick="Cancel">
+                        Cancel
+                    </button>
+                </div>
+            </EditForm>
+        }
+    </Authorized>
+    <NotAuthorized>
+        <LoginRegisterAlert ReturnUrl="%2Fprofile" />
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
     private UpdateCustomerViewModel? _updateModel;
@@ -244,8 +205,7 @@
         {
             await RefreshAuthenticationState();
 
-            _successMessage = "Your profile has been updated successfully! The changes will be reflected in the header.";
-            _successMessage = null;
+            _successMessage = "Your profile has been updated successfully!";
             StateHasChanged();
         }
         else
