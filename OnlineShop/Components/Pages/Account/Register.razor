@@ -6,42 +6,38 @@
 @inject AuthService AuthService
 @rendermode InteractiveServer
 
-<h3 class="mb-4">Create an Account</h3>
-
-@if (!string.IsNullOrEmpty(ErrorMessage))
+@if (!string.IsNullOrEmpty(_errorMessage))
 {
-    <div class="alert alert-danger">@ErrorMessage</div>
+    <div class="alert alert-danger">@_errorMessage</div>
 }
 
-<EditForm Model="@registerViewModel" OnValidSubmit="HandleRegister">
+<h3 class="mb-4">Create an Account</h3>
+
+<EditForm Model="@_registerViewModel" OnValidSubmit="HandleRegister">
     <DataAnnotationsValidator />
 
     <div class="mb-3">
         <label class="form-label">First Name</label>
-        <InputText class="form-control" @bind-Value="registerViewModel.FirstName" />
-        <ValidationMessage For="@(() => registerViewModel.FirstName)" />
+        <InputText class="form-control" @bind-Value="_registerViewModel.FirstName" />
+        <ValidationMessage For="@(() => _registerViewModel.FirstName)" />
     </div>
     <div class="mb-3">
         <label class="form-label">Last Name</label>
-        <InputText class="form-control" @bind-Value="registerViewModel.LastName" />
-        <ValidationMessage For="@(() => registerViewModel.LastName)" />
+        <InputText class="form-control" @bind-Value="_registerViewModel.LastName" />
+        <ValidationMessage For="@(() => _registerViewModel.LastName)" />
     </div>
     <div class="mb-3">
         <label class="form-label">Email</label>
-        <InputText class="form-control" @bind-Value="registerViewModel.Email" type="email" />
-        <ValidationMessage For="@(() => registerViewModel.Email)" />
+        <InputText class="form-control" @bind-Value="_registerViewModel.Email" type="email" />
+        <ValidationMessage For="@(() => _registerViewModel.Email)" />
     </div>
     <div class="mb-3">
         <label class="form-label">Password</label>
-        <InputText class="form-control" @bind-Value="registerViewModel.Password" type="password" />
-        <ValidationMessage For="@(() => registerViewModel.Password)" />
+        <InputText class="form-control" @bind-Value="_registerViewModel.Password" type="password" />
+        <ValidationMessage For="@(() => _registerViewModel.Password)" />
     </div>
 
-    <button class="btn btn-success" disabled="@isLoading">
-        @if (isLoading)
-        {
-            <span class="spinner-border spinner-border-sm me-2"></span>
-        }
+    <button class="btn btn-success" disabled="@_isLoading">
         Register
     </button>
     <a class="btn btn-link" href="/account/login@(string.IsNullOrEmpty(ReturnUrl) ? "" : $"?returnUrl={Uri.EscapeDataString(ReturnUrl)}")">Already have an account?</a>
@@ -51,35 +47,26 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    private RegisterViewModel registerViewModel = new();
-    private string ErrorMessage = string.Empty;
-    private bool isLoading;
+    private RegisterViewModel _registerViewModel = new();
+    private string _errorMessage = string.Empty;
+    private bool _isLoading;
 
     private async Task HandleRegister()
     {
-        isLoading = true;
-        ErrorMessage = string.Empty;
+        _isLoading = true;
+        _errorMessage = string.Empty;
 
-        try
-        {
-            var success = await AuthService.RegisterAsync(registerViewModel);
+        var success = await AuthService.Register(_registerViewModel);
 
-            if (success)
-            {
-                Nav.NavigateTo(ReturnUrl ?? "/");
-            }
-            else
-            {
-                ErrorMessage = "Registration failed. Please check your details and try again.";
-            }
-        }
-        catch (Exception ex)
+        if (success)
         {
-            ErrorMessage = "An error occurred during registration. Please try again.";
+            Nav.NavigateTo(ReturnUrl ?? "/");
         }
-        finally
+        else
         {
-            isLoading = false;
+            _errorMessage = "Registration failed. Please check your details and try again.";
         }
+
+        _isLoading = false;
     }
 }

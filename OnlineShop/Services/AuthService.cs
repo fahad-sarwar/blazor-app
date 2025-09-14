@@ -7,31 +7,7 @@ namespace OnlineShopUI.Services
     public class AuthService(IHttpClientFactory httpClientFactory, AuthenticationStateProvider authenticationStateProvider, ILogger<AuthService> logger)
         : BaseService(httpClientFactory)
     {
-        public async Task<bool> LoginAsync(LoginViewModel loginModel)
-        {
-            try
-            {
-                var result = await GetClientFactory().PostAsJsonAsync("api/auth/login", loginModel);
-
-                if (result.IsSuccessStatusCode)
-                {
-                    var user = await GetUserFromApiAsync();
-                    if (user != null && authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
-                    {
-                        await apiProvider.NotifyAuthenticationStateChangedAsync();
-                        return true;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error during login");
-            }
-
-            return false;
-        }
-
-        public async Task<bool> RegisterAsync(RegisterViewModel registerModel)
+        public async Task<bool> Register(RegisterViewModel registerModel)
         {
             try
             {
@@ -39,7 +15,7 @@ namespace OnlineShopUI.Services
 
                 if (result.IsSuccessStatusCode)
                 {
-                    var user = await GetUserFromApiAsync();
+                    var user = await GetUserFromApi();
                     if (user != null && authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
                     {
                         await apiProvider.NotifyAuthenticationStateChangedAsync();
@@ -55,11 +31,38 @@ namespace OnlineShopUI.Services
             return false;
         }
 
-        public async Task LogoutAsync()
+        public async Task<bool> Login(LoginViewModel loginModel)
         {
             try
             {
+                var result = await GetClientFactory().PostAsJsonAsync("api/auth/login", loginModel);
+
+                if (result.IsSuccessStatusCode)
+                {
+                    var user = await GetUserFromApi();
+                    if (user != null && authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
+                    {
+                        await apiProvider.NotifyAuthenticationStateChangedAsync();
+                        return true;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error during login");
+            }
+
+            return false;
+        }
+
+        public async Task<bool> Logout()
+        {
+            var result = false;
+
+            try
+            {
                 await GetClientFactory().PostAsync("api/auth/logout", null);
+                result = true;
             }
             catch (Exception ex)
             {
@@ -67,35 +70,16 @@ namespace OnlineShopUI.Services
             }
             finally
             {
-                // Always clear local state
                 if (authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
                 {
                     await apiProvider.NotifyAuthenticationStateChangedAsync();
                 }
             }
+
+            return result;
         }
 
-        public async Task<bool> UpdateProfileAsync(UpdateCustomerViewModel updateModel)
-        {
-            try
-            {
-                var response = await GetClientFactory().PutAsJsonAsync($"api/customers/{updateModel.Id}", updateModel);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    await RefreshAuthenticationStateAsync();
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error updating profile");
-            }
-
-            return false;
-        }
-
-        public async Task<bool> RefreshAuthenticationStateAsync()
+        public async Task<bool> RefreshAuthenticationState()
         {
             try
             {
@@ -115,7 +99,7 @@ namespace OnlineShopUI.Services
             return false;
         }
 
-        private async Task<UserInfo?> GetUserFromApiAsync()
+        private async Task<UserInfo?> GetUserFromApi()
         {
             try
             {

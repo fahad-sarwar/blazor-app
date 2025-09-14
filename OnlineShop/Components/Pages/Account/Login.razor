@@ -6,30 +6,28 @@
 @inject AuthService AuthService
 @rendermode InteractiveServer
 
-<h3 class="mb-4">Sign In</h3>
-
-@if (!string.IsNullOrEmpty(errorMessage))
+@if (!string.IsNullOrEmpty(_errorMessage))
 {
-    <div class="alert alert-danger">@errorMessage</div>
+    <div class="alert alert-danger">@_errorMessage</div>
 }
 
-<EditForm Model="@loginViewModel" OnValidSubmit="HandleLogin">
+<h3 class="mb-4">Sign In</h3>
+
+<EditForm Model="@_loginViewModel" OnValidSubmit="HandleLogin">
     <DataAnnotationsValidator />
 
     <div class="mb-3">
-        <label class="form-label">Email</label>
-        <InputText class="form-control" @bind-Value="loginViewModel.Email" />
+        <label for="email" class="form-label fw-semibold">Email</label>
+        <InputText id="email" class="form-control" @bind-Value="_loginViewModel.Email" />
+        <ValidationMessage For="@(() => _loginViewModel.Email)" class="text-danger" />
     </div>
     <div class="mb-3">
-        <label class="form-label">Password</label>
-        <InputText class="form-control" @bind-Value="loginViewModel.Password" type="password" />
+        <label for="password" class="form-label">Password</label>
+        <InputText id="password" class="form-control" @bind-Value="_loginViewModel.Password" type="password" />
+        <ValidationMessage For="@(() => _loginViewModel.Password)" class="text-danger" />
     </div>
 
-    <button class="btn btn-primary" disabled="@isLoading">
-        @if (isLoading)
-        {
-            <span class="spinner-border spinner-border-sm me-2"></span>
-        }
+    <button class="btn btn-primary" disabled="@_isLoading">
         Login
     </button>
     <a class="btn btn-link" href="/account/register@(string.IsNullOrEmpty(ReturnUrl) ? "" : $"?returnUrl={Uri.EscapeDataString(ReturnUrl)}")">Need an account?</a>
@@ -39,35 +37,26 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    private LoginViewModel loginViewModel = new();
-    private string? errorMessage;
-    private bool isLoading;
+    private LoginViewModel _loginViewModel = new();
+    private string? _errorMessage;
+    private bool _isLoading;
 
     private async Task HandleLogin()
     {
-        isLoading = true;
-        errorMessage = null;
+        _isLoading = true;
+        _errorMessage = null;
 
-        try
-        {
-            var success = await AuthService.LoginAsync(loginViewModel);
+        var success = await AuthService.Login(_loginViewModel);
 
-            if (success)
-            {
-                Nav.NavigateTo(ReturnUrl ?? "/");
-            }
-            else
-            {
-                errorMessage = "Invalid email or password.";
-            }
-        }
-        catch (Exception ex)
+        if (success)
         {
-            errorMessage = "An error occurred during login. Please try again.";
+            Nav.NavigateTo(ReturnUrl ?? "/");
         }
-        finally
+        else
         {
-            isLoading = false;
+            _errorMessage = "Invalid email or password.";
         }
+
+        _isLoading = false;
     }
 }

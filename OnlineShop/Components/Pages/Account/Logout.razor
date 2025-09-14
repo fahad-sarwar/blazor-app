@@ -5,62 +5,57 @@
 @inject NavigationManager Nav
 @rendermode InteractiveServer
 
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body text-center">
-                    <h3 class="card-title mb-4">Sign Out</h3>
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
 
-                    @if (isLoggingOut)
-                    {
-                        <div class="text-center">
-                            <div class="spinner-border text-primary" role="status">
-                                <span class="visually-hidden">Signing out...</span>
-                            </div>
-                            <p class="mt-3">Signing you out...</p>
-                        </div>
-                    }
-                    else
-                    {
-                        <p class="card-text mb-4">Are you sure you want to sign out of your account?</p>
+<h3 class="mb-4">Sign Out</h3>
 
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                            <button class="btn btn-danger me-md-2" @onclick="HandleLogout" disabled="@isLoggingOut">
-                                Sign Out
-                            </button>
-                            <button class="btn btn-secondary" @onclick="GoBack">
-                                Cancel
-                            </button>
-                        </div>
-                    }
-                </div>
-            </div>
+@if (_isLoggingOut)
+{
+    <div class="text-center">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Signing out...</span>
         </div>
+        <p class="mt-3">Signing you out...</p>
     </div>
-</div>
+}
+else
+{
+    <p class="card-text mb-4">Are you sure you want to sign out of your account?</p>
+
+    <div>
+        <button class="btn btn-danger me-md-2" @onclick="HandleLogout" disabled="@_isLoggingOut">
+            Logout
+        </button>
+        <button class="btn btn-secondary" @onclick="GoBack">
+            Cancel
+        </button>
+    </div>
+}
 
 @code {
-    private bool isLoggingOut = false;
+    private bool _isLoggingOut = false;
+    private string? _errorMessage;
 
     private async Task HandleLogout()
     {
-        isLoggingOut = true;
+        _isLoggingOut = true;
 
-        try
+        var success = await AuthService.Logout();
+
+        if (success)
         {
-            await AuthService.LogoutAsync();
-            Nav.NavigateTo("/");
+            _errorMessage = null;
+            Nav.NavigateTo("/");            
         }
-        catch (Exception ex)
+        else
         {
-            // AuthService handles the error and clears state
-            Nav.NavigateTo("/");
+            _errorMessage = "There was an error signing you out.  Please try again.";
         }
-        finally
-        {
-            isLoggingOut = false;
-        }
+        
+        _isLoggingOut = false;
     }
 
     private void GoBack()
