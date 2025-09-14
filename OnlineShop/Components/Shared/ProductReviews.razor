@@ -2,126 +2,124 @@
 @using OnlineShopUI.Services
 @inject ReviewService ReviewService
 
-<div class="container">
-    @if (_isLoading)
-    {
-        <div class="text-center p-4">
-            <p>Loading reviews...</p>
-        </div>
-    }
-    else if (Reviews.Count > 0)
-    {
-        <div class="reviews-section">
-            <h4 class="mb-4">Customer Reviews</h4>
-            @foreach (var review in Reviews)
+@if (_isLoading)
+{
+    <div class="text-center p-4">
+        <p>Loading reviews...</p>
+    </div>
+}
+else if (Reviews.Count > 0)
+{
+    <div class="reviews-section">
+        <h4 class="mb-4">Customer Reviews</h4>
+        @foreach (var review in Reviews)
+        {
+            <div class="card mb-3">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <strong class="text-primary">@review.CustomerName</strong>
+                            <div class="rating-stars mt-1">
+                                @for (var i = 1; i <= 5; i++)
+                                {
+                                    <i class="bi @(i <= review.Rating ? "bi-star-fill text-warning" : "bi-star text-muted")"></i>
+                                }
+                                <span class="ms-2 text-muted">(@review.Rating/5)</span>
+                            </div>
+                        </div>
+                        <span class="text-muted small">@review.GetFormattedDate()</span>
+                    </div>
+                    <h6 class="fw-semibold mb-2">@review.Subject</h6>
+                    <p class="mb-0 text-secondary">@review.Comment</p>
+                </div>
+            </div>
+        }
+
+        @if (HasMore())
+        {
+            <div class="text-center mt-4">
+                <button class="btn btn-outline-primary" @onclick="LoadMore">Load More Reviews</button>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="text-center p-4">
+        <p class="text-muted">No reviews yet. Be the first to write a review!</p>
+    </div>
+}
+
+<AuthorizeView Context="authContext">
+    <Authorized>
+        <div class="review-form-section mt-5">
+            @if (!_showForm)
             {
-                <div class="card mb-3">
+                <div class="text-center">
+                    <button class="btn btn-primary btn-lg" @onclick="ShowForm">
+                        Write a Review
+                    </button>
+                </div>
+            }
+            else
+            {
+                @if (!string.IsNullOrEmpty(_successMessage))
+                {
+                    <div class="alert alert-success">@_successMessage</div>
+                }
+
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <div class="alert alert-danger">@_errorMessage</div>
+                }
+
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Add Your Review</h5>
+                    </div>
                     <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <strong class="text-primary">@review.CustomerName</strong>
-                                <div class="rating-stars mt-1">
+                        <EditForm Model="NewReview" OnValidSubmit="HandleSubmit" Context="editContext">
+                            <DataAnnotationsValidator />
+
+                            <div class="mb-3">
+                                <label for="subject" class="form-label fw-semibold">Subject</label>
+                                <InputText id="subject" class="form-control" @bind-Value="NewReview.Subject" placeholder="Brief summary of your review" />
+                                <ValidationMessage For="@(() => NewReview.Subject)" class="text-danger" />
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Rating</label>
+
+                                <div class="rating-input d-flex align-items-center">
                                     @for (var i = 1; i <= 5; i++)
                                     {
-                                        <i class="bi @(i <= review.Rating ? "bi-star-fill text-warning" : "bi-star text-muted")"></i>
+                                        var currentStar = i;
+
+                                        <button type="button" class="btn btn-link p-1 me-1" style="font-size: 2rem; line-height: 1;" @onclick="() => SetRating(currentStar)">
+                                            <i class="bi @(currentStar <= NewReview.Rating ? "bi-star-fill text-warning" : "bi-star text-secondary")"></i>
+                                        </button>
                                     }
-                                    <span class="ms-2 text-muted">(@review.Rating/5)</span>
+                                    <span class="ms-2 text-muted">(@NewReview.Rating out of 5)</span>
                                 </div>
                             </div>
-                            <span class="text-muted small">@review.GetFormattedDate()</span>
-                        </div>
-                        <h6 class="fw-semibold mb-2">@review.Subject</h6>
-                        <p class="mb-0 text-secondary">@review.Comment</p>
+
+                            <div class="mb-4">
+                                <label for="comment" class="form-label fw-semibold">Comment</label>
+                                <InputTextArea id="comment" class="form-control" @bind-Value="NewReview.Comment" rows="4" placeholder="Share your experience with this product..." />
+                                <ValidationMessage For="@(() => NewReview.Comment)" class="text-danger" />
+                            </div>
+
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-success" disabled="@_disableSubmitButton">Submit Review</button>
+                                <button type="button" class="btn btn-outline-secondary" @onclick="CancelForm">Cancel</button>
+                            </div>
+                        </EditForm>
                     </div>
                 </div>
             }
-
-            @if (HasMore())
-            {
-                <div class="text-center mt-4">
-                    <button class="btn btn-outline-primary" @onclick="LoadMore">Load More Reviews</button>
-                </div>
-            }
         </div>
-    }
-    else
-    {
-        <div class="text-center p-4">
-            <p class="text-muted">No reviews yet. Be the first to write a review!</p>
-        </div>
-    }
-
-    <AuthorizeView Context="authContext">
-        <Authorized>
-            <div class="review-form-section mt-5">
-                @if (!_showForm)
-                {
-                    <div class="text-center">
-                        <button class="btn btn-primary btn-lg" @onclick="ShowForm">
-                            Write a Review
-                        </button>
-                    </div>
-                }
-                else
-                {
-                    @if (!string.IsNullOrEmpty(_successMessage))
-                    {
-                        <div class="alert alert-success">@_successMessage</div>
-                    }
-
-                    @if (!string.IsNullOrEmpty(_errorMessage))
-                    {
-                        <div class="alert alert-danger">@_errorMessage</div>
-                    }
-
-                    <div class="card">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0">Add Your Review</h5>
-                        </div>
-                        <div class="card-body p-4">
-                            <EditForm Model="NewReview" OnValidSubmit="HandleSubmit" Context="editContext">
-                                <DataAnnotationsValidator />
-
-                                <div class="mb-3">
-                                    <label for="subject" class="form-label fw-semibold">Subject</label>
-                                    <InputText id="subject" class="form-control" @bind-Value="NewReview.Subject" placeholder="Brief summary of your review" />
-                                    <ValidationMessage For="@(() => NewReview.Subject)" class="text-danger" />
-                                </div>
-
-                                <div class="mb-3">
-                                    <label class="form-label fw-semibold">Rating</label>
-
-                                    <div class="rating-input d-flex align-items-center">
-                                        @for (var i = 1; i <= 5; i++)
-                                        {
-                                            var currentStar = i;
-
-                                            <button type="button" class="btn btn-link p-1 me-1" style="font-size: 2rem; line-height: 1;" @onclick="() => SetRating(currentStar)">
-                                                <i class="bi @(currentStar <= NewReview.Rating ? "bi-star-fill text-warning" : "bi-star text-secondary")"></i>
-                                            </button>
-                                        }
-                                        <span class="ms-2 text-muted">(@NewReview.Rating out of 5)</span>
-                                    </div>
-                                </div>
-
-                                <div class="mb-4">
-                                    <label for="comment" class="form-label fw-semibold">Comment</label>
-                                    <InputTextArea id="comment" class="form-control" @bind-Value="NewReview.Comment" rows="4" placeholder="Share your experience with this product..." />
-                                    <ValidationMessage For="@(() => NewReview.Comment)" class="text-danger" />
-                                </div>
-
-                                <div class="d-flex gap-2">
-                                    <button type="submit" class="btn btn-success" disabled="@_disableSubmitButton">Submit Review</button>
-                                    <button type="button" class="btn btn-outline-secondary" @onclick="CancelForm">Cancel</button>
-                                </div>
-                            </EditForm>
-                        </div>
-                    </div>
-                }
-            </div>
-        </Authorized>
-    </AuthorizeView>
-</div>
+    </Authorized>
+</AuthorizeView>
 
 @code {
     [Parameter] public int ProductId { get; set; }

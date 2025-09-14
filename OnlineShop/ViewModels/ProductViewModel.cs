@@ -13,6 +13,11 @@
         public List<ProductAttributeViewModel> Attributes { get; set; }
         public double AverageRating { get; set; }
 
+        public string FormattedAverageRating()
+        {
+            return AverageRating.ToString("0.0");
+        }
+
         public string FormattedPrice()
         {
             return Price.ToString("C");
@@ -35,12 +40,15 @@
 
         public string StockStatusClass()
         {
-            return Stock switch
+            switch (Stock)
             {
-                0 => "text-danger",
-                <= 10 => "text-warning",
-                _ => "text-success"
-            };
+                case 0:
+                    return "text-danger";
+                case int n when n <= 10:
+                    return "text-warning";
+                default:
+                    return "text-success";
+            }
         }
     }
 }
