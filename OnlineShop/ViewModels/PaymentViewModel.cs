@@ -9,9 +9,20 @@
         public string CardNumber { get; set; } = string.Empty;
         public string Expiry { get; set; } = string.Empty;
         public string CVV { get; set; } = string.Empty;
-        public string MaskedCardNumber =>
-            CardNumber.Length > 10
-                ? CardNumber.Substring(0, 6) + new string('*', CardNumber.Length - 10) + CardNumber[^4..]
-                : CardNumber;
+
+        public string MaskedCardNumber()
+        {
+            if(string.IsNullOrEmpty(CardNumber))
+                return "-";
+
+            if(CardNumber.Length < 10)
+                return new string('*', CardNumber.Length);
+
+            var firstSix = CardNumber.Substring(0, 6);
+            var maskedSection = new string('*', CardNumber.Length - 10);
+            var lastFour = CardNumber.Substring(CardNumber.Length - 4, 4);
+
+            return firstSix + maskedSection + lastFour;
+        }
     }
 }

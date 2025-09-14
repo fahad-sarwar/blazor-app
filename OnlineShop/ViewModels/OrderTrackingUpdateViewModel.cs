@@ -2,9 +2,14 @@
 {
     public class OrderTrackingUpdateViewModel
     {
-        public string UpdatedBy { get; set; } = string.Empty; // User or system that made the update
-        public string Status { get; set; } = "Pending"; // e.g., Pending, Processing, Shipped, Completed, Cancelled
-        public string Note { get; set; } = string.Empty; // Optional note for the update
+        public string UpdatedBy { get; set; } = string.Empty;
+        public string Status { get; set; } = "Pending";
+        public string Note { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+        public string GetFormattedCreatedAtDate()
+        {
+            return CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm");
+        }
     }
 }

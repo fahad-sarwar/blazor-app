@@ -15,27 +15,20 @@
 
         @if (_isLoading)
         {
-            <div class="text-center p-5">
-                <div class="spinner-border text-primary mb-3" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-                <p>Loading order details...</p>
-            </div>
+            <p>Loading order details...</p>
         }
         else if (_order == null)
         {
             <div class="alert alert-warning">
-                <p>Order not found or you don't have permission to view this order.</p>
+                <p>Order not found, or you don't have permission to view this order.</p>
                 <a href="/orders" class="btn btn-primary">Back to My Orders</a>
             </div>
         }
         else
         {
             <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>Order Details - @_order.OrderNumber</h2>
-                <a href="/orders" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left me-2"></i>Back to Orders
-                </a>
+                <h2>#@_order.OrderNumber</h2>
+                <a href="/orders" class="btn btn-primary">Back to Orders</a>
             </div>
 
             <div class="d-flex gap-3 justify-content-between mb-5">
@@ -49,75 +42,30 @@
                 }
             </div>
 
-            <div class="card mb-5 p-4">
-                <h5 class="mb-3">Tracking History</h5>
-                @if (_order.TrackingUpdates == null || !_order.TrackingUpdates.Any())
-                {
-                    <p class="text-muted">No tracking updates yet.</p>
-                }
-                else
-                {
-                    <ul class="timeline list-unstyled">
-                        @foreach (var update in _order.TrackingUpdates.OrderByDescending(u => u.CreatedAt))
-                        {
-                            <li class="mb-4">
-                                <div class="fw-bold">@update.Status</div>
-                                <small class="text-muted">@update.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm") by @update.UpdatedBy</small>
-                                @if (!string.IsNullOrWhiteSpace(update.Note))
-                                {
-                                    <div class="mt-1">@update.Note</div>
-                                }
-                            </li>
-                        }
-                    </ul>
-                }
-            </div>
-
-            <style>
-                .timeline li {
-                    border-left: 3px solid #0d6efd;
-                    padding-left: 1rem;
-                    position: relative;
-                }
-
-                    .timeline li::before {
-                        content: '';
-                        position: absolute;
-                        left: -9px;
-                        top: 6px;
-                        width: 12px;
-                        height: 12px;
-                        background-color: #0d6efd;
-                        border-radius: 50%;
-                    }
-            </style>
-
             <div class="row g-3 mb-4">
-                <div class="col-md-6">
-                    <div class="card p-3">
-                        <h5>Order & Payment</h5>
-                        <p><strong>Order Number:</strong> @_order.OrderNumber</p>
-                        <p><strong>Status:</strong> @_order.Status</p>
-                        <p><strong>Total:</strong> @_order.FormattedTotalPrice()</p>
+                <div class="col-md-3">
+                    <div class="card p-3 h-100">
+                        <h5 class="mb-3">Order & Payment</h5>
                         <p><strong>Paid With:</strong> @_order.Payment.PaymentMethod</p>
-                        <p><strong>Card:</strong> @_order.Payment.MaskedCardNumber</p>
                         <p><strong>Cardholder:</strong> @_order.Payment.CardName</p>
+                        <p><strong>Card:</strong> @_order.Payment.MaskedCardNumber</p>
                         <p><strong>Estimated Delivery:</strong> @_order.GetFormattedEstimatedDeliveryDate()</p>
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="card p-3">
-                        <h5>Customer Info</h5>
-                        <p><strong>Name:</strong> @_order.Customer.FirstName @_order.Customer.LastName</p>
+                <div class="col-md-3">
+                    <div class="card p-3 h-100">
+                        <h5 class="mb-3">Customer Info</h5>
+                        <p><strong>First Name:</strong> @_order.Customer.FirstName</p>
+                        <p><strong>Last Name:</strong> @_order.Customer.LastName</p>
                         <p><strong>Email:</strong> @_order.Customer.Email</p>
                         <p><strong>Phone:</strong> @_order.Customer.PhoneNumber</p>
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="card p-3">
-                        <h5>Billing Address</h5>
+                <div class="col-md-3">
+                    <div class="card p-3 h-100">
+                        <h5 class="mb-3">Billing Address</h5>
                         <p>@_order.BillingAddress.AddressLineOne</p>
                         <p>@_order.BillingAddress.AddressLineTwo</p>
                         <p>@_order.BillingAddress.Town, @_order.BillingAddress.County</p>
@@ -125,9 +73,9 @@
                     </div>
                 </div>
 
-                <div class="col-md-6">
-                    <div class="card p-3">
-                        <h5>Shipping Address</h5>
+                <div class="col-md-3">
+                    <div class="card p-3 h-100">
+                        <h5 class="mb-3">Shipping Address</h5>
                         <p>@_order.ShippingAddress.AddressLineOne</p>
                         <p>@_order.ShippingAddress.AddressLineTwo</p>
                         <p>@_order.ShippingAddress.Town, @_order.ShippingAddress.County</p>
@@ -136,74 +84,34 @@
                 </div>
             </div>
 
-            <div class="mt-5">
-                <h4 class="mb-3">Order Summary</h4>
-                <div class="table-responsive">
-                    <table class="table table-striped align-middle">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Product</th>
-                                <th class="text-end">Qty</th>
-                                <th class="text-end">Price</th>
-                                <th class="text-end">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in _order.OrderItems)
-                            {
-                                <tr>
-                                    <td>@item.Product.Name</td>
-                                    <td class="text-end">@item.Quantity</td>
-                                    <td class="text-end">@item.Product.FormattedPrice()</td>
-                                    <td class="text-end">@item.FormattedTotalPrice()</td>
-                                </tr>
-                            }
-                        </tbody>
-                        <tfoot class="table-group-divider">
-                        <tr>
-                            <td colspan="3" class="text-end fw-semibold">VAT (20%)</td>
-                                <td class="text-end">@_order.FormattedVat()</td>
-                        </tr>
-                            <tr>
-                                <td colspan="3" class="text-end fw-semibold">Total</td>
-                                <td class="text-end fw-bold">@_order.FormattedTotalPrice()</td>
-                            </tr>
-                        </tfoot>
-                    </table>
-                </div>
+            <div class="col-md-12">
+                <OrderSummary Order="@_order" />
             </div>
 
-            <div class="mt-5 border-top pt-4">
-                <h5 class="mb-4">Need Help?</h5>
-                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h6 class="card-title">Contact Us</h6>
-                                <p class="card-text">Get in touch with our support team for any questions or issues you have.</p>
-                                <a href="/contact" class="btn btn-outline-primary btn-sm">Go to Contact Page</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h6 class="card-title">Orders and Payments</h6>
-                                <p class="card-text">Learn about how we process orders and handle payment securely.</p>
-                                <a href="/orders-and-payments" class="btn btn-outline-primary btn-sm">View Details</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card h-100">
-                            <div class="card-body">
-                                <h6 class="card-title">FAQs</h6>
-                                <p class="card-text">Find answers to frequently asked questions about our products and services.</p>
-                                <a href="/faqs" class="btn btn-outline-primary btn-sm">Read FAQs</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <div class="card mb-5 p-4">
+                <h5 class="mb-3">Tracking History</h5>
+                @if (_order.TrackingUpdates.Count == 0)
+                {
+                    <p class="text-muted">No tracking updates yet.</p>
+                }
+                else if (_order.TrackingUpdates.Count > 0)
+                {
+                    <ul class="timeline list-unstyled">
+                        @foreach (var update in _order.TrackingUpdates.OrderByDescending(u => u.CreatedAt))
+                        {
+                            <li class="mb-4">
+                                <div class="fw-bold">@update.Status</div>
+
+                                <small class="text-muted">@update.GetFormattedCreatedAtDate() by @update.UpdatedBy</small>
+
+                                @if (!string.IsNullOrWhiteSpace(update.Note))
+                                {
+                                    <div class="mt-1">@update.Note</div>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
             </div>
         }
     </Authorized>
@@ -243,7 +151,10 @@
 
     private string GetMilestoneClass(string status)
     {
-        if (_order == null) return "";
+        if (_order == null)
+        {
+            return "";
+        }
 
         var currentIndex = Array.IndexOf(_statusMilestones, _order.Status);
         var statusIndex = Array.IndexOf(_statusMilestones, status);
