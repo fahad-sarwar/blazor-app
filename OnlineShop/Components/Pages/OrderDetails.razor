@@ -48,7 +48,7 @@
                         <h5 class="mb-3">Order & Payment</h5>
                         <p><strong>Paid With:</strong> @_order.Payment.PaymentMethod</p>
                         <p><strong>Cardholder:</strong> @_order.Payment.CardName</p>
-                        <p><strong>Card:</strong> @_order.Payment.MaskedCardNumber</p>
+                        <p><strong>Card:</strong> @_order.Payment.MaskedCardNumber()</p>
                         <p><strong>Estimated Delivery:</strong> @_order.GetFormattedEstimatedDeliveryDate()</p>
                     </div>
                 </div>
