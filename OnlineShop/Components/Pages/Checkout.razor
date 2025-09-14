@@ -16,7 +16,7 @@
     <div class="alert alert-danger">@_errorMessage</div>
 }
 
-<h3>Checkout</h3>
+<h3 class="mb-4">Checkout</h3>
 
 <AuthorizeView Context="authContext">
     <Authorized>
@@ -36,94 +36,143 @@
                     <EditForm Model="@_checkoutModel" OnValidSubmit="SubmitOrder" Context="editContext">
                         <DataAnnotationsValidator />
 
-                        <div class="accordion" id="checkoutAccordion">
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingOne">
-                                    <button class="accordion-button @(!_isCustomerValid ? "" : "collapsed text-success")" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#collapseOne">
-                                        Step 1: Customer Details
-                                    </button>
-                                </h2>
-                                <div id="collapseOne" class="accordion-collapse collapse @(_activeStep == 1 ? "show" : "")"
-                                data-bs-parent="#checkoutAccordion">
-                                    <div class="accordion-body">
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.FirstName" placeholder="First Name" disabled="true" />
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.LastName" placeholder="Last Name" disabled="true" />
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.Email" placeholder="Email" disabled="true" />
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.PhoneNumber" placeholder="Phone Number" />
-                                        <button type="button" class="btn btn-primary" @onclick="ValidateCustomer">Save & Continue</button>
-                                    </div>
-                                </div>
+                        <h5 class="mb-3">Customer Details</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName" class="form-label fw-semibold">First Name</label>
+                                <InputText id="firstName" class="form-control" @bind-Value="_checkoutModel.FirstName" disabled="true" />
+                                <ValidationMessage For="@(() => _checkoutModel.FirstName)" class="text-danger" />
                             </div>
 
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingTwo">
-                                    <button class="accordion-button @(_activeStep == 2 ? "" : "collapsed text-success")" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#collapseTwo">
-                                        Step 2: Billing Address
-                                    </button>
-                                </h2>
-                                <div id="collapseTwo" class="accordion-collapse collapse @(_activeStep == 2 ? "show" : "")"
-                                data-bs-parent="#checkoutAccordion">
-                                    <div class="accordion-body">
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingAddressLineOne" placeholder="Address Line 1" />
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingAddressLineTwo" placeholder="Address Line 2" />
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingTown" placeholder="Town" />
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingCounty" placeholder="County" />
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingPostCode" placeholder="Postcode" />
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.BillingCountry" placeholder="Country" />
-                                        <button type="button" class="btn btn-secondary" @onclick="GoBack">Back</button>
-                                        <button type="button" class="btn btn-primary" @onclick="ValidateBilling">Save & Continue</button>
-                                    </div>
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName" class="form-label fw-semibold">Last Name</label>
+                                <InputText id="lastName" class="form-control" @bind-Value="_checkoutModel.LastName" disabled="true"  />
+                                <ValidationMessage For="@(() => _checkoutModel.LastName)" class="text-danger" />
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <label for="email" class="form-label fw-semibold">Email</label>
+                                <InputText id="email" class="form-control" @bind-Value="_checkoutModel.Email" disabled="true" />
+                                <ValidationMessage For="@(() => _checkoutModel.Email)" class="text-danger" />
                             </div>
 
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingThree">
-                                    <button class="accordion-button @(_activeStep == 3 ? "" : "collapsed text-success")" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#collapseThree">
-                                        Step 3: Shipping Address
-                                    </button>
-                                </h2>
-                                <div id="collapseThree" class="accordion-collapse collapse @(_activeStep == 3 ? "show" : "")"
-                                data-bs-parent="#checkoutAccordion">
-                                    <div class="accordion-body">
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingAddressLineOne" placeholder="Address Line 1" />
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingAddressLineTwo" placeholder="Address Line 2" />
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingTown" placeholder="Town" />
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingCounty" placeholder="County" />
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingPostCode" placeholder="Postcode" />
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.ShippingCountry" placeholder="Country" />
-                                        <button type="button" class="btn btn-secondary" @onclick="GoBack">Back</button>
-                                        <button type="button" class="btn btn-primary" @onclick="ValidateShipping">Save & Continue</button>
-                                    </div>
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="phoneNumber" class="form-label fw-semibold">Phone Number</label>
+                                <InputText id="phoneNumber" class="form-control" @bind-Value="_checkoutModel.PhoneNumber" />
+                                <ValidationMessage For="@(() => _checkoutModel.PhoneNumber)" class="text-danger" />
+                            </div>
+                        </div>
+
+                        <h5 class="mb-3">Billing Address</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="billingAddressLine1" class="form-label fw-semibold">Address Line 1</label>
+                                <InputText id="billingAddressLine1" class="form-control" @bind-Value="_checkoutModel.BillingAddressLineOne" />
+                                <ValidationMessage For="@(() => _checkoutModel.BillingAddressLineOne)" class="text-danger" />
                             </div>
 
-                            <div class="accordion-item">
-                                <h2 class="accordion-header" id="headingFour">
-                                    <button class="accordion-button @(_activeStep == 4 ? "" : "collapsed text-success")" type="button"
-                                    data-bs-toggle="collapse" data-bs-target="#collapseFour">
-                                        Step 4: Payment Details
-                                    </button>
-                                </h2>
-                                <div id="collapseFour" class="accordion-collapse collapse @(_activeStep == 4 ? "show" : "")"
-                                data-bs-parent="#checkoutAccordion">
-                                    <div class="accordion-body">
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.CardNumber" placeholder="Card Number" />
-                                        <InputText class="form-control mb-3" @bind-Value="_checkoutModel.CardName" placeholder="Name on Card" />
-                                        <div class="row g-2">
-                                            <div class="col-md-6">
-                                                <InputText class="form-control" @bind-Value="_checkoutModel.Expiry" placeholder="MM/YY" />
-                                            </div>
-                                            <div class="col-md-6">
-                                                <InputText class="form-control" @bind-Value="_checkoutModel.CVV" placeholder="CVV" />
-                                            </div>
-                                        </div>
-                                        <button type="button" class="btn btn-secondary mt-3" @onclick="GoBack">Back</button>
-                                        <button type="submit" class="btn btn-success mt-3">Place Order</button>
-                                    </div>
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="billingAddressLine2" class="form-label fw-semibold">Address Line 2</label>
+                                <InputText id="billingAddressLine2" class="form-control" @bind-Value="_checkoutModel.BillingAddressLineTwo" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="billingTown" class="form-label fw-semibold">Town</label>
+                                <InputText id="billingTown" class="form-control" @bind-Value="_checkoutModel.BillingTown" />
+                                <ValidationMessage For="@(() => _checkoutModel.BillingTown)" class="text-danger" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="billingCounty" class="form-label fw-semibold">County</label>
+                                <InputText id="billingCounty" class="form-control" @bind-Value="_checkoutModel.BillingCounty" />
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <label for="billingPostcode" class="form-label fw-semibold">Postcode</label>
+                                <InputText id="billingPostcode" class="form-control" @bind-Value="_checkoutModel.BillingPostCode" />
+                                <ValidationMessage For="@(() => _checkoutModel.BillingPostCode)" class="text-danger" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="billingCountry" class="form-label fw-semibold">Country</label>
+                                <InputText id="billingCountry" class="form-control" @bind-Value="_checkoutModel.BillingCountry" />
+                                <ValidationMessage For="@(() => _checkoutModel.BillingCountry)" class="text-danger" />
+                            </div>
+                        </div>
+
+                        <h5 class="mb-3">Shipping Address</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="shippingAddressLine1" class="form-label fw-semibold">Address Line 1</label>
+                                <InputText id="shippingAddressLine1" class="form-control" @bind-Value="_checkoutModel.ShippingAddressLineOne" />
+                                <ValidationMessage For="@(() => _checkoutModel.ShippingAddressLineOne)" class="text-danger" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="shippingAddressLine2" class="form-label fw-semibold">Address Line 2</label>
+                                <InputText id="shippingAddressLine2" class="form-control" @bind-Value="_checkoutModel.ShippingAddressLineTwo" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="shippingTown" class="form-label fw-semibold">Town</label>
+                                <InputText id="shippingTown" class="form-control" @bind-Value="_checkoutModel.ShippingTown" />
+                                <ValidationMessage For="@(() => _checkoutModel.ShippingTown)" class="text-danger" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="shippingCounty" class="form-label fw-semibold">County</label>
+                                <InputText id="shippingCounty" class="form-control" @bind-Value="_checkoutModel.ShippingCounty" />
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <label for="shippingPostcode" class="form-label fw-semibold">Postcode</label>
+                                <InputText id="shippingPostcode" class="form-control" @bind-Value="_checkoutModel.ShippingPostCode" />
+                                <ValidationMessage For="@(() => _checkoutModel.ShippingPostCode)" class="text-danger" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="billingCountry" class="form-label fw-semibold">Country</label>
+                                <InputText id="billingCountry" class="form-control" @bind-Value="_checkoutModel.ShippingCountry" />
+                                <ValidationMessage For="@(() => _checkoutModel.ShippingCountry)" class="text-danger" />
+                            </div>
+                        </div>
+
+                        <h5 class="mb-3">Payment Details</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="cardNumber" class="form-label fw-semibold">Card Number</label>
+                                <InputText id="cardNumber" class="form-control" @bind-Value="_checkoutModel.CardNumber" />
+                                <ValidationMessage For="@(() => _checkoutModel.CardNumber)" class="text-danger" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="cardName" class="form-label fw-semibold">Cardholder Name</label>
+                                <InputText id="cardName" class="form-control" @bind-Value="_checkoutModel.CardName" />
+                                <ValidationMessage For="@(() => _checkoutModel.CardName)" class="text-danger" />
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6 mb-3">
+                                <label for="expiry" class="form-label fw-semibold">Expiry</label>
+                                <InputText id="expiry" class="form-control" @bind-Value="_checkoutModel.Expiry" placeholder="MM/YY" />
+                                <ValidationMessage For="@(() => _checkoutModel.Expiry)" class="text-danger" />
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="cvv" class="form-label fw-semibold">CVV</label>
+                                <InputText id="cvv" class="form-control" @bind-Value="_checkoutModel.CVV" placeholder="e.g. 887"/>
+                                <ValidationMessage For="@(() => _checkoutModel.CVV)" class="text-danger" />
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <button type="submit" class="btn btn-success mt-3">Place Order</button>
+                                <a class="btn btn-outline-primary mt-3" href="/basket">Back</a>
                             </div>
                         </div>
                     </EditForm>
@@ -147,12 +196,6 @@
 
     private CheckoutViewModel _checkoutModel = new();
 
-    private int _activeStep = 1;
-
-    private bool _isCustomerValid = false;
-    private bool _isBillingValid = false;
-    private bool _isShippingValid = false;
-
     protected override async Task OnInitializedAsync()
     {
         await LoadBasketAsync();
@@ -169,60 +212,18 @@
     {
         _basket = await BasketService.GetBasket();
 
-        if(_basket != null)
+        if (_basket != null)
         {
             _errorMessage = null;
         }
         else
         {
             _errorMessage = "Failed to load basket.";
-            _basket = new BasketViewModel();            
+            _basket = new BasketViewModel();
         }
 
         _loaded = true;
         StateHasChanged();
-    }
-
-    private void ValidateCustomer()
-    {
-        _isCustomerValid = !string.IsNullOrWhiteSpace(_checkoutModel.FirstName)
-        && !string.IsNullOrWhiteSpace(_checkoutModel.LastName)
-        && !string.IsNullOrWhiteSpace(_checkoutModel.Email)
-        && !string.IsNullOrWhiteSpace(_checkoutModel.PhoneNumber);
-
-        if (_isCustomerValid)
-            _activeStep = 2;
-    }
-
-    private void ValidateBilling()
-    {
-        _isBillingValid = !string.IsNullOrWhiteSpace(_checkoutModel.BillingAddressLineOne)
-        && !string.IsNullOrWhiteSpace(_checkoutModel.BillingTown)
-        && !string.IsNullOrWhiteSpace(_checkoutModel.BillingPostCode)
-        && !string.IsNullOrWhiteSpace(_checkoutModel.BillingCountry);
-
-        if (_isBillingValid)
-            _activeStep = 3;
-    }
-
-    private void ValidateShipping()
-    {
-        _isShippingValid = !string.IsNullOrWhiteSpace(_checkoutModel.ShippingAddressLineOne)
-        && !string.IsNullOrWhiteSpace(_checkoutModel.ShippingTown)
-        && !string.IsNullOrWhiteSpace(_checkoutModel.ShippingPostCode)
-        && !string.IsNullOrWhiteSpace(_checkoutModel.ShippingCountry);
-
-        if (_isShippingValid)
-            _activeStep = 4;
-    }
-
-    private void GoBack()
-    {
-        if (_activeStep > 1)
-        {
-            _activeStep--;
-            StateHasChanged();
-        }
     }
 
     private async Task SubmitOrder()
