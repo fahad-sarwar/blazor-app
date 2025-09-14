@@ -3,16 +3,6 @@
 @inject ReviewService ReviewService
 
 <div class="container">
-    @if (!string.IsNullOrEmpty(_successMessage))
-    {
-        <div class="alert alert-success">@_successMessage</div>
-    }
-
-    @if (!string.IsNullOrEmpty(_errorMessage))
-    {
-        <div class="alert alert-danger">@_errorMessage</div>
-    }
-
     @if (_isLoading)
     {
         <div class="text-center p-4">
@@ -74,6 +64,16 @@
                 }
                 else
                 {
+                    @if (!string.IsNullOrEmpty(_successMessage))
+                    {
+                        <div class="alert alert-success">@_successMessage</div>
+                    }
+
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <div class="alert alert-danger">@_errorMessage</div>
+                    }
+
                     <div class="card">
                         <div class="card-header bg-primary text-white">
                             <h5 class="mb-0">Add Your Review</h5>
@@ -83,8 +83,9 @@
                                 <DataAnnotationsValidator />
 
                                 <div class="mb-3">
-                                    <label class="form-label fw-semibold">Subject</label>
-                                    <InputText class="form-control" @bind-Value="NewReview.Subject" placeholder="Brief summary of your review" />
+                                    <label for="subject" class="form-label fw-semibold">Subject</label>
+                                    <InputText id="subject" class="form-control" @bind-Value="NewReview.Subject" placeholder="Brief summary of your review" />
+                                    <ValidationMessage For="@(() => NewReview.Subject)" class="text-danger" />
                                 </div>
 
                                 <div class="mb-3">
@@ -94,10 +95,8 @@
                                         @for (var i = 1; i <= 5; i++)
                                         {
                                             var currentStar = i;
-                                            <button type="button"
-                                            class="btn btn-link p-1 me-1"
-                                            style="font-size: 2rem; line-height: 1;"
-                                            @onclick="() => SetRating(currentStar)">
+
+                                            <button type="button" class="btn btn-link p-1 me-1" style="font-size: 2rem; line-height: 1;" @onclick="() => SetRating(currentStar)">
                                                 <i class="bi @(currentStar <= NewReview.Rating ? "bi-star-fill text-warning" : "bi-star text-secondary")"></i>
                                             </button>
                                         }
@@ -106,12 +105,13 @@
                                 </div>
 
                                 <div class="mb-4">
-                                    <label class="form-label fw-semibold">Comment</label>
-                                    <InputTextArea class="form-control" @bind-Value="NewReview.Comment" rows="4" placeholder="Share your experience with this product..." />
+                                    <label for="comment" class="form-label fw-semibold">Comment</label>
+                                    <InputTextArea id="comment" class="form-control" @bind-Value="NewReview.Comment" rows="4" placeholder="Share your experience with this product..." />
+                                    <ValidationMessage For="@(() => NewReview.Comment)" class="text-danger" />
                                 </div>
 
                                 <div class="d-flex gap-2">
-                                    <button type="submit" class="btn btn-success">Submit Review</button>
+                                    <button type="submit" class="btn btn-success" disabled="@_disableSubmitButton">Submit Review</button>
                                     <button type="button" class="btn btn-outline-secondary" @onclick="CancelForm">Cancel</button>
                                 </div>
                             </EditForm>
@@ -129,6 +129,7 @@
     private List<ReviewViewModel> Reviews { get; set; } = new();
     private CreateReviewViewModel NewReview { get; set; } = new() { Rating = 5 };
     private bool _showForm = false;
+    private bool _disableSubmitButton = false;
     private bool _isLoading = true;
     private int _currentPage = 1;
     private int _pageSize = 5;
@@ -188,11 +189,16 @@
     private void ShowForm()
     {
         _showForm = true;
+        _disableSubmitButton = false;
+        NewReview = new CreateReviewViewModel { Rating = 5 };
+        _successMessage = null;
+        _errorMessage = null;
     }
 
     private void CancelForm()
     {
         _showForm = false;
+        _disableSubmitButton = false;
         NewReview = new CreateReviewViewModel { Rating = 5 };
         _successMessage = null;
         _errorMessage = null;
@@ -208,13 +214,13 @@
 
         if (success)
         {
-            _showForm = false;
-            NewReview = new CreateReviewViewModel { Rating = 5 };
+            _errorMessage = null;
+            _disableSubmitButton = true;
             _successMessage = "Your review has been submitted and is pending approval.";
-            await LoadReviews(reset: true);
         }
         else
         {
+            _disableSubmitButton = false;
             _errorMessage = "Failed to submit review. Please try again.";
             _successMessage = null;
         }
