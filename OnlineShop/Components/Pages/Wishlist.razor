@@ -10,9 +10,9 @@
 
 <AuthorizeView Context="authContext">
     <Authorized>
-        @if (_products == null)
+        @if (_isLoading)
         {
-            <p>Loading...</p>
+            <p>Loading wishlist...</p>
         }
         else if (_products.Count == 0)
         {
@@ -36,19 +36,24 @@
         }
     </Authorized>
     <NotAuthorized>
-        <LoginRegisterAlert ReturnUrl="%2Fcheckout" />
+        <LoginRegisterAlert ReturnUrl="%2F" />
     </NotAuthorized>
 </AuthorizeView>
 
 @code {
     private List<ProductViewModel> _products = new();
+    private bool _isLoading = false;
     private int _currentPage = 1;
     private readonly int _pageSize = 9;
     private int _totalProducts = 0;
 
     protected override async Task OnInitializedAsync()
     {
+        _isLoading = true;
+
         await LoadWishlist();
+
+        _isLoading = false;
     }
 
     private async Task LoadWishlist()
