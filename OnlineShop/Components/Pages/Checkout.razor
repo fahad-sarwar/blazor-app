@@ -11,14 +11,15 @@
 @inject OrderService OrderService
 @inject ApiAuthenticationStateProvider ApiAuthenticationStateProvider
 
+@if (_errorMessage != null)
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+
 <h3>Checkout</h3>
 
 <AuthorizeView Context="authContext">
     <Authorized>
-        @if (_errorMessage != null)
-        {
-            <div class="alert alert-danger">@_errorMessage</div>
-        }
 
         @if (!_loaded)
         {

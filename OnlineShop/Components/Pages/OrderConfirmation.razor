@@ -14,15 +14,16 @@
         <p>Your order has been successfully placed.</p>
     </div>
 }
+
+@if (!string.IsNullOrEmpty(_errorMessage))
+{
+    <div class="alert alert-danger">@_errorMessage</div>
+}
+
 <h3>Order Confirmation</h3>
 
 <AuthorizeView Context="authContext">
     <Authorized>
-        @if (!string.IsNullOrEmpty(_errorMessage))
-        {
-            <div class="alert alert-danger">@_errorMessage</div>
-        }
-        
         @if (_loading)
         {
             <p>Loading order...</p>

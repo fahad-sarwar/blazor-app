@@ -7,14 +7,14 @@
 @inject ApiAuthenticationStateProvider ApiAuthenticationStateProvider
 @rendermode InteractiveServer
 
-<h3>Basket</h3>
-
 @if (!string.IsNullOrEmpty(_errorMessage))
 {
-    <div class="alert alert-danger" role="alert">
+    <div class="alert alert-danger">
         @_errorMessage
     </div>
 }
+
+<h3>Basket</h3>
 
 @if (!_loaded)
 {
