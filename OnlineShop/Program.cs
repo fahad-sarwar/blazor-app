@@ -43,7 +43,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
 
 builder.Services.AddScoped<CheckoutDummyDataService>();
-builder.Services.AddScoped<BaseService>();
+builder.Services.AddScoped<ServiceBase>();
 builder.Services.AddScoped<BasketService>();
 builder.Services.AddScoped<AnonymousUserService>();
 builder.Services.AddScoped<CategoryService>();

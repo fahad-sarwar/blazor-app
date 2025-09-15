@@ -2,7 +2,7 @@
 
 namespace OnlineShopUI.Services
 {
-    public class CustomerService(IHttpClientFactory httpClientFactory, ILogger<CustomerService> logger) : BaseService(httpClientFactory)
+    public class CustomerService(IHttpClientFactory httpClientFactory, ILogger<CustomerService> logger) : ServiceBase(httpClientFactory)
     {
         public async Task<CustomerViewModel?> GetCustomer()
         {

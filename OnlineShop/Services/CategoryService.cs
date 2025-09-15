@@ -2,7 +2,7 @@
 
 namespace OnlineShopUI.Services
 {
-    public class CategoryService(IHttpClientFactory httpClientFactory, ILogger<CategoryService> logger) : BaseService(httpClientFactory)
+    public class CategoryService(IHttpClientFactory httpClientFactory, ILogger<CategoryService> logger) : ServiceBase(httpClientFactory)
     {
         public async Task<List<CategoryViewModel>?> GetCategories()
         {

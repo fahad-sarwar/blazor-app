@@ -2,7 +2,7 @@
 
 namespace OnlineShopUI.Services
 {
-    public class OrderService(IHttpClientFactory httpClientFactory, ILogger<OrderService> logger) : BaseService(httpClientFactory)
+    public class OrderService(IHttpClientFactory httpClientFactory, ILogger<OrderService> logger) : ServiceBase(httpClientFactory)
     {
         public async Task<PagedOrderResultViewModel?> GetOrders(int page, int pageSize)
         {

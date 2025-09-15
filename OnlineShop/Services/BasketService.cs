@@ -3,7 +3,7 @@
 namespace OnlineShopUI.Services
 {
     public class BasketService(IHttpClientFactory httpClientFactory, AnonymousUserService anonymousUserService, BasketCountService basketCountService, ILogger<BasketService> logger)
-        : BaseService(httpClientFactory)
+        : ServiceBase(httpClientFactory)
     {
         public async Task<BasketViewModel?> GetBasket()
         {

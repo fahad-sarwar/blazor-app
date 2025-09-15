@@ -1,6 +1,6 @@
 ﻿namespace OnlineShopUI.Services
 {
-    public class BaseService(IHttpClientFactory httpClientFactory)
+    public class ServiceBase(IHttpClientFactory httpClientFactory)
     {
         public HttpClient GetClientFactory()
         {

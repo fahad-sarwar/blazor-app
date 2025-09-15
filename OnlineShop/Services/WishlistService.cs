@@ -2,7 +2,7 @@
 
 namespace OnlineShopUI.Services
 {
-    public class WishlistService(IHttpClientFactory httpClientFactory, ILogger<WishlistService> logger) : BaseService(httpClientFactory)
+    public class WishlistService(IHttpClientFactory httpClientFactory, ILogger<WishlistService> logger) : ServiceBase(httpClientFactory)
     {
         public async Task<PagedProductResultViewModel?> GetWishlist(int page, int pageSize)
         {

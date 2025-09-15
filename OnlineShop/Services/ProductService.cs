@@ -2,7 +2,7 @@
 
 namespace OnlineShopUI.Services
 {
-    public class ProductService(IHttpClientFactory httpClientFactory, ILogger<ProductService> logger) : BaseService(httpClientFactory)
+    public class ProductService(IHttpClientFactory httpClientFactory, ILogger<ProductService> logger) : ServiceBase(httpClientFactory)
     {
         public async Task<PagedProductResultViewModel?> GetProducts(string searchTerm, string selectedSort, int currentPage, int pageSize)
         {

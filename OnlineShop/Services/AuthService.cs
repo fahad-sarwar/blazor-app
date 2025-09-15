@@ -5,7 +5,7 @@ using System.Text.Json;
 namespace OnlineShopUI.Services
 {
     public class AuthService(IHttpClientFactory httpClientFactory, AuthenticationStateProvider authenticationStateProvider, ILogger<AuthService> logger)
-        : BaseService(httpClientFactory)
+        : ServiceBase(httpClientFactory)
     {
         public async Task<bool> Register(RegisterViewModel registerModel)
         {

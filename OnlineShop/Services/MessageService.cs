@@ -2,7 +2,7 @@
 
 namespace OnlineShopUI.Services
 {
-    public class MessageService(IHttpClientFactory httpClientFactory, ILogger<MessageService> logger) : BaseService(httpClientFactory)
+    public class MessageService(IHttpClientFactory httpClientFactory, ILogger<MessageService> logger) : ServiceBase(httpClientFactory)
     {
         public async Task<bool> SendMessage(SendMessageViewModel message)
         {
