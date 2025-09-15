@@ -1,0 +1,6 @@
+CREATE TABLE "Category" (
+    "Id" INTEGER NOT NULL CONSTRAINT "PK_Category" PRIMARY KEY AUTOINCREMENT,
+    "Name" TEXT NOT NULL,
+    "Description" TEXT NOT NULL,
+    "CreatedAt" TEXT NOT NULL
+);

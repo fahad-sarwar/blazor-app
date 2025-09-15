@@ -1,6 +1,7 @@
 using Api.Data;
 using Api.Data.TestData;
 using Api.Models;
+using Api.Repositories;
 using Api.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
@@ -44,6 +45,9 @@ builder.Services.AddCors(options =>
     });
 });
 
+builder.Services.AddScoped<RepositoryBase>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+
 builder.Services.AddAuthorization();
 builder.Services.AddSingleton<BackgroundOrderQueue>();
 builder.Services.AddHostedService<BackgroundOrderUpdateService>();
@@ -62,6 +66,9 @@ if (app.Environment.IsDevelopment())
     var dbContext = scope.ServiceProvider.GetRequiredService<OnlineShopContext>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     await TestDataSeeder.SeedAsync(dbContext, userManager);
+
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<DatabaseBuilder>>();
+    await new DatabaseBuilder(logger).SetupDatabase();
 }
 
 //app.UseHttpsRedirection();
