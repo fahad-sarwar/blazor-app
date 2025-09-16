@@ -61,13 +61,15 @@ namespace Api.Repositories
             var query =
                 "SELECT Id, Name, Description, CreatedAt " +
                 "FROM Category " +
-                $"WHERE Id = {categoryId};";
+                "WHERE Id = @categoryId;";
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(query, conn);
             try
             {
                 conn.Open();
+
+                command.Parameters.AddWithValue("@categoryId", categoryId);
 
                 var reader = await command.ExecuteReaderAsync();
 

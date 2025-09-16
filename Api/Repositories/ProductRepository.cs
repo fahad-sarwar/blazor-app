@@ -40,7 +40,6 @@ namespace Api.Repositories
                 : "";
 
             string orderBy;
-
             switch(sort)
             {
                 case "name-desc":
@@ -57,20 +56,19 @@ namespace Api.Repositories
                     break;
             }
 
-            var countQuery = $@"
-                SELECT COUNT(*) 
-                FROM Product p 
-                INNER JOIN Category c ON p.CategoryId = c.Id 
-                {whereClause}";
+            var countQuery = 
+                "SELECT COUNT(*) " +
+                "FROM Product p " +
+                "INNER JOIN Category c ON p.CategoryId = c.Id " +
+                $"{whereClause} ";
 
-            var dataQuery = $@"
-                SELECT p.Id, p.Name, p.Description, p.Price, p.ImageURL, p.Stock, p.ForSale, p.SalePrice, p.CreatedAt,
-                       c.Id, c.Name, c.Description, c.CreatedAt
-                FROM Product p 
-                INNER JOIN Category c ON p.CategoryId = c.Id 
-                {whereClause} 
-                {orderBy} 
-                LIMIT @pageSize OFFSET @offset";
+            var dataQuery = 
+                "SELECT p.Id, p.Name, p.Description, p.Price, p.ImageURL, p.Stock, p.ForSale, p.SalePrice, p.CreatedAt, c.Id, c.Name, c.Description, c.CreatedAt " +
+                "FROM Product p " +
+                " INNER JOIN Category c ON p.CategoryId = c.Id " +
+                $"{whereClause} " +
+                $"{orderBy} " +
+                "LIMIT @pageSize OFFSET @offset";
 
             await using var conn = new SqliteConnection(ConnectionString);            
             try
