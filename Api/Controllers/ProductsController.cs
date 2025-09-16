@@ -29,7 +29,7 @@ namespace Api.Controllers
                     return BadRequest("Category ID must be a positive integer.");
 
                 var query = context.Product.AsQueryable();
-
+                    
                 if (categoryId.HasValue)
                     query = query.Where(p => p.Category.Id == categoryId.Value);
 
