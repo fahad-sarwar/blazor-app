@@ -163,9 +163,11 @@ namespace Api.Repositories
         public async Task<bool> ValidatePassword(string userName, string password)
         {
             var user = await GetUserByUserName(userName);
-            
+
             if (user == null)
+            {
                 return false;
+            }
 
             return VerifyPassword(password, user.PasswordHash);
         }
