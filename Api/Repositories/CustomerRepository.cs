@@ -10,6 +10,7 @@ namespace Api.Repositories
         Task<Customer?> GetCustomerById(int customerId);
         Task<Customer> CreateCustomer(Customer customer);
         Task UpdateCustomer(Customer customer);
+        Task UpdateCustomerPhoneNumber(Customer customer, string phoneNumber);
         Task<bool> CustomerExists(int customerId);
     }
 
@@ -143,6 +144,29 @@ namespace Api.Repositories
                 command.Parameters.AddWithValue("@phoneNumber", customer.PhoneNumber ?? string.Empty);
                 command.Parameters.AddWithValue("@billingAddressId", (object?)customer.BillingAddress?.Id ?? DBNull.Value);
                 command.Parameters.AddWithValue("@shippingAddressId", (object?)customer.ShippingAddress?.Id ?? DBNull.Value);
+
+                await command.ExecuteNonQueryAsync();
+            }
+            finally
+            {
+                conn.Close();
+            }
+        }
+        public async Task UpdateCustomerPhoneNumber(Customer customer, string phoneNumber)
+        {
+            var query =
+                "UPDATE Customer " +
+                "SET PhoneNumber = @phoneNumber " +
+                "WHERE Id = @id";
+
+            await using var conn = new SqliteConnection(ConnectionString);
+            await using var command = new SqliteCommand(query, conn);
+            try
+            {
+                conn.Open();
+
+                command.Parameters.AddWithValue("@id", customer.Id);
+                command.Parameters.AddWithValue("@phoneNumber", phoneNumber);
 
                 await command.ExecuteNonQueryAsync();
             }
