@@ -9,7 +9,7 @@ namespace Api.Controllers
     public class ProductsController(OnlineShopContext context, ILogger<ProductsController> logger) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetProduct(
+        public async Task<IActionResult> GetProducts(
             [FromQuery] int? categoryId,
             [FromQuery] bool? forSale,
             [FromQuery] string? searchTerm,

@@ -59,7 +59,7 @@ namespace Api.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetOrderById(int id)
+        public async Task<IActionResult> GetOrder(int id)
         {
             try
             {
@@ -87,7 +87,7 @@ namespace Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> PostOrder(CreateOrderDTO createOrderRequest)
+        public async Task<IActionResult> CreateOrder(CreateOrderDTO createOrderRequest)
         {
             try
             {

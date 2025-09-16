@@ -10,7 +10,7 @@ namespace Api.Controllers
     public class MessagesController(OnlineShopContext context, ILogger<MessagesController> logger) : ControllerBase
     {
         [HttpPost]
-        public async Task<IActionResult> PostBasket(SendMessageDTO request)
+        public async Task<IActionResult> CreateMessage(SendMessageDTO request)
         {
             try
             {

@@ -9,7 +9,7 @@ namespace Api.Controllers
     public class CategoriesController(OnlineShopContext context, ILogger<CategoriesController> logger) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetCategory()
+        public async Task<IActionResult> GetCategories()
         {
             try
             {

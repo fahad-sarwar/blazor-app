@@ -40,7 +40,7 @@ namespace Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCustomer(int id, UpdateCustomerDTO request)
+        public async Task<IActionResult> UpdateCustomer(int id, UpdateCustomerDTO request)
         {
             try
             {

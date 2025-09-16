@@ -11,7 +11,7 @@ namespace Api.Controllers
     public class BasketItemsController(OnlineShopContext context, ILogger<BasketItemsController> logger) : ControllerBase
     {
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutBasketItem(int id, UpdateBasketItemQuantityDTO updateBasketItemQuantity)
+        public async Task<IActionResult> UpdateBasketItem(int id, UpdateBasketItemQuantityDTO updateBasketItemQuantity)
         {
             try
             {
@@ -46,7 +46,7 @@ namespace Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> PostBasketItem(CreateBasketItemDTO addBasketItem)
+        public async Task<IActionResult> CreateBasketItem(CreateBasketItemDTO addBasketItem)
         {
             try
             {
