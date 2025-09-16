@@ -11,12 +11,8 @@ namespace Api.Repositories
         Task<User?> GetUserById(int userId);
         Task<User> CreateUser(User user);
         Task<User> CreateUser(string userName, string password, bool isAdmin = false);
-        Task UpdateUser(User user);
         Task<bool> UserExists(string userName);
         Task<bool> ValidatePassword(string userName, string password);
-        Task UpdatePassword(int userId, string newPassword);
-        Task<List<User>> GetAllUsers();
-        Task DeleteUser(int userId);
     }
 
     public class UserRepository(ILogger<UserRepository> logger) : RepositoryBase, IUserRepository
@@ -140,34 +136,6 @@ namespace Api.Repositories
             return await CreateUser(user);
         }
 
-        public async Task UpdateUser(User user)
-        {
-            var query = 
-                "UPDATE User " +
-                "SET UserName = @userName, " +
-                "PasswordHash = @passwordHash, " +
-                "IsAdmin = @isAdmin " +
-                "WHERE Id = @id";
-
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
-            {
-                conn.Open();
-
-                command.Parameters.AddWithValue("@id", user.Id);
-                command.Parameters.AddWithValue("@userName", user.UserName);
-                command.Parameters.AddWithValue("@passwordHash", user.PasswordHash);
-                command.Parameters.AddWithValue("@isAdmin", user.IsAdmin);
-
-                await command.ExecuteNonQueryAsync();
-            }
-            finally
-            {
-                conn.Close();
-            }
-        }
-
         public async Task<bool> UserExists(string userName)
         {
             var query =
@@ -200,87 +168,6 @@ namespace Api.Repositories
                 return false;
 
             return VerifyPassword(password, user.PasswordHash);
-        }
-
-        public async Task UpdatePassword(int userId, string newPassword)
-        {
-            var query =
-                "UPDATE User " +
-                "SET PasswordHash = @passwordHash " +
-                "WHERE Id = @userId";
-
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
-            {
-                conn.Open();
-
-                command.Parameters.AddWithValue("@userId", userId);
-                command.Parameters.AddWithValue("@passwordHash", HashPassword(newPassword));
-
-                await command.ExecuteNonQueryAsync();
-            }
-            finally
-            {
-                conn.Close();
-            }
-        }
-
-        public async Task<List<User>> GetAllUsers()
-        {
-            var users = new List<User>();
-
-            var query =
-                "SELECT Id, UserName, PasswordHash, IsAdmin, CreatedAt " +
-                "FROM User " +
-                "ORDER BY CreatedAt DESC";
-
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
-            {
-                conn.Open();
-                var reader = await command.ExecuteReaderAsync();
-
-                while (reader.Read())
-                {
-                    users.Add(new User
-                    {
-                        Id = reader.GetInt32(0),
-                        UserName = reader.GetString(1),
-                        PasswordHash = reader.GetString(2),
-                        IsAdmin = reader.GetBoolean(3),
-                        CreatedAt = reader.GetDateTime(4)
-                    });
-                }
-
-                return users;
-            }
-            finally
-            {
-                conn.Close();
-            }
-        }
-
-        public async Task DeleteUser(int userId)
-        {
-            var query = 
-                "DELETE FROM User " +
-                "WHERE Id = @userId";
-
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            command.Parameters.AddWithValue("@userId", userId);
-
-            try
-            {
-                conn.Open();
-                await command.ExecuteNonQueryAsync();
-            }
-            finally
-            {
-                conn.Close();
-            }
         }
 
         // Password hashing methods

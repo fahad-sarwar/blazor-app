@@ -6,7 +6,6 @@ namespace Api.Repositories
     public interface IBasketItemRepository
     {
         Task<List<BasketItem>?> GetBasketItems(int basketId);
-        Task<BasketItem?> GetBasketItem(int basketItemId);
         Task<BasketItem> CreateBasketItem(BasketItem basketItem);
         Task UpdateBasketItemQuantity(int basketItemId, int quantity);
         Task DeleteBasketItem(int basketItemId);
@@ -57,52 +56,6 @@ namespace Api.Repositories
                 }
 
                 return basketItems;
-            }
-            finally
-            {
-                conn.Close();
-            }
-        }
-
-        public async Task<BasketItem?> GetBasketItem(int basketItemId)
-        {
-            BasketItem? basketItem = null;
-
-            var query =
-                "SELECT Id, BasketId, ProductId, Quantity, Price, VATRate, CreatedAt " +
-                "FROM BasketItem " +
-                "WHERE Id = @basketItemId";
-
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
-            {
-                conn.Open();
-
-                command.Parameters.AddWithValue("@basketItemId", basketItemId);
-
-                var reader = await command.ExecuteReaderAsync();
-
-                if (reader.Read())
-                {
-                    var productId = reader.GetInt32(2);
-
-                    basketItem = new BasketItem
-                    {
-                        Id = reader.GetInt32(0),
-                        BasketId = reader.GetInt32(1),
-                        Quantity = reader.GetInt32(3),
-                        Price = reader.GetDouble(4),
-                        VATRate = reader.GetDouble(5),
-                        CreatedAt = reader.GetDateTime(6)
-                    };
-
-                    reader.Close();
-
-                    basketItem.Product = await productRepository.GetProduct(productId);
-                }
-
-                return basketItem;
             }
             finally
             {

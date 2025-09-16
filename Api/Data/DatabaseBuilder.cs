@@ -37,7 +37,7 @@ namespace Api.Data
         {
             logger.LogInformation("Creating database schema.");
 
-            var schema = await File.ReadAllTextAsync("Data/Schema/DatabaseSchema.sql");
+            var schema = await File.ReadAllTextAsync("Data/DatabaseSchema.sql");
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(schema, conn);
@@ -64,7 +64,7 @@ namespace Api.Data
         {
             logger.LogInformation("Creating test data.");
 
-            var schema = await File.ReadAllTextAsync("Data/TestData/TestData.sql");
+            var schema = await File.ReadAllTextAsync("Data/TestData.sql");
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(schema, conn);

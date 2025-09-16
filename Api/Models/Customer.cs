@@ -10,7 +10,6 @@
         public Address? BillingAddress { get; set; }
         public Address? ShippingAddress { get; set; }
         public string UserId { get; set; }
-        public ApplicationUser User { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

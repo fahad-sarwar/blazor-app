@@ -1,7 +1,0 @@
-FirstName###LastName###Email###PhoneNumber###IsAdmin###ShippingAddressLineOne###ShippingAddressLineTwo###ShippingTown###ShippingCounty###ShippingPostCode###ShippingCountry###BillingAddressLineOne###BillingAddressLineTwo###BillingTown###BillingCounty###BillingPostCode###BillingCountry
-John###Doe###jdoe@example.com###07123 456789###0###10 Downing Street###Apartment 10###London###Greater London###SW1A 2AA###UK###221B Baker Street###Flat 4###London###Greater London###NW1 6XE###UK
-Alice###Smith###asmith@example.com###07234 567890###0###1 Castle Street###Floor 3###Edinburgh###Midlothian###EH1 2ND###UK###50 George Square###Flat 2###Edinburgh###Midlothian###EH8 9JU###UK
-Bruce###Wayne###bwayne@example.com###07345 678901###0###100 King Street###Penthouse###Manchester###Greater Manchester###M2 4WU###UK###200 Deansgate###Apt 5B###Manchester###Greater Manchester###M3 3NN###UK
-Clark###Kent###ckent@example.com###07456 789012###0###1 Queen Square###Ground Floor###Bristol###Bristol###BS1 4JQ###UK###15 Park Street###Flat 5b###Bristol###Greater Bristol###BS1 5HX###UK
-Diana###Prince###dprince@example.com###07567 890123###0###30 Bold Street###Flat 1a###Liverpool###Merseyside###L1 4DS###UK###8 Hope Street###Apartment 9c###Liverpool###Merseyside###L1 9BX###UK
-Bob###Kart###admin@bobkart.com###07111 222333###1###10 High Street###Apartment 7D###Rochdale###Greater Manchester###OL11 5PZ###UK###10 High Street###Apartment 7D###Rochdale###Greater Manchester###OL11 5PZ###UK
