@@ -45,26 +45,6 @@ namespace Api.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetReview(int id)
-        {
-            try
-            {
-                var review = await context.Review
-                    .Include(r => r.Customer)
-                    .SingleOrDefaultAsync(r => r.Id == id);
-
-                return review == null
-                    ? NotFound()
-                    : Ok(review);
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error retrieving review with id {ReviewId}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
-        }
-
         [HttpGet("stats")]
         public async Task<IActionResult> GetReviewStats([FromQuery] int productId)
         {
