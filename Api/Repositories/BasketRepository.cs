@@ -7,14 +7,17 @@ namespace Api.Repositories
     {
         Task<Basket?> GetBasketByAnonymousId(string anonymousId);
         Task<Basket?> GetBasketByCustomerId(int customerId);
+        Task<Basket?> GetBasketById(int basketId);
         Task<Basket> CreateBasket(Basket basket);
         Task<Basket?> GetOrCreateBasket(string? anonymousId, int? customerId);
+        Task DeleteBasket(int basketId);
+        Task RemoveAllBasketItems(int basketId);
     }
 
     public class BasketRepository(
-        ILogger<BasketRepository> logger, 
-        IProductRepository productRepository, 
-        ICustomerRepository customerRepository, 
+        ILogger<BasketRepository> logger,
+        IProductRepository productRepository,
+        ICustomerRepository customerRepository,
         IBasketItemRepository basketItemRepository) : RepositoryBase, IBasketRepository
     {
         public async Task<Basket?> GetBasketByAnonymousId(string anonymousId)
@@ -31,9 +34,9 @@ namespace Api.Repositories
         {
             Basket? basket = null;
 
-            var query = 
+            var query =
                 "SELECT Id, CustomerId, AnonymousId, CreatedAt " +
-                "FROM Basket " + 
+                "FROM Basket " +
                 "WHERE {fieldName} = @fieldValue";
 
             await using var conn = new SqliteConnection(ConnectionString);
@@ -85,7 +88,6 @@ namespace Api.Repositories
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(query, conn);
-
             try
             {
                 conn.Open();
@@ -135,6 +137,54 @@ namespace Api.Repositories
             }
 
             return basket;
+        }
+        public async Task<Basket?> GetBasketById(int basketId)
+        {
+            return await GetBasketByField("Id", basketId);
+        }
+
+        public async Task DeleteBasket(int basketId)
+        {
+            var query = 
+                "DELETE FROM Basket " +
+                "WHERE Id = @basketId";
+
+            await using var conn = new SqliteConnection(ConnectionString);
+            await using var command = new SqliteCommand(query, conn);
+            try
+            {
+                conn.Open();
+
+                command.Parameters.AddWithValue("@basketId", basketId);
+
+                await command.ExecuteNonQueryAsync();
+            }
+            finally
+            {
+                conn.Close();
+            }
+        }
+
+        public async Task RemoveAllBasketItems(int basketId)
+        {
+            var query = 
+                "DELETE FROM BasketItem " +
+                "WHERE BasketId = @basketId";
+
+            await using var conn = new SqliteConnection(ConnectionString);
+            await using var command = new SqliteCommand(query, conn);
+            try
+            {
+                conn.Open();
+
+                command.Parameters.AddWithValue("@basketId", basketId);
+
+                await command.ExecuteNonQueryAsync();
+            }
+            finally
+            {
+                conn.Close();
+            }
         }
     }
 }
