@@ -1,16 +1,15 @@
-﻿using Api.Data;
-using Api.Models;
+﻿using Api.Models;
 using Api.Models.DTOs;
-using Microsoft.AspNetCore.Identity;
+using Api.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CustomersController(OnlineShopContext context, UserManager<ApplicationUser> userManager, ILogger<CustomersController> logger) : ControllerBase
+    public class CustomersController(ICustomerRepository customerRepository, IAddressRepository addressRepository, 
+        IUserRepository userRepository, ILogger<CustomersController> logger) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetCustomer()
@@ -20,15 +19,16 @@ namespace Api.Controllers
                 var email = User.FindFirst(ClaimTypes.Email)?.Value;
 
                 if (string.IsNullOrEmpty(email))
+                {
                     return Unauthorized();
+                }
 
-                var customer = await context.Customer
-                    .Include(c => c.ShippingAddress)
-                    .Include(c => c.BillingAddress)
-                    .FirstOrDefaultAsync(c => c.Email == email);
+                var customer = await customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
+                {
                     return NotFound("Customer not found.");
+                }
 
                 return Ok(customer);
             }
@@ -47,43 +47,44 @@ namespace Api.Controllers
                 var email = User.FindFirst(ClaimTypes.Email)?.Value;
 
                 if (string.IsNullOrEmpty(email))
+                {
                     return Unauthorized();
+                }
 
-                var customer = await context.Customer
-                    .Include(c => c.ShippingAddress)
-                    .Include(c => c.BillingAddress)
-                    .FirstOrDefaultAsync(c => c.Email == email);
+                var customer = await customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
+                {
                     return NotFound("Customer not found.");
+                }
 
                 if (id != customer.Id)
-                    return BadRequest();
+                {
+                    return BadRequest("Invalid customer identified.");
+                }
 
-                var user = await userManager.FindByEmailAsync(email);
+                var user = await userRepository.GetUserByUserName(email);
 
                 if (user == null)
+                {
                     return NotFound("User not found.");
+                }
 
-                if (user.Email != customer.Email)
+                if (user.UserName != customer.Email)
+                {
                     return BadRequest("User email does not match customer email.");
+                }
 
                 customer.FirstName = request.FirstName;
                 customer.LastName = request.LastName;
                 customer.PhoneNumber = request.PhoneNumber;
-
-                user.FirstName = request.FirstName;
-                user.LastName = request.LastName;
-
-                var shippingAddress = customer.ShippingAddress;
-                var billingAddress = customer.BillingAddress;
 
                 var createShippingAddress = customer.ShippingAddress == null;
                 var createBillingAddress = customer.BillingAddress == null;
 
                 if (createShippingAddress)
                 {
-                    shippingAddress = new Address
+                    var shippingAddress = new Address
                     {
                         AddressLineOne = request.ShippingAddressLineOne,
                         AddressLineTwo = request.ShippingAddressLineTwo,
@@ -92,13 +93,24 @@ namespace Api.Controllers
                         PostCode = request.ShippingPostCode,
                         Country = request.ShippingCountry
                     };
-                    context.Address.Add(shippingAddress);
+
+                    shippingAddress = await addressRepository.CreateAddress(shippingAddress);
                     customer.ShippingAddress = shippingAddress;
                 }
+                else
+                {
+                    customer.ShippingAddress.AddressLineOne = request.ShippingAddressLineOne;
+                    customer.ShippingAddress.AddressLineTwo = request.ShippingAddressLineTwo;
+                    customer.ShippingAddress.Town = request.ShippingTown;
+                    customer.ShippingAddress.County = request.ShippingCounty;
+                    customer.ShippingAddress.PostCode = request.ShippingPostCode;
+                    customer.ShippingAddress.Country = request.ShippingCountry;
+                    await addressRepository.UpdateAddress(customer.ShippingAddress);
+                }           
 
                 if (createBillingAddress)
                 {
-                    billingAddress = new Address
+                    var billingAddress = new Address
                     {
                         AddressLineOne = request.BillingAddressLineOne,
                         AddressLineTwo = request.BillingAddressLineTwo,
@@ -107,52 +119,22 @@ namespace Api.Controllers
                         PostCode = request.BillingPostCode,
                         Country = request.BillingCountry
                     };
-                    context.Address.Add(billingAddress);
+
+                    billingAddress = await addressRepository.CreateAddress(billingAddress);
                     customer.BillingAddress = billingAddress;
                 }
-
-                if (!createShippingAddress)
+                else
                 {
-                    shippingAddress.AddressLineOne = request.ShippingAddressLineOne;
-                    shippingAddress.AddressLineTwo = request.ShippingAddressLineTwo;
-                    shippingAddress.Town = request.ShippingTown;
-                    shippingAddress.County = request.ShippingCounty;
-                    shippingAddress.PostCode = request.ShippingPostCode;
-                    shippingAddress.Country = request.ShippingCountry;
+                    customer.BillingAddress.AddressLineOne = request.BillingAddressLineOne;
+                    customer.BillingAddress.AddressLineTwo = request.BillingAddressLineTwo;
+                    customer.BillingAddress.Town = request.BillingTown;
+                    customer.BillingAddress.County = request.BillingCounty;
+                    customer.BillingAddress.PostCode = request.BillingPostCode;
+                    customer.BillingAddress.Country = request.BillingCountry;
+                    await addressRepository.UpdateAddress(customer.BillingAddress);
                 }
 
-                if(!createBillingAddress)
-                {
-                    billingAddress.AddressLineOne = request.BillingAddressLineOne;
-                    billingAddress.AddressLineTwo = request.BillingAddressLineTwo;
-                    billingAddress.Town = request.BillingTown;
-                    billingAddress.County = request.BillingCounty;
-                    billingAddress.PostCode = request.BillingPostCode;
-                    billingAddress.Country = request.BillingCountry;
-                }
-
-                context.Entry(customer).State = EntityState.Modified;
-                context.Entry(user).State = EntityState.Modified;
-                
-                context.Entry(shippingAddress).State = createShippingAddress 
-                    ? EntityState.Added 
-                    : EntityState.Modified;
-
-                context.Entry(billingAddress).State = createBillingAddress
-                    ? EntityState.Added
-                    : EntityState.Modified;
-
-                try
-                {
-                    await context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CustomerExists(id))
-                        return NotFound();
-
-                    throw;
-                }
+                await customerRepository.UpdateCustomer(customer);
 
                 return NoContent();
             }
@@ -161,11 +143,6 @@ namespace Api.Controllers
                 logger.LogError(ex, "Error updating customer with id {CustomerId}", id);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
-        }
-
-        private bool CustomerExists(int id)
-        {
-            return context.Customer.Any(e => e.Id == id);
         }
     }
 }

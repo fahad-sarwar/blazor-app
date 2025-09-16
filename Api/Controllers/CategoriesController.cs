@@ -1,19 +1,18 @@
-﻿using Api.Data;
+﻿using Api.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoriesController(OnlineShopContext context, ILogger<CategoriesController> logger) : ControllerBase
+    public class CategoriesController(ICategoryRepository categoryRepository, ILogger<CategoriesController> logger) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetCategories()
         {
             try
             {
-                var categories = await context.Category.ToListAsync();
+                var categories = await categoryRepository.GetCategories();
                 return Ok(categories);
             }
             catch(Exception ex)
@@ -28,7 +27,7 @@ namespace Api.Controllers
         {
             try
             {
-                var category = await context.Category.FindAsync(id);
+                var category = await categoryRepository.GetCategory(id);
 
                 return category == null
                     ? NotFound()

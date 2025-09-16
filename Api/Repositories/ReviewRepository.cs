@@ -14,8 +14,6 @@ namespace Api.Repositories
     {
         public async Task<(List<Review> Reviews, int TotalCount)> GetReviews(int productId, int page = 1, int pageSize = 10)
         {
-            var reviews = new List<Review>();
-
             var countQuery = 
                 "SELECT COUNT(*) " +
                 "FROM Review " +
@@ -44,41 +42,29 @@ namespace Api.Repositories
 
                 var reader = await reviewsCommand.ExecuteReaderAsync();
 
-                var reviewData = new List<(int Id, string Subject, int Rating, string Comment, string Status, int ProductId, int CustomerId, DateTime CreatedAt)>();
+                var reviews = new List<Review>();
 
                 while (reader.Read())
                 {
-                    reviewData.Add((
-                        reader.GetInt32(0),
-                        reader.GetString(1),
-                        reader.GetInt32(2),
-                        reader.GetString(3),
-                        reader.GetString(4),
-                        reader.GetInt32(5),
-                        reader.GetInt32(6),
-                        reader.GetDateTime(7)
-                    ));
+                    reviews.Add(new Review
+                    {
+                        Id = reader.GetInt32(0),
+                        Subject = reader.GetString(1),
+                        Rating = reader.GetInt32(2),
+                        Comment = reader.GetString(3),
+                        Status = reader.GetString(4),
+                        Product = new Product { Id = reader.GetInt32(5) },
+                        Customer = new Customer { Id = reader.GetInt32(6) },
+                        CreatedAt = reader.GetDateTime(7)
+                    });
                 }
 
                 reader.Close();
 
-                foreach (var data in reviewData)
+                foreach (var review in reviews)
                 {
-                    var customer = await customerRepository.GetCustomerById(data.CustomerId);
-                    
-                    if (customer != null)
-                    {
-                        reviews.Add(new Review
-                        {
-                            Id = data.Id,
-                            Subject = data.Subject,
-                            Rating = data.Rating,
-                            Comment = data.Comment,
-                            Status = data.Status,
-                            Customer = customer,
-                            CreatedAt = data.CreatedAt
-                        });
-                    }
+                    var customer = await customerRepository.GetCustomerById(review.Customer.Id);
+                    review.Customer = customer;
                 }
 
                 return (reviews, totalCount);

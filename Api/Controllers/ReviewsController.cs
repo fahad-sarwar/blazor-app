@@ -1,39 +1,26 @@
-﻿using Api.Data;
-using Api.Models;
+﻿using Api.Models;
 using Api.Models.DTOs;
+using Api.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ReviewsController(OnlineShopContext context, ILogger<ReviewsController> logger) : ControllerBase
+    public class ReviewsController(IReviewRepository reviewRepository, ICustomerRepository customerRepository, IProductRepository productRepository, ILogger<ReviewsController> logger) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetReviews([FromQuery] int productId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var query = context.Review
-                    .Include(r => r.Customer)
-                    .Where(r => r.Product.Id == productId)
-                    .Where(r => r.Status == "Approved")
-                    .OrderByDescending(r => r.CreatedAt)
-                    .AsQueryable();
-
-                var totalCount = await query.CountAsync();
-
-                var paged = await query
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync();
+                var (reviews, totalCount) = await reviewRepository.GetReviews(productId, page, pageSize);
 
                 return Ok(
                     new
                     {
-                        Reviews = paged,
+                        Reviews = reviews,
                         TotalCount = totalCount
                     }
                 );
@@ -50,10 +37,7 @@ namespace Api.Controllers
         {
             try
             {
-                var averageRating = await context.Review
-                    .Where(r => r.Product.Id == productId)
-                    .Where(r => r.Status == "Approved")
-                    .AverageAsync(r => (double?)r.Rating);
+                var averageRating = await reviewRepository.GetAverageRating(productId);
 
                 return Ok(
                     new
@@ -77,17 +61,23 @@ namespace Api.Controllers
                 var email = User.FindFirst(ClaimTypes.Email)?.Value;
 
                 if (string.IsNullOrEmpty(email))
+                {
                     return Unauthorized();
+                }
 
-                var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
+                var customer = await customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
+                {
                     return NotFound("Customer not found.");
+                }
 
-                var product = await context.Product.FirstOrDefaultAsync(p => p.Id == request.ProductId);
+                var product = await productRepository.GetProduct(request.ProductId);
 
                 if (product == null)
+                {
                     return NotFound("Product not found.");
+                }
 
                 var review = new Review
                 {
@@ -100,10 +90,9 @@ namespace Api.Controllers
                     CreatedAt = DateTime.UtcNow
                 };
 
-                context.Review.Add(review);
-                await context.SaveChangesAsync();
+                var createdReview = await reviewRepository.CreateReview(review);
 
-                return Ok(review);
+                return Ok(createdReview);
             }
             catch (Exception ex)
             {

@@ -1,68 +1,39 @@
-﻿using Api.Data;
+﻿using Api.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductsController(OnlineShopContext context, ILogger<ProductsController> logger) : ControllerBase
+    public class ProductsController(IProductRepository productRepository, ILogger<ProductsController> logger) : ControllerBase
     {
         [HttpGet]
-        public async Task<IActionResult> GetProducts(
-            [FromQuery] int? categoryId,
-            [FromQuery] bool? forSale,
-            [FromQuery] string? searchTerm,
-            [FromQuery] string? sort = "name-asc",
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 9)
+        public async Task<IActionResult> GetProducts([FromQuery] int? categoryId, [FromQuery] bool? forSale, [FromQuery] string? searchTerm,
+            [FromQuery] string? sort = "name-asc", [FromQuery] int page = 1, [FromQuery] int pageSize = 9)
         {
             try
             {
                 if (!categoryId.HasValue && !forSale.HasValue && string.IsNullOrWhiteSpace(searchTerm))
-                    return BadRequest("At least one filter must be provided: category, forSale, or searchTerm.");
-
-                if (page < 1 || pageSize < 1)
-                    return BadRequest("Page and pageSize must be greater than 0.");
-
-                if (categoryId.HasValue && categoryId < 0)
-                    return BadRequest("Category ID must be a positive integer.");
-
-                var query = context.Product.AsQueryable();
-                    
-                if (categoryId.HasValue)
-                    query = query.Where(p => p.Category.Id == categoryId.Value);
-
-                if (forSale.HasValue)
-                    query = query.Where(p => p.ForSale == forSale.Value);
-
-                if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
-                    var normalised = searchTerm.ToLower();
-                    query = query.Where(p => p.Name.ToLower().Contains(normalised) ||
-                                             p.Description.ToLower().Contains(normalised));
+                    return BadRequest("At least one filter must be provided: category, forSale, or searchTerm.");
                 }
 
-                var totalCount = await query.CountAsync();
-
-                query = sort switch
+                if (page < 1 || pageSize < 1)
                 {
-                    "name-asc" => query.OrderBy(p => p.Name),
-                    "name-desc" => query.OrderByDescending(p => p.Name),
-                    "price-asc" => query.OrderBy(p => p.Price),
-                    "price-desc" => query.OrderByDescending(p => p.Price),
-                    _ => query.OrderBy(p => p.Name)
-                };
+                    return BadRequest("Page and pageSize must be greater than 0.");
+                }
 
-                var paged = await query
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .ToListAsync();
+                if (categoryId.HasValue && categoryId < 0)
+                {
+                    return BadRequest("Category ID must be a positive integer.");
+                }
+
+                var (products, totalCount) = await productRepository.GetProducts(categoryId, forSale, searchTerm, sort, page, pageSize);
 
                 return Ok(
                     new
                     {
-                        Products = paged,
+                        Products = products,
                         TotalCount = totalCount
                     }
                 );
@@ -80,9 +51,7 @@ namespace Api.Controllers
         {
             try
             {
-                var product = await context.Product
-                    .Include(p => p.Attributes)
-                    .FirstOrDefaultAsync(p => p.Id == id);
+                var product = await productRepository.GetProduct(id);
 
                 return product == null
                     ? NotFound()

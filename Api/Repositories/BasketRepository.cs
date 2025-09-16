@@ -37,7 +37,7 @@ namespace Api.Repositories
             var query =
                 "SELECT Id, CustomerId, AnonymousId, CreatedAt " +
                 "FROM Basket " +
-                "WHERE {fieldName} = @fieldValue";
+                $"WHERE {fieldName} = @fieldValue";
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(query, conn);
@@ -68,7 +68,7 @@ namespace Api.Repositories
                         basket.Customer = await customerRepository.GetCustomerById(customerId.Value);
                     }
 
-                    await basketItemRepository.GetBasketItems(basket.Id);
+                    basket.Items = await basketItemRepository.GetBasketItems(basket.Id);
                 }
 
                 return basket;

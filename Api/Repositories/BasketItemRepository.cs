@@ -5,7 +5,7 @@ namespace Api.Repositories
 {
     public interface IBasketItemRepository
     {
-        Task GetBasketItems(int basketId);
+        Task<List<BasketItem>?> GetBasketItems(int basketId);
         Task<BasketItem?> GetBasketItem(int basketItemId);
         Task<BasketItem> CreateBasketItem(BasketItem basketItem);
         Task UpdateBasketItemQuantity(int basketItemId, int quantity);
@@ -15,7 +15,7 @@ namespace Api.Repositories
 
     public class BasketItemRepository(ILogger<BasketItemRepository> logger, IProductRepository productRepository) : RepositoryBase, IBasketItemRepository
     {
-        public async Task GetBasketItems(int basketId)
+        public async Task<List<BasketItem>?> GetBasketItems(int basketId)
         {
             var query =
                 "SELECT Id, BasketId, ProductId, Quantity, Price, VATRate, CreatedAt " +
@@ -55,6 +55,8 @@ namespace Api.Repositories
                     var product = await productRepository.GetProduct(basketItem.Product.Id);
                     basketItem.Product = product;
                 }
+
+                return basketItems;
             }
             finally
             {

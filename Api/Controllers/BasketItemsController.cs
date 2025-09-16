@@ -1,40 +1,28 @@
-﻿using Api.Data;
-using Api.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+﻿using Api.Models;
 using Api.Models.DTOs;
+using Api.Repositories;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BasketItemsController(OnlineShopContext context, ILogger<BasketItemsController> logger) : ControllerBase
+    public class BasketItemsController(IBasketItemRepository basketItemRepository, IBasketRepository basketRepository, IProductRepository productRepository,
+        ITaxRateRepository taxRateRepository, ICustomerRepository customerRepository, ILogger<BasketItemsController> logger) : ControllerBase
     {
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateBasketItem(int id, UpdateBasketItemQuantityDTO updateBasketItemQuantity)
         {
             try
             {
-                var basketItem = await context.BasketItem.FindAsync(id);
+                var exists = await basketItemRepository.BasketItemExists(id);
 
-                if (basketItem == null)
+                if (!exists)
+                {
                     return NotFound();
-
-                basketItem.Quantity = updateBasketItemQuantity.Quantity;
-
-                context.Entry(basketItem).State = EntityState.Modified;
-
-                try
-                {
-                    await context.SaveChangesAsync();
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!BasketItemExists(id))
-                        return NotFound();
 
-                    throw;
-                }
+                await basketItemRepository.UpdateBasketItemQuantity(id, updateBasketItemQuantity.Quantity);
 
                 return NoContent();
             }
@@ -50,45 +38,45 @@ namespace Api.Controllers
         {
             try
             {
-                var taxRate = await context.TaxRate
-                    .Where(t =>
-                        t.EffectiveFrom <= DateTime.UtcNow &&
-                        (t.EffectiveTo == null || t.EffectiveTo > DateTime.UtcNow))
-                    .OrderByDescending(t => t.EffectiveFrom)
-                    .FirstOrDefaultAsync();
+                var taxRate = await taxRateRepository.GetCurrentTaxRate();
 
                 if (taxRate == null)
+                {
                     return BadRequest("No valid tax rate found");
+                }
 
-                var product = await context.Product.SingleOrDefaultAsync(p => p.Id == addBasketItem.ProductId);
+                var product = await productRepository.GetProduct(addBasketItem.ProductId);
 
                 if (product == null)
+                {
                     return BadRequest("Product not found");
+                }
 
                 if (addBasketItem.Quantity <= 0)
+                {
                     return BadRequest("Quantity must be greater than zero");
+                }
 
                 if (string.IsNullOrEmpty(addBasketItem.AnonymousId) && !addBasketItem.CustomerId.HasValue)
+                {
                     return BadRequest("Either AnonymousId or CustomerId must be provided");
+                }
 
-                var customer = await context.Customer.SingleOrDefaultAsync(c => c.Id == addBasketItem.CustomerId);
+                if (addBasketItem.CustomerId.HasValue)
+                {
+                    var customer = await customerRepository.GetCustomerById(addBasketItem.CustomerId.Value);
 
-                if (addBasketItem.CustomerId.HasValue && customer == null)
-                    return BadRequest("Customer not found");
+                    if (customer == null)
+                    {
+                        return BadRequest("Customer not found");
+                    }
+                }
 
-                var basket = await context.Basket
-                    .SingleOrDefaultAsync(b => b.AnonymousId == addBasketItem.AnonymousId ||
-                                               (b.Customer != null && b.Customer.Id == addBasketItem.CustomerId));
+                var basket = await basketRepository.GetOrCreateBasket(addBasketItem.AnonymousId, addBasketItem.CustomerId);
 
                 if (basket == null)
                 {
-                    basket = new Basket
-                    {
-                        AnonymousId = addBasketItem.AnonymousId,
-                        Customer = addBasketItem.CustomerId.HasValue ? await context.Customer.FindAsync(addBasketItem.CustomerId.Value) : null
-                    };
-                    context.Basket.Add(basket);
-                    await context.SaveChangesAsync();
+                    return BadRequest("Unable to create or find basket");
                 }
 
                 var basketItem = new BasketItem
@@ -96,15 +84,14 @@ namespace Api.Controllers
                     BasketId = basket.Id,
                     Product = product,
                     Quantity = addBasketItem.Quantity,
-                    Price = product.ForSale ? product.SalePrice.Value : product.Price,
+                    Price = product.ForSale ? product.SalePrice ?? product.Price : product.Price,
                     VATRate = taxRate.Rate,
                     CreatedAt = DateTime.UtcNow
                 };
 
-                context.BasketItem.Add(basketItem);
-                await context.SaveChangesAsync();
+                var createdBasketItem = await basketItemRepository.CreateBasketItem(basketItem);
 
-                return Ok(basketItem);
+                return Ok(createdBasketItem);
             }
             catch(Exception ex)
             {
@@ -118,13 +105,14 @@ namespace Api.Controllers
         {
             try
             {
-                var basketItem = await context.BasketItem.FindAsync(id);
+                var exists = await basketItemRepository.BasketItemExists(id);
 
-                if (basketItem == null)
+                if (!exists)
+                {
                     return NotFound();
+                }
 
-                context.BasketItem.Remove(basketItem);
-                await context.SaveChangesAsync();
+                await basketItemRepository.DeleteBasketItem(id);
 
                 return NoContent();
             }
@@ -133,11 +121,6 @@ namespace Api.Controllers
                 logger.LogError(ex, "Error deleting basket item with id {BasketItemId}", id);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
-        }
-
-        private bool BasketItemExists(int id)
-        {
-            return context.BasketItem.Any(e => e.Id == id);
         }
     }
 }

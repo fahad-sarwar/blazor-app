@@ -1,49 +1,58 @@
 ﻿using System.Security.Claims;
-using Api.Data;
 using Api.Models;
 using Api.Models.DTOs;
+using Api.Repositories;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(
-        UserManager<ApplicationUser> userManager,
-        SignInManager<ApplicationUser> signInManager,
-        OnlineShopContext context, 
-        ILogger<AuthController> logger)
-        : ControllerBase
+    public class AuthController(IUserRepository userRepository, ICustomerRepository customerRepository, ILogger<AuthController> logger) : ControllerBase
     {
         [HttpGet("user")]
         public async Task<IActionResult> GetCurrentUser()
         {
             try
             {
+                logger.LogInformation("GetCurrentUser called. IsAuthenticated: {IsAuthenticated}, Identity: {Identity}", 
+                    User.Identity?.IsAuthenticated, User.Identity?.Name);
+                
                 if (User.Identity?.IsAuthenticated != true)
+                {
+                    logger.LogWarning("User is not authenticated");
                     return Unauthorized();
+                }
 
-                var user = await userManager.GetUserAsync(User);
+                var userId = User.FindFirst("UserId")?.Value;
+
+                if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var userIdInt))
+                {
+                    return Unauthorized();
+                }
+
+                var user = await userRepository.GetUserById(userIdInt);
 
                 if (user == null)
+                {
                     return Unauthorized();
+                }
 
-                var customer = await context.Customer
-                    .FirstOrDefaultAsync(c => c.UserId == user.Id);
+                var customer = await customerRepository.GetCustomerByUserId(userId);
 
                 return Ok(new
                 {
-                    Email = user.Email,
-                    Name = user.FirstName,
-                    FirstName = user.FirstName,
-                    LastName = user.LastName,
-                    UserId = user.Id,
+                    Username = user.UserName,
+                    Email = customer.Email,
+                    Name = customer.FirstName,
+                    FirstName = customer.FirstName,
+                    LastName = customer.LastName,
+                    UserId = user.Id.ToString(),
                     CustomerId = customer?.Id,
-                    PhoneNumber = customer?.PhoneNumber
+                    PhoneNumber = customer?.PhoneNumber,
+                    IsAdmin = user.IsAdmin
                 });
             }
             catch (Exception e)
@@ -58,34 +67,28 @@ namespace Api.Controllers
         {
             try
             {
-                var user = new ApplicationUser
+                var existingUser = await userRepository.UserExists(model.Email);
+
+                if (existingUser)
                 {
-                    UserName = model.Email,
-                    Email = model.Email,
-                    FirstName = model.FirstName,
-                    LastName = model.LastName
-                };
+                    return BadRequest("Username already exists");
+                }
 
-                var result = await userManager.CreateAsync(user, model.Password);
-
-                if (!result.Succeeded)
-                    return BadRequest(result.Errors);
+                var user = await userRepository.CreateUser(model.Email, model.Password, false);
 
                 var customer = new Customer
                 {
                     FirstName = model.FirstName,
                     LastName = model.LastName,
                     Email = model.Email,
-                    UserId = user.Id,
-                    User = user
+                    UserId = user.Id.ToString(),
+                    CreatedAt = DateTime.UtcNow
                 };
 
-                context.Customer.Add(customer);
-                await context.SaveChangesAsync();
+                await customerRepository.CreateCustomer(customer);
 
-                await signInManager.SignInAsync(user, isPersistent: false);
+                await SignInUserAsync(user, customer);
                 return Ok();
-
             }
             catch (Exception e)
             {
@@ -99,30 +102,29 @@ namespace Api.Controllers
         {
             try
             {
-                var result = await signInManager.PasswordSignInAsync(model.Email, model.Password, false, false);
+                var user = await userRepository.GetUserByUserName(model.Email);
 
-                if (!result.Succeeded)
-                    return Unauthorized();
-
-                var user = await userManager.FindByEmailAsync(model.Email);
-                var customer = await context.Customer
-                    .FirstOrDefaultAsync(c => c.UserId == user.Id);
-
-                var claims = new List<Claim>
+                if (user == null)
                 {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.GivenName, user.FirstName),
-                    new Claim(ClaimTypes.Surname, user.LastName),
-                    new Claim("UserId", user.Id),
-                    new Claim("CustomerId", customer.Id.ToString())
-                };
+                    return Unauthorized("Invalid username or password");
+                }
 
-                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var principal = new ClaimsPrincipal(identity);
+                var isValidPassword = await userRepository.ValidatePassword(model.Email, model.Password);
 
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+                if (!isValidPassword)
+                {
+                    return Unauthorized("Invalid username or password");
+                }
 
+                var customer = await customerRepository.GetCustomerByUserId(user.Id.ToString());
+
+                if (customer == null)
+                {
+                    logger.LogWarning("User {Username} found but no corresponding customer record", user.UserName);
+                    return Unauthorized("Account configuration error");
+                }
+
+                await SignInUserAsync(user, customer);
                 return Ok();
             }
             catch (Exception e)
@@ -138,30 +140,31 @@ namespace Api.Controllers
             try
             {
                 if (User.Identity?.IsAuthenticated != true)
+                {
                     return Unauthorized();
+                }
 
-                var user = await userManager.GetUserAsync(User);
+                var userId = User.FindFirst("UserId")?.Value;
+
+                if (string.IsNullOrEmpty(userId) || !int.TryParse(userId, out var userIdInt))
+                {
+                    return Unauthorized();
+                }
+
+                var user = await userRepository.GetUserById(userIdInt);
 
                 if (user == null)
-                    return Unauthorized();
-
-                var customer = await context.Customer
-                    .FirstOrDefaultAsync(c => c.UserId == user.Id);
-
-                var claims = new List<Claim>
                 {
-                    new Claim(ClaimTypes.Name, user.UserName),
-                    new Claim(ClaimTypes.Email, user.Email),
-                    new Claim(ClaimTypes.GivenName, user.FirstName),
-                    new Claim(ClaimTypes.Surname, user.LastName),
-                    new Claim("UserId", user.Id),
-                    new Claim("CustomerId", customer?.Id.ToString() ?? string.Empty)
-                };
+                    return Unauthorized();
+                }
 
-                var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-                var principal = new ClaimsPrincipal(identity);
+                var customer = await customerRepository.GetCustomerByUserId(user.Id.ToString());
 
-                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+                if (customer != null)
+                {
+                    await SignInUserAsync(user, customer);
+                }
+
                 return Ok();
             }
             catch (Exception e)
@@ -176,7 +179,7 @@ namespace Api.Controllers
         {
             try
             {
-                await signInManager.SignOutAsync();
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                 return Ok();
             }
             catch (Exception e)
@@ -184,6 +187,30 @@ namespace Api.Controllers
                 logger.LogError(e, "Error logging out user");
                 return StatusCode(500, "Error logging out user");
             }
+        }
+
+        private async Task SignInUserAsync(User user, Customer customer)
+        {
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, customer.FirstName),
+                new Claim(ClaimTypes.Email, customer.Email),
+                new Claim(ClaimTypes.GivenName, customer.FirstName),
+                new Claim(ClaimTypes.Surname, customer.LastName),
+                new Claim("UserId", user.Id.ToString()),
+                new Claim("CustomerId", customer.Id.ToString()),
+                new Claim("IsAdmin", user.IsAdmin.ToString())
+            };
+
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+
+            logger.LogInformation("Signing in user {UserId} with {ClaimCount} claims: {Claims}", 
+                user.Id, claims.Count, string.Join(", ", claims.Select(c => $"{c.Type}={c.Value}")));
+            
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+            
+            logger.LogInformation("User {UserId} signed in successfully", user.Id);
         }
     }
 }

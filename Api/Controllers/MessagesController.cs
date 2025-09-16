@@ -1,13 +1,13 @@
-﻿using Api.Data;
-using Api.Models;
+﻿using Api.Models;
 using Api.Models.DTOs;
+using Api.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MessagesController(OnlineShopContext context, ILogger<MessagesController> logger) : ControllerBase
+    public class MessagesController(IMessageRepository messageRepository, ILogger<MessagesController> logger) : ControllerBase
     {
         [HttpPost]
         public async Task<IActionResult> CreateMessage(SendMessageDTO request)
@@ -22,10 +22,9 @@ namespace Api.Controllers
                     Content = request.Content,
                 };
 
-                context.Message.Add(message);
-                await context.SaveChangesAsync();
+                var createdMessage = await messageRepository.CreateMessage(message);
 
-                return Ok(message);
+                return Ok(createdMessage);
             }
             catch (Exception ex)
             {

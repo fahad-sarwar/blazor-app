@@ -1,29 +1,27 @@
-﻿using Api.Data;
-using Api.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Api.Models;
+using Api.Repositories;
 
 namespace Api.Services
 {
-    public class BackgroundOrderUpdateService(IServiceProvider serviceProvider, BackgroundOrderQueue queue)
-        : BackgroundService
+    public class BackgroundOrderUpdateService(IServiceProvider serviceProvider, ILogger<BackgroundOrderUpdateService> logger, BackgroundOrderQueue queue) : BackgroundService
     {
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+        protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            Console.WriteLine("Background order processor started.");
+            logger.LogInformation("Background order processor started.");
 
-            while (!stoppingToken.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
-                    var orderId = await queue.DequeueAsync(stoppingToken);
+                    var orderId = await queue.DequeueAsync(cancellationToken);
 
-                    Console.WriteLine($"Processing order: {orderId}");
+                    logger.LogInformation($"Processing order: {orderId}");
 
-                    await SimulateOrderUpdates(orderId, stoppingToken);
+                    await SimulateOrderUpdates(orderId, cancellationToken);
                 }
                 catch (Exception ex) 
                 {
-                    Console.WriteLine($"Error processing order: {ex.Message}");
+                    logger.LogInformation($"Error processing order: {ex.Message}");
                 }
             }
         }
@@ -41,30 +39,28 @@ namespace Api.Services
                     var delay = rnd.Next(1000, 5000); // 1 to 5 seconds
                     await Task.Delay(delay, ct);
 
-                    Console.WriteLine($"Order {orderId} status updated to: {status}");
+                    logger.LogInformation($"Order {orderId} status updated to: {status}");
 
-                    // Create scope to get scoped services like DbContext
                     using var scope = serviceProvider.CreateScope();
-                    var dbContext = scope.ServiceProvider.GetRequiredService<OnlineShopContext>();
+                    var orderRepository = scope.ServiceProvider.GetRequiredService<IOrderRepository>();
+                    var trackingUpdateRepository = scope.ServiceProvider.GetRequiredService<IOrderTrackingUpdateRepository>();
 
-                    var order = await dbContext.Order.FindAsync(orderId);
+                    var order = await orderRepository.GetOrder(orderId);
 
                     if (order == null)
                     {
-                        Console.WriteLine($"Order {orderId} not found.");
+                        logger.LogWarning($"Order {orderId} not found.");
                         return;
                     }
 
-                    order.Status = status;
-
                     if (status == "Shipped")
                     {
-                        order.DeliveryMethod = "Standard Shipping";
-                        order.EstimatedDelivery = DateTime.UtcNow.AddDays(3);
+                        await orderRepository.UpdateOrderStatus(orderId, status, "Standard Shipping", DateTime.UtcNow.AddDays(3));
                     }
-
-                    dbContext.Entry(order).State = EntityState.Modified;
-                    await dbContext.SaveChangesAsync(ct);
+                    else
+                    {
+                        await orderRepository.UpdateOrderStatus(orderId, status);
+                    }
 
                     var orderTrackingUpdate = new OrderTrackingUpdate
                     {
@@ -74,22 +70,36 @@ namespace Api.Services
                         CreatedAt = DateTime.UtcNow
                     };
 
-                    orderTrackingUpdate.Note = status switch
-                    {
-                        "Processing" => "Order received and is currently being processed by our warehouse team.",
-                        "Packed" => "All items have been packed and are ready for dispatch.",
-                        "Shipped" => "Order has left our warehouse and is on its way to the delivery hub.",
-                        "Out for Delivery" => "Driver has your package and is en route to your address.",
-                        "Delivered" => "Order delivered successfully. Thank you for shopping with us!",
-                        _ => orderTrackingUpdate.Note
-                    };
+                    var note = string.Empty;
 
-                    dbContext.OrderTrackingUpdate.Add(orderTrackingUpdate);
-                    await dbContext.SaveChangesAsync(ct);
+                    switch(status)
+                    {
+                        case "Processing":
+                            note = "Order received and is currently being processed by our warehouse team.";
+                            break;
+                        case "Packed":
+                            note = "All items have been packed and are ready for dispatch.";
+                            break;
+                        case "Shipped":
+                            note = "Order has left our warehouse and is on its way to the delivery hub.";
+                            break;
+                        case "Out for Delivery":
+                            note = "Driver has your package and is en route to your address.";
+                            break;
+                        case "Delivered":
+                            note = "Order delivered successfully. Thank you for shopping with us!";
+                            break;
+                    };
+                    
+                    orderTrackingUpdate.Note = note;
+
+                    await trackingUpdateRepository.CreateTrackingUpdate(orderTrackingUpdate);
+
+                    logger.LogInformation($"Order {orderId} tracking update created: {status}");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Error updating order {orderId}: {ex.Message}");
+                    logger.LogError(ex, $"Error updating order {orderId}: {ex.Message}");
                 }
             }
         }

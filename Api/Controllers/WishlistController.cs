@@ -1,17 +1,15 @@
 ﻿using System.Security.Claims;
-using Api.Data;
-using Api.Models;
 using Api.Models.DTOs;
+using Api.Repositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class WishlistController(OnlineShopContext context, ILogger<WishlistController> logger) : ControllerBase
+    public class WishlistController(IWishlistRepository wishlistRepository, IProductRepository productRepository, ICustomerRepository customerRepository, ILogger<WishlistController> logger) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetWishlist([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
@@ -21,30 +19,23 @@ namespace Api.Controllers
                 var email = User.FindFirst(ClaimTypes.Email)?.Value;
 
                 if (string.IsNullOrEmpty(email))
+                {
                     return Unauthorized();
+                }
 
-                var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
+                var customer = await customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
+                {
                     return NotFound("Customer not found.");
+                }
 
-                var query = context.Wishlist
-                    .Where(w => w.CustomerId == customer.Id)
-                    .OrderByDescending(w => w.CreatedAt)
-                    .AsQueryable();
-
-                var totalCount = await query.CountAsync();
-
-                var paged = await query
-                    .Skip((page - 1) * pageSize)
-                    .Take(pageSize)
-                    .Include(w => w.Product)
-                    .ToListAsync();
+                var (products, totalCount) = await wishlistRepository.GetWishlistProducts(customer.Id, page, pageSize);
 
                 return Ok(
                     new
                     {
-                        Products = paged.Select(w => w.Product).ToList(),
+                        Products = products,
                         TotalCount = totalCount
                     }
                 );
@@ -64,14 +55,18 @@ namespace Api.Controllers
                 var email = User.FindFirst(ClaimTypes.Email)?.Value;
 
                 if (string.IsNullOrEmpty(email))
+                {
                     return Unauthorized();
+                }
 
-                var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
+                var customer = await customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
+                {
                     return NotFound("Customer not found.");
+                }
 
-                var exists = await context.Wishlist.AnyAsync(w => w.CustomerId == customer.Id && w.ProductId == productId);
+                var exists = await wishlistRepository.IsProductInWishlist(customer.Id, productId);
 
                 return exists 
                     ? Ok() 
@@ -92,32 +87,32 @@ namespace Api.Controllers
                 var email = User.FindFirst(ClaimTypes.Email)?.Value;
 
                 if (string.IsNullOrEmpty(email))
+                {
                     return Unauthorized();
+                }
 
-                var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
+                var customer = await customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
+                {
                     return NotFound("Customer not found.");
+                }
 
-                var product = await context.Product.FindAsync(request.ProductId);
+                var product = await productRepository.GetProduct(request.ProductId);
 
                 if (product == null)
-                    return NotFound("Product not found.");
-
-                var existingWishlistItem = await context.Wishlist
-                    .FirstOrDefaultAsync(w => w.CustomerId == customer.Id && w.ProductId == request.ProductId);
-
-                if (existingWishlistItem != null)
-                    return BadRequest("Product is already in the wishlist.");
-
-                var wishlistItem = new Wishlist
                 {
-                    CustomerId = customer.Id,
-                    ProductId = request.ProductId
-                };
+                    return NotFound("Product not found.");
+                }
 
-                context.Wishlist.Add(wishlistItem);
-                await context.SaveChangesAsync();
+                var exists = await wishlistRepository.IsProductInWishlist(customer.Id, request.ProductId);
+
+                if (exists)
+                {
+                    return BadRequest("Product is already in the wishlist.");
+                }
+
+                await wishlistRepository.AddToWishlist(customer.Id, request.ProductId);
 
                 return Ok();
             }
@@ -136,21 +131,25 @@ namespace Api.Controllers
                 var email = User.FindFirst(ClaimTypes.Email)?.Value;
 
                 if (string.IsNullOrEmpty(email))
+                {
                     return Unauthorized();
+                }
 
-                var customer = await context.Customer.FirstOrDefaultAsync(c => c.Email == email);
+                var customer = await customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
+                {
                     return NotFound("Customer not found.");
+                }
 
-                var wishlistItem = await context.Wishlist
-                    .FirstOrDefaultAsync(w => w.CustomerId == customer.Id && w.ProductId == productId);
+                var exists = await wishlistRepository.IsProductInWishlist(customer.Id, productId);
 
-                if (wishlistItem == null)
+                if (!exists)
+                {
                     return NotFound("Product not found in wishlist.");
+                }
 
-                context.Wishlist.Remove(wishlistItem);
-                await context.SaveChangesAsync();
+                await wishlistRepository.RemoveFromWishlist(customer.Id, productId);
 
                 return Ok();
             }

@@ -33,12 +33,10 @@ namespace Api.Repositories
 
         private async Task<Customer?> GetCustomerByField(string fieldName, object fieldValue)
         {
-            Customer? customer = null;
-
             var query = 
                 "SELECT Id, FirstName, LastName, Email, PhoneNumber, UserId, CreatedAt, BillingAddressId, ShippingAddressId " +
                 "FROM Customer " +
-                "WHERE {fieldName} = @fieldValue";
+                $"WHERE {fieldName} = @fieldValue";
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(query, conn);
@@ -49,6 +47,8 @@ namespace Api.Repositories
                 command.Parameters.AddWithValue("@fieldValue", fieldValue);
 
                 var reader = await command.ExecuteReaderAsync();
+
+                Customer? customer = null;
 
                 if (reader.Read())
                 {

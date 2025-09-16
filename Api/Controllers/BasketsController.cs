@@ -1,24 +1,19 @@
-﻿using Api.Data;
-using Api.Models;
+﻿using Api.Models;
+using Api.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BasketsController(OnlineShopContext context, ILogger<BasketsController> logger) : ControllerBase
+    public class BasketsController(IBasketRepository basketRepository, ILogger<BasketsController> logger) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetBasket([FromQuery] string anonymousUserId)
         {
             try
             {
-                var basket = await context.Basket
-                    .Include(b => b.Items)
-                        .ThenInclude(bi => bi.Product)
-                    .Where(b => b.AnonymousId == anonymousUserId)
-                    .SingleOrDefaultAsync();
+                var basket = await basketRepository.GetBasketByAnonymousId(anonymousUserId);
 
                 return Ok(basket ?? new Basket());
             }

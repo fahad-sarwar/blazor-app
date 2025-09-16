@@ -21,7 +21,7 @@ builder.Services.AddHttpClient("Api", client =>
     {
         UseCookies = true,
         CookieContainer = new CookieContainer(),
-        UseDefaultCredentials = true
+        UseDefaultCredentials = false
     });
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
@@ -40,6 +40,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddAuthorization();
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
 
 builder.Services.AddScoped<CheckoutDummyDataService>();
