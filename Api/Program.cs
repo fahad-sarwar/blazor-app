@@ -1,8 +1,8 @@
+using Api.Configuration;
 using Api.Data;
 using Api.Repositories;
 using Api.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +11,8 @@ builder.Host.ConfigureLogging(logging =>
     logging.ClearProviders();
     logging.AddConsole();
 });
+
+builder.Services.Configure<PasswordConfiguration>(builder.Configuration.GetSection("PasswordConfiguration"));
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>

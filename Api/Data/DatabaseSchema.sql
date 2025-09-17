@@ -22,12 +22,12 @@ CREATE TABLE "Message" (
 
 CREATE TABLE "User" (
     "Id" INTEGER NOT NULL CONSTRAINT "PK_Users" PRIMARY KEY,
-    "UserName" TEXT NOT NULL,
+    "Username" TEXT NOT NULL,
     "PasswordHash" TEXT NOT NULL,
     "IsAdmin" INTEGER NOT NULL,
     "CreatedAt" TEXT NOT NULL
 );
-CREATE UNIQUE INDEX "UserNameIndex" ON "User" ("UserName");
+CREATE UNIQUE INDEX "UsernameIndex" ON "User" ("Username");
 
 
 

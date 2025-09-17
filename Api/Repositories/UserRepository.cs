@@ -1,28 +1,31 @@
+using Api.Configuration;
 using Api.Models;
 using Microsoft.Data.Sqlite;
-using System.Security.Cryptography;
+using Microsoft.Extensions.Options;
 using System.Text;
+using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 
 namespace Api.Repositories
 {
     public interface IUserRepository
     {
-        Task<User?> GetUserByUserName(string userName);
+        Task<User?> GetUserByUsername(string username);
         Task<User?> GetUserById(int userId);
         Task<User> CreateUser(User user);
-        Task<User> CreateUser(string userName, string password, bool isAdmin = false);
-        Task<bool> UserExists(string userName);
-        Task<bool> ValidatePassword(string userName, string password);
+        Task<User> CreateUser(string username, string password, bool isAdmin = false);
+        Task<bool> UserExists(string username);
+        Task<bool> ValidatePassword(string username, string password);
     }
 
-    public class UserRepository(ILogger<UserRepository> logger) : RepositoryBase, IUserRepository
+    public class UserRepository(ILogger<UserRepository> logger, IOptions<PasswordConfiguration> passwordConfiguration) : RepositoryBase, IUserRepository
     {
-        public async Task<User?> GetUserByUserName(string userName)
+        private readonly PasswordConfiguration _passwordConfig = passwordConfiguration.Value;
+        public async Task<User?> GetUserByUsername(string username)
         {
             var query = 
-                "SELECT Id, UserName, PasswordHash, IsAdmin, CreatedAt " +
+                "SELECT Id, Username, PasswordHash, IsAdmin, CreatedAt " +
                 "FROM User " +
-                "WHERE UserName = @userName";
+                "WHERE Username = @username";
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(query, conn);
@@ -30,7 +33,7 @@ namespace Api.Repositories
             {
                 conn.Open();
 
-                command.Parameters.AddWithValue("@userName", userName);
+                command.Parameters.AddWithValue("@username", username);
 
                 var reader = await command.ExecuteReaderAsync();
 
@@ -41,7 +44,7 @@ namespace Api.Repositories
                     user = new User
                     {
                         Id = reader.GetInt32(0),
-                        UserName = reader.GetString(1),
+                        Username = reader.GetString(1),
                         PasswordHash = reader.GetString(2),
                         IsAdmin = reader.GetBoolean(3),
                         CreatedAt = reader.GetDateTime(4)
@@ -59,7 +62,7 @@ namespace Api.Repositories
         public async Task<User?> GetUserById(int userId)
         {
             var query = 
-                "SELECT Id, UserName, PasswordHash, IsAdmin, CreatedAt " +
+                "SELECT Id, Username, PasswordHash, IsAdmin, CreatedAt " +
                 "FROM User " +
                 "WHERE Id = @userId";
 
@@ -80,7 +83,7 @@ namespace Api.Repositories
                     user = new User
                     {
                         Id = reader.GetInt32(0),
-                        UserName = reader.GetString(1),
+                        Username = reader.GetString(1),
                         PasswordHash = reader.GetString(2),
                         IsAdmin = reader.GetBoolean(3),
                         CreatedAt = reader.GetDateTime(4)
@@ -98,8 +101,8 @@ namespace Api.Repositories
         public async Task<User> CreateUser(User user)
         {
             var query = 
-                "INSERT INTO User (UserName, PasswordHash, IsAdmin, CreatedAt) " +
-                "VALUES (@userName, @passwordHash, @isAdmin, @createdAt); " +
+                "INSERT INTO User (Username, PasswordHash, IsAdmin, CreatedAt) " +
+                "VALUES (@username, @passwordHash, @isAdmin, @createdAt); " +
                 "SELECT last_insert_rowid();";
 
             await using var conn = new SqliteConnection(ConnectionString);
@@ -108,7 +111,7 @@ namespace Api.Repositories
             {
                 conn.Open();
 
-                command.Parameters.AddWithValue("@userName", user.UserName);
+                command.Parameters.AddWithValue("@username", user.Username);
                 command.Parameters.AddWithValue("@passwordHash", user.PasswordHash);
                 command.Parameters.AddWithValue("@isAdmin", user.IsAdmin);
                 command.Parameters.AddWithValue("@createdAt", user.CreatedAt);
@@ -123,11 +126,11 @@ namespace Api.Repositories
             }
         }
 
-        public async Task<User> CreateUser(string userName, string password, bool isAdmin = false)
+        public async Task<User> CreateUser(string username, string password, bool isAdmin = false)
         {
             var user = new User
             {
-                UserName = userName,
+                Username = username,
                 PasswordHash = HashPassword(password),
                 IsAdmin = isAdmin,
                 CreatedAt = DateTime.UtcNow
@@ -136,12 +139,12 @@ namespace Api.Repositories
             return await CreateUser(user);
         }
 
-        public async Task<bool> UserExists(string userName)
+        public async Task<bool> UserExists(string username)
         {
             var query =
                 "SELECT COUNT(*) " +
                 "FROM User " +
-                "WHERE UserName = @userName";
+                "WHERE Username = @username";
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(query, conn);
@@ -149,7 +152,7 @@ namespace Api.Repositories
             {
                 conn.Open();
 
-                command.Parameters.AddWithValue("@userName", userName);
+                command.Parameters.AddWithValue("@username", username);
 
                 var count = Convert.ToInt32(await command.ExecuteScalarAsync());
                 return count > 0;
@@ -160,59 +163,39 @@ namespace Api.Repositories
             }
         }
 
-        public async Task<bool> ValidatePassword(string userName, string password)
+        private string HashPassword(string password)
         {
-            var user = await GetUserByUserName(userName);
+            var saltBytes = Encoding.UTF8.GetBytes(_passwordConfig.Salt);
+
+            var hashedPassword = Convert.ToBase64String(KeyDerivation.Pbkdf2(
+                password: password!,
+                salt: saltBytes,
+                prf: KeyDerivationPrf.HMACSHA256,
+                iterationCount: 100000,
+                numBytesRequested: 256 / 8));
+
+            return hashedPassword;
+        }
+
+        public async Task<bool> ValidatePassword(string username, string password)
+        {
+            var user = await GetUserByUsername(username);
 
             if (user == null)
             {
                 return false;
             }
 
-            return VerifyPassword(password, user.PasswordHash);
-        }
-
-        // Password hashing methods
-        private static string HashPassword(string password)
-        {
-            using var sha256 = SHA256.Create();
-            var salt = GenerateSalt();
-            var saltedPassword = password + salt;
-            var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(saltedPassword));
-            var hashedPassword = Convert.ToBase64String(hashedBytes);
-            return $"{salt}:{hashedPassword}";
-        }
-
-        private static bool VerifyPassword(string password, string storedHash)
-        {
             try
             {
-                var parts = storedHash.Split(':');
-                if (parts.Length != 2)
-                    return false;
-
-                var salt = parts[0];
-                var hash = parts[1];
-
-                using var sha256 = SHA256.Create();
-                var saltedPassword = password + salt;
-                var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(saltedPassword));
-                var computedHash = Convert.ToBase64String(hashedBytes);
-
-                return hash == computedHash;
+                var enteredPasswordHash = HashPassword(password);
+                return user.PasswordHash == enteredPasswordHash;
             }
-            catch
+            catch (Exception ex)
             {
+                logger.LogWarning(ex, "Password verification failed");
                 return false;
             }
-        }
-
-        private static string GenerateSalt()
-        {
-            var saltBytes = new byte[16];
-            using var rng = RandomNumberGenerator.Create();
-            rng.GetBytes(saltBytes);
-            return Convert.ToBase64String(saltBytes);
         }
     }
 }

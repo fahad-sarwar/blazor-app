@@ -26,13 +26,13 @@ UNION SELECT 11, '10 High Street', 'Apartment 7D', 'Rochdale', 'Greater Manchest
 UNION SELECT 12, '11 Lower Road', 'Apartment 7D', 'Rochdale', 'Greater Manchester', 'OL11 5PZ', 'UK'
 GO;
 
-INSERT INTO [User] (Id, UserName, PasswordHash, IsAdmin, CreatedAt)
-SELECT 1, 'jdoe@example.com', 'P@ssword1', 0, '2024-09-14 22:40:39.7732556'
-UNION SELECT 2, 'asmith@example.com', 'P@ssword1', 0, '2024-09-14 22:40:39.7732556'
-UNION SELECT 3, 'bwayne@example.com', 'P@ssword1', 0, '2024-09-14 22:40:39.7732556'
-UNION SELECT 4, 'ckent@example.com', 'P@ssword1', 0, '2024-09-14 22:40:39.7732556'
-UNION SELECT 5, 'dprince@example.com', 'P@ssword1', 0, '2024-09-14 22:40:39.7732556'
-UNION SELECT 6, 'admin@bobkart.com', 'P@ssword1', 1, '2024-09-14 22:40:39.7732556'
+INSERT INTO [User] (Id, Username, PasswordHash, IsAdmin, CreatedAt)
+SELECT 1, 'jdoe@example.com', 'ENBzzGQwXA4CDuUGn212f3t251Wo9j+7461u56Vo7l0=', 0, '2024-09-14 22:40:39.7732556'
+UNION SELECT 2, 'asmith@example.com', 'ENBzzGQwXA4CDuUGn212f3t251Wo9j+7461u56Vo7l0=', 0, '2024-09-14 22:40:39.7732556'
+UNION SELECT 3, 'bwayne@example.com', 'ENBzzGQwXA4CDuUGn212f3t251Wo9j+7461u56Vo7l0=', 0, '2024-09-14 22:40:39.7732556'
+UNION SELECT 4, 'ckent@example.com', 'ENBzzGQwXA4CDuUGn212f3t251Wo9j+7461u56Vo7l0=', 0, '2024-09-14 22:40:39.7732556'
+UNION SELECT 5, 'dprince@example.com', 'ENBzzGQwXA4CDuUGn212f3t251Wo9j+7461u56Vo7l0=', 0, '2024-09-14 22:40:39.7732556'
+UNION SELECT 6, 'admin@bobkart.com', 'ENBzzGQwXA4CDuUGn212f3t251Wo9j+7461u56Vo7l0=', 1, '2024-09-14 22:40:39.7732556'
 GO;
 
 INSERT INTO Customer (Id, FirstName, LastName, Email, PhoneNumber, BillingAddressId, ShippingAddressId, UserId, CreatedAt)

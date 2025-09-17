@@ -44,7 +44,7 @@ namespace Api.Controllers
 
                 return Ok(new
                 {
-                    Username = user.UserName,
+                    Username = user.Username,
                     Email = customer.Email,
                     Name = customer.FirstName,
                     FirstName = customer.FirstName,
@@ -102,7 +102,7 @@ namespace Api.Controllers
         {
             try
             {
-                var user = await userRepository.GetUserByUserName(model.Email);
+                var user = await userRepository.GetUserByUsername(model.Email);
 
                 if (user == null)
                 {
@@ -120,7 +120,7 @@ namespace Api.Controllers
 
                 if (customer == null)
                 {
-                    logger.LogWarning("User {Username} found but no corresponding customer record", user.UserName);
+                    logger.LogWarning("User {Username} found but no corresponding customer record", user.Username);
                     return Unauthorized("Account configuration error");
                 }
 

@@ -63,14 +63,14 @@ namespace Api.Controllers
                     return BadRequest("Invalid customer identified.");
                 }
 
-                var user = await userRepository.GetUserByUserName(email);
+                var user = await userRepository.GetUserByUsername(email);
 
                 if (user == null)
                 {
                     return NotFound("User not found.");
                 }
 
-                if (user.UserName != customer.Email)
+                if (user.Username != customer.Email)
                 {
                     return BadRequest("User email does not match customer email.");
                 }
