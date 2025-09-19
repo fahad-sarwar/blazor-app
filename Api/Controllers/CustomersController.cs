@@ -8,8 +8,8 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CustomersController(ICustomerRepository customerRepository, IAddressRepository addressRepository, 
-        IUserRepository userRepository, ILogger<CustomersController> logger) : ControllerBase
+    public class CustomersController(CustomerRepository customerRepository, AddressRepository addressRepository, 
+        UserRepository userRepository, ILogger<CustomersController> logger) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetCustomer()

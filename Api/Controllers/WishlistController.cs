@@ -9,7 +9,7 @@ namespace Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class WishlistController(IWishlistRepository wishlistRepository, IProductRepository productRepository, ICustomerRepository customerRepository, ILogger<WishlistController> logger) : ControllerBase
+    public class WishlistController(WishlistRepository wishlistRepository, ProductRepository productRepository, CustomerRepository customerRepository, ILogger<WishlistController> logger) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetWishlist([FromQuery] int page = 1, [FromQuery] int pageSize = 10)

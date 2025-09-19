@@ -6,7 +6,7 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BasketsController(IBasketRepository basketRepository, ILogger<BasketsController> logger) : ControllerBase
+    public class BasketsController(BasketRepository basketRepository, ILogger<BasketsController> logger) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetBasket([FromQuery] string anonymousUserId)

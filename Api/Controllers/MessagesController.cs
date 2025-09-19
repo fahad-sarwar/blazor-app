@@ -7,7 +7,7 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MessagesController(IMessageRepository messageRepository, ILogger<MessagesController> logger) : ControllerBase
+    public class MessagesController(MessageRepository messageRepository, ILogger<MessagesController> logger) : ControllerBase
     {
         [HttpPost]
         public async Task<IActionResult> CreateMessage(SendMessageDTO request)

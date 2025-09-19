@@ -3,14 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public interface IOrderItemRepository
-    {
-        Task<OrderItem> CreateOrderItem(OrderItem orderItem);
-        Task<List<OrderItem>> CreateOrderItems(List<OrderItem> orderItems);
-        Task<List<OrderItem>> GetOrderItemsByOrderId(int orderId);
-    }
-
-    public class OrderItemRepository(ILogger<OrderItemRepository> logger, IProductRepository productRepository) : RepositoryBase, IOrderItemRepository
+    public class OrderItemRepository(ProductRepository productRepository) : RepositoryBase
     {
         public async Task<OrderItem> CreateOrderItem(OrderItem orderItem)
         {

@@ -3,22 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public interface IBasketRepository
-    {
-        Task<Basket?> GetBasketByAnonymousId(string anonymousId);
-        Task<Basket?> GetBasketByCustomerId(int customerId);
-        Task<Basket?> GetBasketById(int basketId);
-        Task<Basket> CreateBasket(Basket basket);
-        Task<Basket?> GetOrCreateBasket(string? anonymousId, int? customerId);
-        Task DeleteBasket(int basketId);
-        Task RemoveAllBasketItems(int basketId);
-    }
-
-    public class BasketRepository(
-        ILogger<BasketRepository> logger,
-        IProductRepository productRepository,
-        ICustomerRepository customerRepository,
-        IBasketItemRepository basketItemRepository) : RepositoryBase, IBasketRepository
+    public class BasketRepository(CustomerRepository customerRepository, BasketItemRepository basketItemRepository) : RepositoryBase
     {
         public async Task<Basket?> GetBasketByAnonymousId(string anonymousId)
         {

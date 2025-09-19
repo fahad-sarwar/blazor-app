@@ -7,17 +7,7 @@ using Microsoft.AspNetCore.Cryptography.KeyDerivation;
 
 namespace Api.Repositories
 {
-    public interface IUserRepository
-    {
-        Task<User?> GetUserByUsername(string username);
-        Task<User?> GetUserById(int userId);
-        Task<User> CreateUser(User user);
-        Task<User> CreateUser(string username, string password, bool isAdmin = false);
-        Task<bool> UserExists(string username);
-        Task<bool> ValidatePassword(string username, string password);
-    }
-
-    public class UserRepository(ILogger<UserRepository> logger, IOptions<PasswordConfiguration> passwordConfiguration) : RepositoryBase, IUserRepository
+    public class UserRepository(ILogger<UserRepository> logger, IOptions<PasswordConfiguration> passwordConfiguration) : RepositoryBase
     {
         private readonly PasswordConfiguration _passwordConfig = passwordConfiguration.Value;
         public async Task<User?> GetUserByUsername(string username)

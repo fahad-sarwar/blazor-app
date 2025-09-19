@@ -3,14 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public interface IReviewRepository
-    {
-        Task<(List<Review> Reviews, int TotalCount)> GetReviews(int productId, int page = 1, int pageSize = 10);
-        Task<double?> GetAverageRating(int productId);
-        Task<Review> CreateReview(Review review);
-    }
-
-    public class ReviewRepository(ILogger<ReviewRepository> logger, ICustomerRepository customerRepository) : RepositoryBase, IReviewRepository
+    public class ReviewRepository(CustomerRepository customerRepository) : RepositoryBase
     {
         public async Task<(List<Review> Reviews, int TotalCount)> GetReviews(int productId, int page = 1, int pageSize = 10)
         {

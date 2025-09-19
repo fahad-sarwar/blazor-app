@@ -3,13 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public interface IProductRepository
-    {
-        Task<(List<Product> Products, int TotalCount)> GetProducts(int? categoryId, bool? forSale, string? searchTerm, string sort, int page, int pageSize);
-        Task<Product?> GetProduct(int productId);
-    }
-
-    public class ProductRepository(ILogger<ProductRepository> logger) : RepositoryBase, IProductRepository
+    public class ProductRepository : RepositoryBase
     {
         public async Task<(List<Product> Products, int TotalCount)> GetProducts(int? categoryId, bool? forSale, string? searchTerm, string sort, int page, int pageSize)
         {

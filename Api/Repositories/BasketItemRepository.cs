@@ -3,16 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public interface IBasketItemRepository
-    {
-        Task<List<BasketItem>?> GetBasketItems(int basketId);
-        Task<BasketItem> CreateBasketItem(BasketItem basketItem);
-        Task UpdateBasketItemQuantity(int basketItemId, int quantity);
-        Task DeleteBasketItem(int basketItemId);
-        Task<bool> BasketItemExists(int basketItemId);
-    }
-
-    public class BasketItemRepository(ILogger<BasketItemRepository> logger, IProductRepository productRepository) : RepositoryBase, IBasketItemRepository
+    public class BasketItemRepository(ProductRepository productRepository) : RepositoryBase
     {
         public async Task<List<BasketItem>?> GetBasketItems(int basketId)
         {

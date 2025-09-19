@@ -9,8 +9,8 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrdersController(IOrderRepository orderRepository, ICustomerRepository customerRepository, IBasketRepository basketRepository,
-        ITaxRateRepository taxRateRepository, IAddressRepository addressRepository, IPaymentRepository paymentRepository, IOrderItemRepository orderItemRepository,
+    public class OrdersController(OrderRepository orderRepository, CustomerRepository customerRepository, BasketRepository basketRepository,
+        TaxRateRepository taxRateRepository, AddressRepository addressRepository, PaymentRepository paymentRepository, OrderItemRepository orderItemRepository,
         BackgroundOrderQueue queue, ILogger<OrdersController> logger) : ControllerBase
     {
         [HttpGet]

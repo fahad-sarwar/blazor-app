@@ -3,12 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public interface IMessageRepository
-    {
-        Task<Message> CreateMessage(Message message);
-    }
-
-    public class MessageRepository(ILogger<MessageRepository> logger) : RepositoryBase, IMessageRepository
+    public class MessageRepository : RepositoryBase
     {
         public async Task<Message> CreateMessage(Message message)
         {

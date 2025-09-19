@@ -3,16 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public interface ICustomerRepository
-    {
-        Task<Customer?> GetCustomerByEmail(string email);
-        Task<Customer?> GetCustomerByUserId(string userId);
-        Task<Customer?> GetCustomerById(int customerId);
-        Task<Customer> CreateCustomer(Customer customer);
-        Task UpdateCustomer(Customer customer);
-    }
-
-    public class CustomerRepository(ILogger<CustomerRepository> logger, IAddressRepository addressRepository) : RepositoryBase, ICustomerRepository
+    public class CustomerRepository(AddressRepository addressRepository) : RepositoryBase
     {
         public async Task<Customer?> GetCustomerByEmail(string email)
         {

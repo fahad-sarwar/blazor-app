@@ -5,7 +5,7 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoriesController(ICategoryRepository categoryRepository, ILogger<CategoriesController> logger) : ControllerBase
+    public class CategoriesController(CategoryRepository categoryRepository, ILogger<CategoriesController> logger) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetCategories()

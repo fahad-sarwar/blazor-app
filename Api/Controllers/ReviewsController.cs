@@ -8,7 +8,7 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ReviewsController(IReviewRepository reviewRepository, ICustomerRepository customerRepository, IProductRepository productRepository, ILogger<ReviewsController> logger) : ControllerBase
+    public class ReviewsController(ReviewRepository reviewRepository, CustomerRepository customerRepository, ProductRepository productRepository, ILogger<ReviewsController> logger) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetReviews([FromQuery] int productId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)

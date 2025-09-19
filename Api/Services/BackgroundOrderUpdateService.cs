@@ -42,8 +42,8 @@ namespace Api.Services
                     logger.LogInformation($"Order {orderId} status updated to: {status}");
 
                     using var scope = serviceProvider.CreateScope();
-                    var orderRepository = scope.ServiceProvider.GetRequiredService<IOrderRepository>();
-                    var trackingUpdateRepository = scope.ServiceProvider.GetRequiredService<IOrderTrackingUpdateRepository>();
+                    var orderRepository = scope.ServiceProvider.GetRequiredService<OrderRepository>();
+                    var trackingUpdateRepository = scope.ServiceProvider.GetRequiredService<OrderTrackingUpdateRepository>();
 
                     var order = await orderRepository.GetOrder(orderId);
 

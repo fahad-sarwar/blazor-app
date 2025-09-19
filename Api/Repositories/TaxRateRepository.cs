@@ -3,12 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public interface ITaxRateRepository
-    {
-        Task<TaxRate?> GetCurrentTaxRate();
-    }
-
-    public class TaxRateRepository(ILogger<TaxRateRepository> logger) : RepositoryBase, ITaxRateRepository
+    public class TaxRateRepository : RepositoryBase
     {
         public async Task<TaxRate?> GetCurrentTaxRate()
         {

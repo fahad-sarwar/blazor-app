@@ -3,13 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public interface IOrderTrackingUpdateRepository
-    {
-        Task<OrderTrackingUpdate> CreateTrackingUpdate(OrderTrackingUpdate trackingUpdate);
-        Task<List<OrderTrackingUpdate>> GetTrackingUpdatesByOrderId(int orderId);
-    }
-
-    public class OrderTrackingUpdateRepository(ILogger<OrderTrackingUpdateRepository> logger) : RepositoryBase, IOrderTrackingUpdateRepository
+    public class OrderTrackingUpdateRepository : RepositoryBase
     {
         public async Task<OrderTrackingUpdate> CreateTrackingUpdate(OrderTrackingUpdate trackingUpdate)
         {

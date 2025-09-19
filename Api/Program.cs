@@ -50,21 +50,21 @@ builder.Services.AddCors(options =>
 });
 
 builder.Services.AddScoped<RepositoryBase>();
-builder.Services.AddScoped<ITaxRateRepository, TaxRateRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IAddressRepository, AddressRepository>();
-builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
-builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
-builder.Services.AddScoped<IMessageRepository, MessageRepository>();
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
-builder.Services.AddScoped<IBasketRepository, BasketRepository>();
-builder.Services.AddScoped<IBasketItemRepository, BasketItemRepository>();
-builder.Services.AddScoped<IReviewRepository, ReviewRepository>();
-builder.Services.AddScoped<IPaymentRepository, PaymentRepository>();
-builder.Services.AddScoped<IWishlistRepository, WishlistRepository>();
-builder.Services.AddScoped<IOrderTrackingUpdateRepository, OrderTrackingUpdateRepository>();
-builder.Services.AddScoped<IOrderItemRepository, OrderItemRepository>();
-builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+builder.Services.AddScoped<TaxRateRepository>();
+builder.Services.AddScoped<UserRepository>();
+builder.Services.AddScoped<AddressRepository>();
+builder.Services.AddScoped<CategoryRepository>();
+builder.Services.AddScoped<CustomerRepository>();
+builder.Services.AddScoped<MessageRepository>();
+builder.Services.AddScoped<ProductRepository>();
+builder.Services.AddScoped<BasketRepository>();
+builder.Services.AddScoped<BasketItemRepository>();
+builder.Services.AddScoped<ReviewRepository>();
+builder.Services.AddScoped<PaymentRepository>();
+builder.Services.AddScoped<WishlistRepository>();
+builder.Services.AddScoped<OrderTrackingUpdateRepository>();
+builder.Services.AddScoped<OrderItemRepository>();
+builder.Services.AddScoped<OrderRepository>();
 
 builder.Services.AddAuthorization();
 builder.Services.AddSingleton<BackgroundOrderQueue>();

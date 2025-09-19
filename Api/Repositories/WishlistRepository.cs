@@ -3,15 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public interface IWishlistRepository
-    {
-        Task<(List<Product> Products, int TotalCount)> GetWishlistProducts(int customerId, int page = 1, int pageSize = 10);
-        Task<bool> IsProductInWishlist(int customerId, int productId);
-        Task AddToWishlist(int customerId, int productId);
-        Task RemoveFromWishlist(int customerId, int productId);
-    }
-
-    public class WishlistRepository(ILogger<WishlistRepository> logger, IProductRepository productRepository) : RepositoryBase, IWishlistRepository
+    public class WishlistRepository(ProductRepository productRepository) : RepositoryBase
     {
         public async Task<(List<Product> Products, int TotalCount)> GetWishlistProducts(int customerId, int page = 1, int pageSize = 10)
         {

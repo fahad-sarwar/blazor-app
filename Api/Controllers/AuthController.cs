@@ -10,7 +10,7 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(IUserRepository userRepository, ICustomerRepository customerRepository, ILogger<AuthController> logger) : ControllerBase
+    public class AuthController(UserRepository userRepository, CustomerRepository customerRepository, ILogger<AuthController> logger) : ControllerBase
     {
         [HttpGet("user")]
         public async Task<IActionResult> GetCurrentUser()

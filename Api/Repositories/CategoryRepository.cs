@@ -3,13 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public interface ICategoryRepository
-    {
-        Task<List<Category>> GetCategories();
-        Task<Category?> GetCategory(int categoryId);
-    }
-
-    public class CategoryRepository(ILogger<CategoryRepository> logger) : RepositoryBase, ICategoryRepository
+    public class CategoryRepository : RepositoryBase
     {
         public async Task<List<Category>> GetCategories()
         {

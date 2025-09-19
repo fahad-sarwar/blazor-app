@@ -3,13 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public interface IPaymentRepository
-    {
-        Task<Payment> CreatePayment(Payment payment);
-        Task<Payment?> GetPayment(int paymentId);
-    }
-
-    public class PaymentRepository(ILogger<PaymentRepository> logger) : RepositoryBase, IPaymentRepository
+    public class PaymentRepository : RepositoryBase
     {
         public async Task<Payment> CreatePayment(Payment payment)
         {

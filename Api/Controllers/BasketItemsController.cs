@@ -7,8 +7,8 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BasketItemsController(IBasketItemRepository basketItemRepository, IBasketRepository basketRepository, IProductRepository productRepository,
-        ITaxRateRepository taxRateRepository, ICustomerRepository customerRepository, ILogger<BasketItemsController> logger) : ControllerBase
+    public class BasketItemsController(BasketItemRepository basketItemRepository, BasketRepository basketRepository, ProductRepository productRepository,
+        TaxRateRepository taxRateRepository, CustomerRepository customerRepository, ILogger<BasketItemsController> logger) : ControllerBase
     {
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateBasketItem(int id, UpdateBasketItemQuantityDTO updateBasketItemQuantity)

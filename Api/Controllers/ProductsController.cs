@@ -5,7 +5,7 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductsController(IProductRepository productRepository, ILogger<ProductsController> logger) : ControllerBase
+    public class ProductsController(ProductRepository productRepository, ILogger<ProductsController> logger) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetProducts([FromQuery] int? categoryId, [FromQuery] bool? forSale, [FromQuery] string? searchTerm,

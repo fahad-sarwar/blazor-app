@@ -3,14 +3,7 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public interface IAddressRepository
-    {
-        Task<Address> CreateAddress(Address address);
-        Task<Address?> GetAddress(int addressId);
-        Task UpdateAddress(Address address);
-    }
-
-    public class AddressRepository(ILogger<AddressRepository> logger) : RepositoryBase, IAddressRepository
+    public class AddressRepository : RepositoryBase
     {
         public async Task<Address> CreateAddress(Address address)
         {

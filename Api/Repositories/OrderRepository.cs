@@ -3,23 +3,12 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public interface IOrderRepository
-    {
-        Task<(List<Order> Orders, int TotalCount)> GetOrdersByCustomerId(int customerId, string? orderNumber = null, int page = 1, int pageSize = 10);
-        Task<Order?> GetOrder(int orderId, int customerId);
-        Task<Order?> GetOrder(int orderId);
-        Task<Order> CreateOrder(Order order);
-        Task UpdateOrderNumber(int orderId, string orderNumber);
-        Task UpdateOrderStatus(int orderId, string status, string? deliveryMethod = null, DateTime? estimatedDelivery = null);
-    }
-
     public class OrderRepository(
-        ILogger<OrderRepository> logger, 
-        ICustomerRepository customerRepository,
-        IAddressRepository addressRepository,
-        IPaymentRepository paymentRepository,
-        IOrderItemRepository orderItemRepository,
-        IOrderTrackingUpdateRepository trackingUpdateRepository) : RepositoryBase, IOrderRepository
+        CustomerRepository customerRepository,
+        AddressRepository addressRepository,
+        PaymentRepository paymentRepository,
+        OrderItemRepository orderItemRepository,
+        OrderTrackingUpdateRepository trackingUpdateRepository) : RepositoryBase
     {
         public async Task<(List<Order> Orders, int TotalCount)> GetOrdersByCustomerId(int customerId, string? orderNumber = null, int page = 1, int pageSize = 10)
         {
