@@ -36,7 +36,7 @@
                 {
                     <div class="text-center flex-fill">
                         <div class="p-2 rounded text-white fw-semibold @GetMilestoneClass(status)">
-                            @status
+                            @GetMilestone(status)
                         </div>
                     </div>
                 }
@@ -123,7 +123,7 @@
 @code {
     [Parameter] public int OrderId { get; set; }
 
-    private readonly string[] _statusMilestones = new[] { "Pending", "Processing", "Packed", "Shipped", "Out for Delivery", "Delivered" };
+    private readonly string[] _statusMilestones = new[] { "Pending", "Inventory Check", "Packed", "Shipped", "In Transit", "At local depot", "Out for Delivery", "Delivered" };
 
     private OrderViewModel? _order;
     private string? _errorMessage;
@@ -149,6 +149,16 @@
         _isLoading = false;
     }
 
+    private string GetMilestone(string status)
+    {
+        if (status == "Delivered" && _order.Status == "Cancelled")
+        {
+            return "Cancelled";
+        }
+
+        return status;
+    }
+
     private string GetMilestoneClass(string status)
     {
         if (_order == null)
@@ -159,9 +169,14 @@
         var currentIndex = Array.IndexOf(_statusMilestones, _order.Status);
         var statusIndex = Array.IndexOf(_statusMilestones, status);
 
-        if (statusIndex < currentIndex || _order.Status == "Delivered")
+        if(_order.TrackingUpdates.Any(o => o.Status == status))
         {
             return "bg-success text-white";
+        }
+
+        if (_order.Status == "Cancelled")
+        {
+            return "bg-danger text-white";
         }
 
         return statusIndex == currentIndex

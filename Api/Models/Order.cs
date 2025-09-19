@@ -10,7 +10,7 @@
         public double TotalPrice { get; set; }
         public double VATRate { get; set; }
         public List<OrderItem> OrderItems { get; set; }
-        public string Status { get; set; } = "Pending"; // Pending, Processing, Completed, Cancelled
+        public string Status { get; set; } = "Pending";
         public Payment Payment { get; set; } = new Payment();
         public string DeliveryMethod { get; set; } = string.Empty;
         public DateTime? EstimatedDelivery { get; set; }

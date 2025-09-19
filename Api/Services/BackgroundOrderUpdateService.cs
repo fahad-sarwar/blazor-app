@@ -7,6 +7,8 @@ namespace Api.Services
     {
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
+            var rnd = new Random();
+
             logger.LogInformation("Background order processor started.");
 
             while (!cancellationToken.IsCancellationRequested)
@@ -15,11 +17,14 @@ namespace Api.Services
                 {
                     var orderId = await queue.DequeueAsync(cancellationToken);
 
+                    var delay = rnd.Next(1000, 5000);
+                    await Task.Delay(delay, cancellationToken);
+
                     logger.LogInformation($"Processing order: {orderId}");
 
                     await SimulateOrderUpdates(orderId, cancellationToken);
                 }
-                catch (Exception ex) 
+                catch (Exception ex)
                 {
                     logger.LogInformation($"Error processing order: {ex.Message}");
                 }
@@ -28,80 +33,142 @@ namespace Api.Services
 
         private async Task SimulateOrderUpdates(int orderId, CancellationToken ct)
         {
-            var statuses = new[] { "Processing", "Packed", "Shipped", "Out for Delivery", "Delivered" };
-            var updatedBy = new[] { "System", "Admin", "User" };
+            var orderStates = new[] { "Pending", "Inventory Check", "Packed", "Shipped", "In Transit", "At local depot", "Out for Delivery", "Delivered" };
             var rnd = new Random();
+            var failedOrderStack = new Stack<string>();
 
-            foreach (var status in statuses)
+            try
             {
-                try
+                using var scope = serviceProvider.CreateScope();
+                var orderRepository = scope.ServiceProvider.GetRequiredService<OrderRepository>();
+                var orderTrackingUpdateRepository = scope.ServiceProvider.GetRequiredService<OrderTrackingUpdateRepository>();
+
+                var order = await orderRepository.GetOrder(orderId);
+
+                if (order == null)
                 {
-                    var delay = rnd.Next(1000, 5000); // 1 to 5 seconds
+                    logger.LogWarning($"Order {orderId} not found.");
+                    return;
+                }
+
+                for (var count = 0; count < orderStates.Length; count++)
+                {
+                    // a random delay between 1 to 5 between each update
+                    var delay = rnd.Next(1000, 5000);
                     await Task.Delay(delay, ct);
+
+                    var status = orderStates[count];
 
                     logger.LogInformation($"Order {orderId} status updated to: {status}");
 
-                    using var scope = serviceProvider.CreateScope();
-                    var orderRepository = scope.ServiceProvider.GetRequiredService<OrderRepository>();
-                    var trackingUpdateRepository = scope.ServiceProvider.GetRequiredService<OrderTrackingUpdateRepository>();
-
-                    var order = await orderRepository.GetOrder(orderId);
-
-                    if (order == null)
+                    switch (status)
                     {
-                        logger.LogWarning($"Order {orderId} not found.");
-                        return;
-                    }
-
-                    if (status == "Shipped")
-                    {
-                        await orderRepository.UpdateOrderStatus(orderId, status, "Standard Shipping", DateTime.UtcNow.AddDays(3));
-                    }
-                    else
-                    {
-                        await orderRepository.UpdateOrderStatus(orderId, status);
-                    }
-
-                    var orderTrackingUpdate = new OrderTrackingUpdate
-                    {
-                        OrderId = orderId,
-                        Status = status,
-                        UpdatedBy = updatedBy[rnd.Next(updatedBy.Length)],
-                        CreatedAt = DateTime.UtcNow
-                    };
-
-                    var note = string.Empty;
-
-                    switch(status)
-                    {
-                        case "Processing":
-                            note = "Order received and is currently being processed by our warehouse team.";
+                        case "Pending":
+                            await orderRepository.UpdateOrderStatus(orderId, status);
+                            await AddNote(orderTrackingUpdateRepository, rnd, orderId, status, "Order received and is currently being processed by our warehouse team.");
                             break;
+
+                        case "Inventory Check":
+                            await orderRepository.UpdateOrderStatus(orderId, status);
+                            await AddNote(orderTrackingUpdateRepository, rnd, orderId, status, "Checking inventory of ordered products by the logistics team.");
+                            failedOrderStack.Push("Products add back to inventory");
+                            break;
+
                         case "Packed":
-                            note = "All items have been packed and are ready for dispatch.";
+                            await orderRepository.UpdateOrderStatus(orderId, status);
+                            await AddNote(orderTrackingUpdateRepository, rnd, orderId, status, "All items have been packed and are ready to be shipped.");
+                            failedOrderStack.Push("Unpacked");
                             break;
-                        case "Shipped":
-                            note = "Order has left our warehouse and is on its way to the delivery hub.";
-                            break;
-                        case "Out for Delivery":
-                            note = "Driver has your package and is en route to your address.";
-                            break;
-                        case "Delivered":
-                            note = "Order delivered successfully. Thank you for shopping with us!";
-                            break;
-                    };
-                    
-                    orderTrackingUpdate.Note = note;
 
-                    await trackingUpdateRepository.CreateTrackingUpdate(orderTrackingUpdate);
+                        case "Shipped":
+                            await orderRepository.UpdateOrderStatus(orderId, status, "Standard Shipping", DateTime.UtcNow.AddDays(3));
+                            await AddNote(orderTrackingUpdateRepository, rnd, orderId, status, "Order has left our warehouse and is on its way to the delivery hub.");
+                            failedOrderStack.Push("Back in warehouse");
+                            break;
+
+                        case "In Transit":
+                            await orderRepository.UpdateOrderStatus(orderId, status);
+                            await AddNote(orderTrackingUpdateRepository, rnd, orderId, status, "Order has left our warehouse and is on its way to the local depot.");
+                            break;
+
+                        case "At local depot":
+                            await orderRepository.UpdateOrderStatus(orderId, status);
+                            await AddNote(orderTrackingUpdateRepository, rnd, orderId, status, "Order is at the local depot ready to be delivered to the customer.");
+                            failedOrderStack.Push("Return to Depot");
+                            break;
+
+                        case "Out for Delivery":
+                            await orderRepository.UpdateOrderStatus(orderId, status);
+                            await AddNote(orderTrackingUpdateRepository, rnd, orderId, status, "Driver has your package and is en route to your address.");
+                            failedOrderStack.Push("Delivery Failed");
+                            break;
+
+                        case "Delivered":
+                            if (!HasOrderFailed(order))
+                            {
+                                await orderRepository.UpdateOrderStatus(orderId, status);
+                                await AddNote(orderTrackingUpdateRepository, rnd, orderId, status, "Order delivered successfully. Thank you for shopping with us!");
+                            }
+                            break;
+                    }
 
                     logger.LogInformation($"Order {orderId} tracking update created: {status}");
                 }
-                catch (Exception ex)
+
+                if(HasOrderFailed(order))
                 {
-                    logger.LogError(ex, $"Error updating order {orderId}: {ex.Message}");
+                    while(failedOrderStack.Count > 0)
+                    {
+                        var failedOrderUpdateStatus = failedOrderStack.Pop();
+
+                        switch (failedOrderUpdateStatus)
+                        {
+                            case "Delivery Failed":
+                                await AddNote(orderTrackingUpdateRepository, rnd, orderId, failedOrderUpdateStatus, "Customer not home or unavailable.");
+                                break;
+                            case "Return to Depot":
+                                await AddNote(orderTrackingUpdateRepository, rnd, orderId, failedOrderUpdateStatus, "Package is being returned to the local depot.");
+                                break;
+                            case "Back in warehouse":
+                                await AddNote(orderTrackingUpdateRepository, rnd, orderId, failedOrderUpdateStatus, "Items have been returned back to the warehouse waiting to be processed.");
+                                break;
+                            case "Unpacked":
+                                await AddNote(orderTrackingUpdateRepository, rnd, orderId, failedOrderUpdateStatus, "Items have been checked and unpacked");
+                                break;
+                            case "Products add back to inventory":
+                                await AddNote(orderTrackingUpdateRepository, rnd, orderId, failedOrderUpdateStatus, "Items have been added back to the inventory.");
+                                break;
+                        }
+                    }
+
+                    await orderRepository.UpdateOrderStatus(orderId, "Cancelled");
                 }
             }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error updating order {orderId}: {ex.Message}");
+            }
+        }
+
+        private async Task AddNote(OrderTrackingUpdateRepository orderTrackingUpdateRepository, Random random, int orderId, string status, string note)
+        {
+            var updatedBy = new[] { "System", "Admin", "User" };
+
+            var orderTrackingUpdate = new OrderTrackingUpdate
+            {
+                OrderId = orderId,
+                Status = status,
+                Note = note,
+                UpdatedBy = updatedBy[random.Next(updatedBy.Length)],
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await orderTrackingUpdateRepository.CreateTrackingUpdate(orderTrackingUpdate);
+        }
+
+        private bool HasOrderFailed(Order order)
+        {
+            return order.Id % 2 == 0;
         }
     }
 }
