@@ -73,6 +73,7 @@ CREATE TABLE "Customer" (
 CREATE INDEX "IX_Customer_BillingAddressId" ON "Customer" ("BillingAddressId");
 CREATE INDEX "IX_Customer_ShippingAddressId" ON "Customer" ("ShippingAddressId");
 CREATE INDEX "IX_Customer_UserId" ON "Customer" ("UserId");
+CREATE UNIQUE INDEX "EmailIndex" ON "Customer" ("Email");
 
 
 

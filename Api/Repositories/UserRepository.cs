@@ -88,9 +88,17 @@ namespace Api.Repositories
             }
         }
 
-        public async Task<User> CreateUser(User user)
+        public async Task<User> CreateUser(string username, string password, bool isAdmin = false)
         {
-            var query = 
+            var user = new User
+            {
+                Username = username,
+                PasswordHash = HashPassword(password),
+                IsAdmin = isAdmin,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            var query =
                 "INSERT INTO User (Username, PasswordHash, IsAdmin, CreatedAt) " +
                 "VALUES (@username, @passwordHash, @isAdmin, @createdAt); " +
                 "SELECT last_insert_rowid();";
@@ -114,19 +122,6 @@ namespace Api.Repositories
             {
                 conn.Close();
             }
-        }
-
-        public async Task<User> CreateUser(string username, string password, bool isAdmin = false)
-        {
-            var user = new User
-            {
-                Username = username,
-                PasswordHash = HashPassword(password),
-                IsAdmin = isAdmin,
-                CreatedAt = DateTime.UtcNow
-            };
-
-            return await CreateUser(user);
         }
 
         public async Task<bool> UserExists(string username)
