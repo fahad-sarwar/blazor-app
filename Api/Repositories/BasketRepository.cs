@@ -91,7 +91,6 @@ namespace Api.Repositories
             }
         }
 
-        // TODO Check if this is needed
         public async Task<Basket?> GetOrCreateBasket(string? anonymousId, int? customerId)
         {
             Basket? basket = null;
