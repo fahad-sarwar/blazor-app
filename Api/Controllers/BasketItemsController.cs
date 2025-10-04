@@ -28,7 +28,7 @@ namespace Api.Controllers
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, "Error updating basket item with id {BasketItemId}", id);
+                logger.LogError(ex, "Error updating the quantity for the {BasketItemId} basket item.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -42,24 +42,24 @@ namespace Api.Controllers
 
                 if (taxRate == null)
                 {
-                    return BadRequest("No valid tax rate found");
+                    return BadRequest("There was no valid tax rate found in the system.");
                 }
 
                 var product = await productRepository.GetProduct(addBasketItem.ProductId);
 
                 if (product == null)
                 {
-                    return BadRequest("Product not found");
+                    return BadRequest("The product added by the user was not found.");
                 }
 
                 if (addBasketItem.Quantity <= 0)
                 {
-                    return BadRequest("Quantity must be greater than zero");
+                    return BadRequest("The quantity entered must be greater than zero.");
                 }
 
                 if (string.IsNullOrEmpty(addBasketItem.AnonymousId) && !addBasketItem.CustomerId.HasValue)
                 {
-                    return BadRequest("Either AnonymousId or CustomerId must be provided");
+                    return BadRequest("The required account information was not provided.  Either provide an 'AnonymousId' or 'CustomerId'.");
                 }
 
                 if (addBasketItem.CustomerId.HasValue)
@@ -68,7 +68,7 @@ namespace Api.Controllers
 
                     if (customer == null)
                     {
-                        return BadRequest("Customer not found");
+                        return BadRequest("The customer was not found.  Please provide the correct customer details.");
                     }
                 }
 
@@ -76,7 +76,7 @@ namespace Api.Controllers
 
                 if (basket == null)
                 {
-                    return BadRequest("Unable to create or find basket");
+                    return BadRequest("The system was unable to find or create a basket.");
                 }
 
                 var basketItem = new BasketItem
@@ -95,7 +95,7 @@ namespace Api.Controllers
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, "Error adding basket item for product id {ProductId}", addBasketItem.ProductId);
+                logger.LogError(ex, "There was an error adding a basket item for the product with an id of {ProductId}", addBasketItem.ProductId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -118,7 +118,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error deleting basket item with id {BasketItemId}", id);
+                logger.LogError(ex, "There was an error deleting basket item with id {BasketItemId}", id);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

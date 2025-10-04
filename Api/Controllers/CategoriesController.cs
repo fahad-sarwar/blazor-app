@@ -17,7 +17,7 @@ namespace Api.Controllers
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, "Error retrieving categories");
+                logger.LogError(ex, "There was an error getting all categories.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -35,7 +35,7 @@ namespace Api.Controllers
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, "Error retrieving category with id {CategoryId}", id);
+                logger.LogError(ex, "There was an error getting a category with id {CategoryId}.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

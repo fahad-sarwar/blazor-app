@@ -28,7 +28,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error saving message from {Email}", request.Email);
+                logger.LogError(ex, "There was an error saving message from {Email}.", request.Email);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

@@ -27,7 +27,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error retrieving reviews for product {ProductId}", productId);
+                logger.LogError(ex, "There was an error getting reviews for product with id {Product}.", productId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -48,7 +48,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error retrieving product review stats for product with id {ReviewId}", productId);
+                logger.LogError(ex, "There was an error getting product review stats for product with id {Product}", productId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -62,21 +62,21 @@ namespace Api.Controllers
 
                 if (string.IsNullOrEmpty(email))
                 {
-                    return Unauthorized();
+                    return Unauthorized("The user was not found.  Please ensure the customer is logged in.");
                 }
 
                 var customer = await customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
                 {
-                    return NotFound("Customer not found.");
+                    return NotFound("The customer was not found.  Please ensure the customer is logged in.");
                 }
 
                 var product = await productRepository.GetProduct(request.ProductId);
 
                 if (product == null)
                 {
-                    return NotFound("Product not found.");
+                    return NotFound("The specified product was not found.  Please enter the correct product.");
                 }
 
                 var review = new Review
@@ -96,7 +96,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error creating review for product {ProductId}", request.ProductId);
+                logger.LogError(ex, "There was an error creating a review for product with id {Product}.", request.ProductId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

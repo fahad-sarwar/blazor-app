@@ -20,14 +20,14 @@ namespace Api.Controllers
 
                 if (string.IsNullOrEmpty(email))
                 {
-                    return Unauthorized();
+                    return Unauthorized("The user was not found.  Please ensure the customer is logged in.");
                 }
 
                 var customer = await customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
                 {
-                    return NotFound("Customer not found.");
+                    return NotFound("The customer was not found.  Please provide the correct details.");
                 }
 
                 var (products, totalCount) = await customerRepository.GetWishlistProducts(customer.Id, page, pageSize);
@@ -42,7 +42,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error retrieving wishlist");
+                logger.LogError(ex, "There was an error getting the customers wishlist.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -56,14 +56,14 @@ namespace Api.Controllers
 
                 if (string.IsNullOrEmpty(email))
                 {
-                    return Unauthorized();
+                    return Unauthorized("The user was not found.  Please ensure the customer is logged in.");
                 }
 
                 var customer = await customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
                 {
-                    return NotFound("Customer not found.");
+                    return NotFound("The customer was not found.  Please ensure the customer is logged in.");
                 }
 
                 var exists = await customerRepository.IsProductInWishlist(customer.Id, productId);
@@ -74,7 +74,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error checking wishlist for product {ProductId}", productId);
+                logger.LogError(ex, "There was an error checking if the product with id of {Product} is on the wishlist.", productId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -88,28 +88,28 @@ namespace Api.Controllers
 
                 if (string.IsNullOrEmpty(email))
                 {
-                    return Unauthorized();
+                    return Unauthorized("The user was not found.  Please ensure the customer is logged in.");
                 }
 
                 var customer = await customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
                 {
-                    return NotFound("Customer not found.");
+                    return NotFound("The customer was not found.  Please ensure the customer is logged in.");
                 }
 
                 var product = await productRepository.GetProduct(request.ProductId);
 
                 if (product == null)
                 {
-                    return NotFound("Product not found.");
+                    return NotFound("The entered product was not found.  Please provide the correct details.");
                 }
 
                 var exists = await customerRepository.IsProductInWishlist(customer.Id, request.ProductId);
 
                 if (exists)
                 {
-                    return BadRequest("Product is already in the wishlist.");
+                    return BadRequest("The product is already on the customers wishlist.  Please try again with another product.");
                 }
 
                 await customerRepository.AddToWishlist(customer.Id, request.ProductId);
@@ -118,7 +118,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error adding product {ProductId} to wishlist", request.ProductId);
+                logger.LogError(ex, "There was an error adding product with id {Product} to the customers wishlist.", request.ProductId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -132,21 +132,21 @@ namespace Api.Controllers
 
                 if (string.IsNullOrEmpty(email))
                 {
-                    return Unauthorized();
+                    return Unauthorized("The user was not found.  Please ensure the customer is logged in.");
                 }
 
                 var customer = await customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
                 {
-                    return NotFound("Customer not found.");
+                    return NotFound("The customer was not found.  Please ensure the customer is logged in.");
                 }
 
                 var exists = await customerRepository.IsProductInWishlist(customer.Id, productId);
 
                 if (!exists)
                 {
-                    return NotFound("Product not found in wishlist.");
+                    return NotFound("The specified product is not on the customers wishlist.");
                 }
 
                 await customerRepository.RemoveFromWishlist(customer.Id, productId);
@@ -155,7 +155,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error removing product {ProductId} from wishlist", productId);
+                logger.LogError(ex, "There was an error removing the product was id {Product} from the customers wishlist.", productId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

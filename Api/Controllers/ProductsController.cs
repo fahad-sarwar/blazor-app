@@ -15,17 +15,17 @@ namespace Api.Controllers
             {
                 if (!categoryId.HasValue && !forSale.HasValue && string.IsNullOrWhiteSpace(searchTerm))
                 {
-                    return BadRequest("At least one filter must be provided: category, forSale, or searchTerm.");
+                    return BadRequest("At least one of the following filters must be provided: category, forSale, or searchTerm.");
                 }
 
                 if (page < 1 || pageSize < 1)
                 {
-                    return BadRequest("Page and pageSize must be greater than 0.");
+                    return BadRequest("The page and pageSize fields must be greater than 0.");
                 }
 
                 if (categoryId.HasValue && categoryId < 0)
                 {
-                    return BadRequest("Category ID must be a positive integer.");
+                    return BadRequest("The category id must be a positive integer.  Please enter the correct details.");
                 }
 
                 var (products, totalCount) = await productRepository.GetProducts(categoryId, forSale, searchTerm, sort, page, pageSize);
@@ -40,7 +40,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error retrieving products");
+                logger.LogError(ex, "There was an error getting a list of products.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }            
         }
@@ -59,7 +59,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error retrieving product with id {ProductId}", id);
+                logger.LogError(ex, "There was an error getting the product with id {ProductId}.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

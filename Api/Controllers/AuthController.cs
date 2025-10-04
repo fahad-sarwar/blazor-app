@@ -17,12 +17,12 @@ namespace Api.Controllers
         {
             try
             {
-                logger.LogInformation("GetCurrentUser called. IsAuthenticated: {IsAuthenticated}, Identity: {Identity}", 
+                logger.LogInformation("Getting the current user to see if they are authenticated. IsAuthenticated: {IsAuthenticated}, Identity: {Identity}", 
                     User.Identity?.IsAuthenticated, User.Identity?.Name);
                 
                 if (User.Identity?.IsAuthenticated != true)
                 {
-                    logger.LogWarning("User is not authenticated");
+                    logger.LogWarning("The user is not currently logged in.");
                     return Unauthorized();
                 }
 
@@ -57,8 +57,8 @@ namespace Api.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error retrieving current user");
-                return StatusCode(500, "Error retrieving current user");
+                logger.LogError(e, "There was an error getting current user details.  Exception message: '{Message}'", e.Message);
+                return StatusCode(500, "Error getting the current user.");
             }
         }
 
@@ -71,7 +71,7 @@ namespace Api.Controllers
 
                 if (existingUser)
                 {
-                    return BadRequest("Username already exists");
+                    return BadRequest("The current username already exists");
                 }
 
                 var user = await userRepository.CreateUser(model.Email, model.Password, false);
@@ -92,8 +92,8 @@ namespace Api.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error registering user");
-                return StatusCode(500, "Error registering user");
+                logger.LogError(e, "There was an error registering user.  Exception message: '{Message}'", e.Message);
+                return StatusCode(500, "Error registering the user.");
             }
         }
 
@@ -106,22 +106,22 @@ namespace Api.Controllers
 
                 if (user == null)
                 {
-                    return Unauthorized("Invalid username or password");
+                    return Unauthorized("The user doesn't exist.");
                 }
 
                 var isValidPassword = await userRepository.ValidatePassword(model.Email, model.Password);
 
                 if (!isValidPassword)
                 {
-                    return Unauthorized("Invalid username or password");
+                    return Unauthorized("The entered password does not match the current users password.");
                 }
 
                 var customer = await customerRepository.GetCustomerByUserId(user.Id.ToString());
 
                 if (customer == null)
                 {
-                    logger.LogWarning("User {Username} found but no corresponding customer record", user.Username);
-                    return Unauthorized("Account configuration error");
+                    logger.LogWarning("User {Username} found but no there was no corresponding customer record.", user.Username);
+                    return Unauthorized("Unable to find the customers account.");
                 }
 
                 await SignInUserAsync(user, customer);
@@ -129,8 +129,8 @@ namespace Api.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error logging in user");
-                return StatusCode(500, "Error logging in user");
+                logger.LogError(e, "There was an error whilst logging in the user.");
+                return StatusCode(500, "Error logging in the user.");
             }
         }
 
@@ -169,8 +169,8 @@ namespace Api.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error refreshing claims");
-                return StatusCode(500, "Error refreshing claims");
+                logger.LogError(e, "An error occured whilst refreshing the users claims.");
+                return StatusCode(500, "Error refreshing the users claims.");
             }
         }
 
@@ -184,8 +184,8 @@ namespace Api.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError(e, "Error logging out user");
-                return StatusCode(500, "Error logging out user");
+                logger.LogError(e, "There was an error whilst logging out user.");
+                return StatusCode(500, "Error whilst logging out the user.");
             }
         }
 
@@ -205,12 +205,12 @@ namespace Api.Controllers
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
 
-            logger.LogInformation("Signing in user {UserId} with {ClaimCount} claims: {Claims}", 
+            logger.LogInformation("Signing in the user {UserId} with {ClaimCount} active claims: {Claims}", 
                 user.Id, claims.Count, string.Join(", ", claims.Select(c => $"{c.Type}={c.Value}")));
             
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
             
-            logger.LogInformation("User {UserId} signed in successfully", user.Id);
+            logger.LogInformation("The user with id ({UserId}) has signed in successfully.", user.Id);
         }
     }
 }

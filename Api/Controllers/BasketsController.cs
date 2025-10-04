@@ -19,7 +19,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error retrieving basket for AnonymousId: {AnonymousId}", anonymousUserId);
+                logger.LogError(ex, "There was an error retrieving the basket for AnonymousId: {AnonymousId}.", anonymousUserId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

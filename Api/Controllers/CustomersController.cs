@@ -27,14 +27,14 @@ namespace Api.Controllers
 
                 if (customer == null)
                 {
-                    return NotFound("Customer not found.");
+                    return NotFound("The system was unable to find the customer.");
                 }
 
                 return Ok(customer);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error retrieving customer");
+                logger.LogError(ex, "There was an error retrieving customer details.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -55,24 +55,24 @@ namespace Api.Controllers
 
                 if (customer == null)
                 {
-                    return NotFound("Customer not found.");
+                    return NotFound("The system was unable to find the Customer.  Please provide the correct details.");
                 }
 
                 if (id != customer.Id)
                 {
-                    return BadRequest("Invalid customer identified.");
+                    return BadRequest("The entered customer details do not match the system records.  Please provide the correct details.");
                 }
 
                 var user = await userRepository.GetUserByUsername(email);
 
                 if (user == null)
                 {
-                    return NotFound("User not found.");
+                    return NotFound("A user matching the email was not found.  Please provide the correct customer details.");
                 }
 
                 if (user.Username != customer.Email)
                 {
-                    return BadRequest("User email does not match customer email.");
+                    return BadRequest("The user details do not match the customer email.  Please provide the correct customer details.");
                 }
 
                 customer.FirstName = request.FirstName;
@@ -140,7 +140,7 @@ namespace Api.Controllers
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, "Error updating customer with id {CustomerId}", id);
+                logger.LogError(ex, "There was an error updating the customers account with id {CustomerId}.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

@@ -28,7 +28,7 @@ namespace Api.Controllers
 
                 if (customer == null)
                 {
-                    return NotFound("Customer not found.");
+                    return NotFound("The customer was not found.  Please ensure the customer is logged in.");
                 }
 
                 var (orders, totalCount) = await orderRepository.GetOrdersByCustomerId(customer.Id, orderNumber, page, pageSize);
@@ -43,7 +43,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error retrieving orders");
+                logger.LogError(ex, "There was an error getting a list of orders.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -64,7 +64,7 @@ namespace Api.Controllers
 
                 if (customer == null)
                 {
-                    return NotFound("Customer not found.");
+                    return NotFound("The customers account was not found.  Please ensure the customer is logged in.");
                 }
 
                 var order = await orderRepository.GetOrder(id, customer.Id);
@@ -75,7 +75,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error retrieving order with id {OrderId}", id);
+                logger.LogError(ex, "There was an error getting an order with id {OrderId}.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -89,26 +89,26 @@ namespace Api.Controllers
 
                 if (basket == null)
                 {
-                    return BadRequest("Basket not found");
+                    return BadRequest("The basket was not found.  Please ensure the correct basket id is provided.");
                 }
 
                 if (basket.Items.Count == 0)
                 {
-                    return BadRequest("Basket is empty");
+                    return BadRequest("The basket is currently empty.  Please add some products before checking out.");
                 }
 
                 var taxRate = await taxRateRepository.GetCurrentTaxRate();
 
                 if (taxRate == null)
                 {
-                    return BadRequest("No applicable tax rate found");
+                    return BadRequest("A valid tax rate was not found.");
                 }
 
                 var customer = await customerRepository.GetCustomerById(createOrderRequest.Customer.Id);
 
                 if (customer == null)
                 {
-                    return BadRequest("Customer not found");
+                    return BadRequest("The customers account was not found.  Please ensure the customer is logged in.");
                 }
 
                 if (customer.BillingAddress == null && customer.ShippingAddress == null)
@@ -227,7 +227,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error creating order");
+                logger.LogError(ex, "There was an error creating the order.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
