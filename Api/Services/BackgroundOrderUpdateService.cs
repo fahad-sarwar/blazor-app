@@ -33,7 +33,7 @@ namespace Api.Services
 
         private async Task SimulateOrderUpdates(int orderId, CancellationToken ct)
         {
-            var orderStates = new[] { "Pending", "Inventory Check", "Packed", "Shipped", "In Transit", "At local depot", "Out for Delivery", "Delivered" };
+            var orderStates = new[] { "Pending", "Inventory check", "Packed", "Shipped", "In transit", "At local depot", "Out for delivery", "Delivered" };
             var rnd = new Random();
             var failedOrderStack = new Stack<string>();
 
@@ -67,10 +67,10 @@ namespace Api.Services
                             await AddNote(orderRepository, rnd, orderId, status, "Order received and is currently being processed by our warehouse team.");
                             break;
 
-                        case "Inventory Check":
+                        case "Inventory check":
                             await orderRepository.UpdateOrderStatus(orderId, status);
                             await AddNote(orderRepository, rnd, orderId, status, "Checking inventory of ordered products by the logistics team.");
-                            failedOrderStack.Push("Products add back to inventory");
+                            failedOrderStack.Push("Add to inventory");
                             break;
 
                         case "Packed":
@@ -85,7 +85,7 @@ namespace Api.Services
                             failedOrderStack.Push("Back in warehouse");
                             break;
 
-                        case "In Transit":
+                        case "In transit":
                             await orderRepository.UpdateOrderStatus(orderId, status);
                             await AddNote(orderRepository, rnd, orderId, status, "Order has left our warehouse and is on its way to the local depot.");
                             break;
@@ -93,13 +93,13 @@ namespace Api.Services
                         case "At local depot":
                             await orderRepository.UpdateOrderStatus(orderId, status);
                             await AddNote(orderRepository, rnd, orderId, status, "Order is at the local depot ready to be delivered to the customer.");
-                            failedOrderStack.Push("Return to Depot");
+                            failedOrderStack.Push("Return to depot");
                             break;
 
-                        case "Out for Delivery":
+                        case "Out for delivery":
                             await orderRepository.UpdateOrderStatus(orderId, status);
                             await AddNote(orderRepository, rnd, orderId, status, "Driver has your package and is en route to your address.");
-                            failedOrderStack.Push("Delivery Failed");
+                            failedOrderStack.Push("Delivery failed");
                             break;
 
                         case "Delivered":
@@ -122,10 +122,10 @@ namespace Api.Services
 
                         switch (failedOrderUpdateStatus)
                         {
-                            case "Delivery Failed":
+                            case "Delivery failed":
                                 await AddNote(orderRepository, rnd, orderId, failedOrderUpdateStatus, "Customer not home or unavailable.");
                                 break;
-                            case "Return to Depot":
+                            case "Return to depot":
                                 await AddNote(orderRepository, rnd, orderId, failedOrderUpdateStatus, "Package is being returned to the local depot.");
                                 break;
                             case "Back in warehouse":
@@ -134,7 +134,7 @@ namespace Api.Services
                             case "Unpacked":
                                 await AddNote(orderRepository, rnd, orderId, failedOrderUpdateStatus, "Items have been checked and unpacked");
                                 break;
-                            case "Products add back to inventory":
+                            case "Add to inventory":
                                 await AddNote(orderRepository, rnd, orderId, failedOrderUpdateStatus, "Items have been added back to the inventory.");
                                 break;
                         }
