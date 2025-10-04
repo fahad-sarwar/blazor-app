@@ -15,7 +15,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error searching for products using search term '{SearchTerm}'", searchTerm);
+                logger.LogError(ex, "There was an error searching for products using search term '{SearchTerm}'.", searchTerm);
                 return null;
             }
         }
@@ -31,7 +31,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting for sale products");
+                logger.LogError(ex, "There was an error getting products currently on sale.");
                 return null;
             }
         }
@@ -42,7 +42,7 @@ namespace OnlineShopUI.Services
             {
                 if (categoryId == null)
                 {
-                    logger.LogWarning("CategoryId is required.");
+                    logger.LogWarning("The category id is required.  Please provide the correct details.");
                     return null;
                 }
 
@@ -53,7 +53,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting products in category {CategoryId}", categoryId);
+                logger.LogError(ex, "There was an error getting products in category {CategoryId}.", categoryId);
                 return null;
             }
         }
@@ -72,7 +72,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting product details for id {ProductId}", productId);
+                logger.LogError(ex, "There was an error getting product details for product with id {ProductId}.", productId);
                 return null;
             }
         }

@@ -14,7 +14,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting categories");
+                logger.LogError(ex, "There was an error getting a list of categories.");
                 return null;
             }
         }
@@ -25,7 +25,7 @@ namespace OnlineShopUI.Services
             {
                 if(categoryId == null)
                 {
-                    logger.LogWarning("CategoryId is required.");
+                    logger.LogWarning("The category Id is required.  Please provide the correct details.");
                     return null;
                 }
                     
@@ -35,7 +35,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting categories");
+                logger.LogError(ex, "There was an error getting a category with id {Category}.", categoryId);
                 return null;
             }
         }

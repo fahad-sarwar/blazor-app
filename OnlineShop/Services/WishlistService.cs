@@ -14,7 +14,7 @@ namespace OnlineShopUI.Services
 
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting products on customers wishlist");
+                logger.LogError(ex, "There was an error getting products on the customers wishlist.");
                 return null;
             }
         }
@@ -29,7 +29,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error checking if product {ProductId} is on wishlist", productId);
+                logger.LogError(ex, "There was an error checking if the product with an id of {ProductId} is on the customers wishlist.", productId);
                 return false;
             }
         }
@@ -48,7 +48,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error adding product {ProductId} to wishlist", productId);
+                logger.LogError(ex, "There was an error adding a product with an id of {ProductId} to the customers wishlist.", productId);
                 return false;
             }
         }
@@ -62,7 +62,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error removing product {ProductId} from wishlist", productId);
+                logger.LogError(ex, "There was an error removing product a product with an id of {ProductId} from the customers wishlist.", productId);
                 return false;
             }
         }

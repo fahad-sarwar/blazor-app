@@ -13,7 +13,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting customer");
+                logger.LogError(ex, "There was an error getting the customers details.");
                 return null;
             }
         }
@@ -30,13 +30,13 @@ namespace OnlineShopUI.Services
                 }
 
                 var responseContent = await response.Content.ReadAsStringAsync();
-                logger.LogError("Error updating customer with id {CustomerId}.  Response content is '{ResponseContent}'", request.Id, responseContent);
+                logger.LogError("There was an error updating the customers details with id {Customer}.  The API responded with '{ResponseContent}'", request.Id, responseContent);
 
                 return response.IsSuccessStatusCode;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error updating customer with id {CustomerId}", request.Id);
+                logger.LogError(ex, "There was an error updating the customers details with id {Customer}"., request.Id);
                 return false;
             }
         }

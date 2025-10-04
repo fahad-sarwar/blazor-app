@@ -13,7 +13,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting orders");
+                logger.LogError(ex, "There was an error getting a list of orders.");
                 return null;
             }
         }
@@ -27,7 +27,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting order by {OrderNumber}", orderNumber);
+                logger.LogError(ex, "There was an error getting an order with '{OrderNumber}'.", orderNumber);
                 return null;
             }
         }
@@ -41,7 +41,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting order by {OrderId}", orderId);
+                logger.LogError(ex, "There was an error getting an order with an id of {OrderId}", orderId);
                 return null;
             }
         }
@@ -96,12 +96,12 @@ namespace OnlineShopUI.Services
                     return order;
                 }
 
-                logger.LogError("Error creating order: {StatusCode}", response.StatusCode);
+                logger.LogError("There was an error creating the order.  The API response code was '{StatusCode}'", response.StatusCode);
                 return null;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error creating order");
+                logger.LogError(ex, "There was an error creating an order.");
                 return null;
             }
         }

@@ -60,7 +60,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting authentication state");
+                logger.LogError(ex, "There was an error getting the customers current authentication state.");
             }
 
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));

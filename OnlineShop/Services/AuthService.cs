@@ -25,7 +25,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error during registration");
+                logger.LogError(ex, "There was an error during the registration process.");
             }
 
             return false;
@@ -49,7 +49,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error during login");
+                logger.LogError(ex, "There was an error logging in the customer.");
             }
 
             return false;
@@ -66,7 +66,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error during API logout");
+                logger.LogError(ex, "There was an error logging out the customer.");
             }
             finally
             {
@@ -93,7 +93,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error refreshing authentication state");
+                logger.LogError(ex, "There was an error refreshing the customers authentication state.");
             }
 
             return false;
@@ -114,7 +114,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting user from API");
+                logger.LogError(ex, "There was an error getting user details.");
             }
 
             return null;

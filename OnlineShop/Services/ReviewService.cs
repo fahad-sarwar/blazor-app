@@ -14,7 +14,7 @@ namespace OnlineShopUI.Services
 
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error getting for product reviews for id {ProductId}", productId);
+                logger.LogError(ex, "There was an error getting product reviews for product with an id of {ProductId}.", productId);
                 return null;
             }
         }
@@ -28,7 +28,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error creating review for product id {ProductId}", createReviewViewModel.ProductId);
+                logger.LogError(ex, "There was an error creating a product review for product with an id of {ProductId}.", createReviewViewModel.ProductId);
                 return false;
             }
         }

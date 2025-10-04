@@ -13,7 +13,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error sending message");
+                logger.LogError(ex, "There was an error sending the customers message.");
                 return false;
             }
         }

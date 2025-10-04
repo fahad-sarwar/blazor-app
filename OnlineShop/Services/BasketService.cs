@@ -17,7 +17,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error loading basket");
+                logger.LogError(ex, "There was an error getting the customers basket.");
                 return null;
             }
         }
@@ -54,7 +54,7 @@ namespace OnlineShopUI.Services
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, "Error adding product {ProductId} to basket", productId);
+                logger.LogError(ex, "There was an error adding the product {Product} to the customers basket.", productId);
             }
 
             return false;
@@ -75,7 +75,7 @@ namespace OnlineShopUI.Services
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, "Error updating basket item {BasketItemId} quantity", basketItemId);
+                logger.LogError(ex, "There was an error updating basket item {BasketItem} quantity.", basketItemId);
             }
 
             return false;
@@ -95,7 +95,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error removing basket item {BasketItemId} quantity", basketItemId);
+                logger.LogError(ex, "There was an error removing the basket item with id {BasketItemId} from the basket.", basketItemId);
             }
 
             return false;
