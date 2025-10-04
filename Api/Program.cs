@@ -52,18 +52,12 @@ builder.Services.AddCors(options =>
 builder.Services.AddScoped<RepositoryBase>();
 builder.Services.AddScoped<TaxRateRepository>();
 builder.Services.AddScoped<UserRepository>();
-builder.Services.AddScoped<AddressRepository>();
 builder.Services.AddScoped<CategoryRepository>();
 builder.Services.AddScoped<CustomerRepository>();
 builder.Services.AddScoped<MessageRepository>();
 builder.Services.AddScoped<ProductRepository>();
 builder.Services.AddScoped<BasketRepository>();
-builder.Services.AddScoped<BasketItemRepository>();
-builder.Services.AddScoped<ReviewRepository>();
 builder.Services.AddScoped<PaymentRepository>();
-builder.Services.AddScoped<WishlistRepository>();
-builder.Services.AddScoped<OrderTrackingUpdateRepository>();
-builder.Services.AddScoped<OrderItemRepository>();
 builder.Services.AddScoped<OrderRepository>();
 
 builder.Services.AddAuthorization();

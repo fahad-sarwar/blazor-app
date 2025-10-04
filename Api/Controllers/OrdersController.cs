@@ -10,8 +10,7 @@ namespace Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class OrdersController(OrderRepository orderRepository, CustomerRepository customerRepository, BasketRepository basketRepository,
-        TaxRateRepository taxRateRepository, AddressRepository addressRepository, PaymentRepository paymentRepository, OrderItemRepository orderItemRepository,
-        BackgroundOrderQueue queue, ILogger<OrdersController> logger) : ControllerBase
+        TaxRateRepository taxRateRepository, PaymentRepository paymentRepository, BackgroundOrderQueue queue, ILogger<OrdersController> logger) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetOrders([FromQuery] string? orderNumber, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
@@ -134,8 +133,8 @@ namespace Api.Controllers
                         Country = createOrderRequest.Customer.ShippingAddress.Country,
                     };
 
-                    customer.BillingAddress = await addressRepository.CreateAddress(customerBillingAddress);
-                    customer.ShippingAddress = await addressRepository.CreateAddress(customerShippingAddress);
+                    customer.BillingAddress = await customerRepository.CreateAddress(customerBillingAddress);
+                    customer.ShippingAddress = await customerRepository.CreateAddress(customerShippingAddress);
                 }
 
                 if (string.IsNullOrEmpty(customer.PhoneNumber))
@@ -147,7 +146,7 @@ namespace Api.Controllers
 
                 var totalPrice = basket.Items.Sum(bi => bi.TotalPrice);
 
-                var orderBillingAddress = await addressRepository.CreateAddress(new Address
+                var orderBillingAddress = await customerRepository.CreateAddress(new Address
                 {
                     AddressLineOne = createOrderRequest.Customer.BillingAddress.AddressLineOne,
                     AddressLineTwo = createOrderRequest.Customer.BillingAddress.AddressLineTwo,
@@ -157,7 +156,7 @@ namespace Api.Controllers
                     Country = createOrderRequest.Customer.BillingAddress.Country,
                 });
 
-                var orderShippingAddress = await addressRepository.CreateAddress(new Address
+                var orderShippingAddress = await customerRepository.CreateAddress(new Address
                 {
                     AddressLineOne = createOrderRequest.Customer.ShippingAddress.AddressLineOne,
                     AddressLineTwo = createOrderRequest.Customer.ShippingAddress.AddressLineTwo,
@@ -216,7 +215,7 @@ namespace Api.Controllers
                     orderItems.Add(orderItem);
                 }
 
-                await orderItemRepository.CreateOrderItems(orderItems);
+                await orderRepository.CreateOrderItems(orderItems);
 
                 await basketRepository.RemoveAllBasketItems(basket.Id);
                 await basketRepository.DeleteBasket(basket.Id);

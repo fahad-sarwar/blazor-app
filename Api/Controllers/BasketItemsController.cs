@@ -7,7 +7,7 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BasketItemsController(BasketItemRepository basketItemRepository, BasketRepository basketRepository, ProductRepository productRepository,
+    public class BasketItemsController(BasketRepository basketRepository, ProductRepository productRepository,
         TaxRateRepository taxRateRepository, CustomerRepository customerRepository, ILogger<BasketItemsController> logger) : ControllerBase
     {
         [HttpPut("{id}")]
@@ -15,14 +15,14 @@ namespace Api.Controllers
         {
             try
             {
-                var exists = await basketItemRepository.BasketItemExists(id);
+                var exists = await basketRepository.BasketItemExists(id);
 
                 if (!exists)
                 {
                     return NotFound();
                 }
 
-                await basketItemRepository.UpdateBasketItemQuantity(id, updateBasketItemQuantity.Quantity);
+                await basketRepository.UpdateBasketItemQuantity(id, updateBasketItemQuantity.Quantity);
 
                 return NoContent();
             }
@@ -89,7 +89,7 @@ namespace Api.Controllers
                     CreatedAt = DateTime.UtcNow
                 };
 
-                var createdBasketItem = await basketItemRepository.CreateBasketItem(basketItem);
+                var createdBasketItem = await basketRepository.CreateBasketItem(basketItem);
 
                 return Ok(createdBasketItem);
             }
@@ -105,14 +105,14 @@ namespace Api.Controllers
         {
             try
             {
-                var exists = await basketItemRepository.BasketItemExists(id);
+                var exists = await basketRepository.BasketItemExists(id);
 
                 if (!exists)
                 {
                     return NotFound();
                 }
 
-                await basketItemRepository.DeleteBasketItem(id);
+                await basketRepository.DeleteBasketItem(id);
 
                 return NoContent();
             }

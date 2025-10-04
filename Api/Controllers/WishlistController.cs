@@ -9,7 +9,7 @@ namespace Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class WishlistController(WishlistRepository wishlistRepository, ProductRepository productRepository, CustomerRepository customerRepository, ILogger<WishlistController> logger) : ControllerBase
+    public class WishlistController(ProductRepository productRepository, CustomerRepository customerRepository, ILogger<WishlistController> logger) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetWishlist([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
@@ -30,7 +30,7 @@ namespace Api.Controllers
                     return NotFound("Customer not found.");
                 }
 
-                var (products, totalCount) = await wishlistRepository.GetWishlistProducts(customer.Id, page, pageSize);
+                var (products, totalCount) = await customerRepository.GetWishlistProducts(customer.Id, page, pageSize);
 
                 return Ok(
                     new
@@ -66,7 +66,7 @@ namespace Api.Controllers
                     return NotFound("Customer not found.");
                 }
 
-                var exists = await wishlistRepository.IsProductInWishlist(customer.Id, productId);
+                var exists = await customerRepository.IsProductInWishlist(customer.Id, productId);
 
                 return exists 
                     ? Ok() 
@@ -105,14 +105,14 @@ namespace Api.Controllers
                     return NotFound("Product not found.");
                 }
 
-                var exists = await wishlistRepository.IsProductInWishlist(customer.Id, request.ProductId);
+                var exists = await customerRepository.IsProductInWishlist(customer.Id, request.ProductId);
 
                 if (exists)
                 {
                     return BadRequest("Product is already in the wishlist.");
                 }
 
-                await wishlistRepository.AddToWishlist(customer.Id, request.ProductId);
+                await customerRepository.AddToWishlist(customer.Id, request.ProductId);
 
                 return Ok();
             }
@@ -142,14 +142,14 @@ namespace Api.Controllers
                     return NotFound("Customer not found.");
                 }
 
-                var exists = await wishlistRepository.IsProductInWishlist(customer.Id, productId);
+                var exists = await customerRepository.IsProductInWishlist(customer.Id, productId);
 
                 if (!exists)
                 {
                     return NotFound("Product not found in wishlist.");
                 }
 
-                await wishlistRepository.RemoveFromWishlist(customer.Id, productId);
+                await customerRepository.RemoveFromWishlist(customer.Id, productId);
 
                 return Ok();
             }

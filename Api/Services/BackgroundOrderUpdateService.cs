@@ -41,7 +41,6 @@ namespace Api.Services
             {
                 using var scope = serviceProvider.CreateScope();
                 var orderRepository = scope.ServiceProvider.GetRequiredService<OrderRepository>();
-                var orderTrackingUpdateRepository = scope.ServiceProvider.GetRequiredService<OrderTrackingUpdateRepository>();
 
                 var order = await orderRepository.GetOrder(orderId);
 
@@ -65,41 +64,41 @@ namespace Api.Services
                     {
                         case "Pending":
                             await orderRepository.UpdateOrderStatus(orderId, status);
-                            await AddNote(orderTrackingUpdateRepository, rnd, orderId, status, "Order received and is currently being processed by our warehouse team.");
+                            await AddNote(orderRepository, rnd, orderId, status, "Order received and is currently being processed by our warehouse team.");
                             break;
 
                         case "Inventory Check":
                             await orderRepository.UpdateOrderStatus(orderId, status);
-                            await AddNote(orderTrackingUpdateRepository, rnd, orderId, status, "Checking inventory of ordered products by the logistics team.");
+                            await AddNote(orderRepository, rnd, orderId, status, "Checking inventory of ordered products by the logistics team.");
                             failedOrderStack.Push("Products add back to inventory");
                             break;
 
                         case "Packed":
                             await orderRepository.UpdateOrderStatus(orderId, status);
-                            await AddNote(orderTrackingUpdateRepository, rnd, orderId, status, "All items have been packed and are ready to be shipped.");
+                            await AddNote(orderRepository, rnd, orderId, status, "All items have been packed and are ready to be shipped.");
                             failedOrderStack.Push("Unpacked");
                             break;
 
                         case "Shipped":
                             await orderRepository.UpdateOrderStatus(orderId, status, "Standard Shipping", DateTime.UtcNow.AddDays(3));
-                            await AddNote(orderTrackingUpdateRepository, rnd, orderId, status, "Order has left our warehouse and is on its way to the delivery hub.");
+                            await AddNote(orderRepository, rnd, orderId, status, "Order has left our warehouse and is on its way to the delivery hub.");
                             failedOrderStack.Push("Back in warehouse");
                             break;
 
                         case "In Transit":
                             await orderRepository.UpdateOrderStatus(orderId, status);
-                            await AddNote(orderTrackingUpdateRepository, rnd, orderId, status, "Order has left our warehouse and is on its way to the local depot.");
+                            await AddNote(orderRepository, rnd, orderId, status, "Order has left our warehouse and is on its way to the local depot.");
                             break;
 
                         case "At local depot":
                             await orderRepository.UpdateOrderStatus(orderId, status);
-                            await AddNote(orderTrackingUpdateRepository, rnd, orderId, status, "Order is at the local depot ready to be delivered to the customer.");
+                            await AddNote(orderRepository, rnd, orderId, status, "Order is at the local depot ready to be delivered to the customer.");
                             failedOrderStack.Push("Return to Depot");
                             break;
 
                         case "Out for Delivery":
                             await orderRepository.UpdateOrderStatus(orderId, status);
-                            await AddNote(orderTrackingUpdateRepository, rnd, orderId, status, "Driver has your package and is en route to your address.");
+                            await AddNote(orderRepository, rnd, orderId, status, "Driver has your package and is en route to your address.");
                             failedOrderStack.Push("Delivery Failed");
                             break;
 
@@ -107,7 +106,7 @@ namespace Api.Services
                             if (!HasOrderFailed(order))
                             {
                                 await orderRepository.UpdateOrderStatus(orderId, status);
-                                await AddNote(orderTrackingUpdateRepository, rnd, orderId, status, "Order delivered successfully. Thank you for shopping with us!");
+                                await AddNote(orderRepository, rnd, orderId, status, "Order delivered successfully. Thank you for shopping with us!");
                             }
                             break;
                     }
@@ -124,19 +123,19 @@ namespace Api.Services
                         switch (failedOrderUpdateStatus)
                         {
                             case "Delivery Failed":
-                                await AddNote(orderTrackingUpdateRepository, rnd, orderId, failedOrderUpdateStatus, "Customer not home or unavailable.");
+                                await AddNote(orderRepository, rnd, orderId, failedOrderUpdateStatus, "Customer not home or unavailable.");
                                 break;
                             case "Return to Depot":
-                                await AddNote(orderTrackingUpdateRepository, rnd, orderId, failedOrderUpdateStatus, "Package is being returned to the local depot.");
+                                await AddNote(orderRepository, rnd, orderId, failedOrderUpdateStatus, "Package is being returned to the local depot.");
                                 break;
                             case "Back in warehouse":
-                                await AddNote(orderTrackingUpdateRepository, rnd, orderId, failedOrderUpdateStatus, "Items have been returned back to the warehouse waiting to be processed.");
+                                await AddNote(orderRepository, rnd, orderId, failedOrderUpdateStatus, "Items have been returned back to the warehouse waiting to be processed.");
                                 break;
                             case "Unpacked":
-                                await AddNote(orderTrackingUpdateRepository, rnd, orderId, failedOrderUpdateStatus, "Items have been checked and unpacked");
+                                await AddNote(orderRepository, rnd, orderId, failedOrderUpdateStatus, "Items have been checked and unpacked");
                                 break;
                             case "Products add back to inventory":
-                                await AddNote(orderTrackingUpdateRepository, rnd, orderId, failedOrderUpdateStatus, "Items have been added back to the inventory.");
+                                await AddNote(orderRepository, rnd, orderId, failedOrderUpdateStatus, "Items have been added back to the inventory.");
                                 break;
                         }
                     }
@@ -150,7 +149,7 @@ namespace Api.Services
             }
         }
 
-        private async Task AddNote(OrderTrackingUpdateRepository orderTrackingUpdateRepository, Random random, int orderId, string status, string note)
+        private async Task AddNote(OrderRepository orderRepository, Random random, int orderId, string status, string note)
         {
             var updatedBy = new[] { "System", "Admin", "User" };
 
@@ -163,7 +162,7 @@ namespace Api.Services
                 CreatedAt = DateTime.UtcNow
             };
 
-            await orderTrackingUpdateRepository.CreateTrackingUpdate(orderTrackingUpdate);
+            await orderRepository.CreateTrackingUpdate(orderTrackingUpdate);
         }
 
         private bool HasOrderFailed(Order order)

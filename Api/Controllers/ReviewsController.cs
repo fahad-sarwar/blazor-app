@@ -8,14 +8,14 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ReviewsController(ReviewRepository reviewRepository, CustomerRepository customerRepository, ProductRepository productRepository, ILogger<ReviewsController> logger) : ControllerBase
+    public class ReviewsController(CustomerRepository customerRepository, ProductRepository productRepository, ILogger<ReviewsController> logger) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetReviews([FromQuery] int productId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var (reviews, totalCount) = await reviewRepository.GetReviews(productId, page, pageSize);
+                var (reviews, totalCount) = await customerRepository.GetReviews(productId, page, pageSize);
 
                 return Ok(
                     new
@@ -37,7 +37,7 @@ namespace Api.Controllers
         {
             try
             {
-                var averageRating = await reviewRepository.GetAverageRating(productId);
+                var averageRating = await customerRepository.GetAverageRating(productId);
 
                 return Ok(
                     new
@@ -90,7 +90,7 @@ namespace Api.Controllers
                     CreatedAt = DateTime.UtcNow
                 };
 
-                var createdReview = await reviewRepository.CreateReview(review);
+                var createdReview = await customerRepository.CreateReview(review);
 
                 return Ok(createdReview);
             }

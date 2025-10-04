@@ -8,8 +8,8 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CustomersController(CustomerRepository customerRepository, AddressRepository addressRepository, 
-        UserRepository userRepository, ILogger<CustomersController> logger) : ControllerBase
+    public class CustomersController(CustomerRepository customerRepository, UserRepository userRepository, 
+        ILogger<CustomersController> logger) : ControllerBase
     {
         [HttpGet]
         public async Task<IActionResult> GetCustomer()
@@ -94,7 +94,7 @@ namespace Api.Controllers
                         Country = request.ShippingCountry
                     };
 
-                    shippingAddress = await addressRepository.CreateAddress(shippingAddress);
+                    shippingAddress = await customerRepository.CreateAddress(shippingAddress);
                     customer.ShippingAddress = shippingAddress;
                 }
                 else
@@ -105,7 +105,7 @@ namespace Api.Controllers
                     customer.ShippingAddress.County = request.ShippingCounty;
                     customer.ShippingAddress.PostCode = request.ShippingPostCode;
                     customer.ShippingAddress.Country = request.ShippingCountry;
-                    await addressRepository.UpdateAddress(customer.ShippingAddress);
+                    await customerRepository.UpdateAddress(customer.ShippingAddress);
                 }           
 
                 if (createBillingAddress)
@@ -120,7 +120,7 @@ namespace Api.Controllers
                         Country = request.BillingCountry
                     };
 
-                    billingAddress = await addressRepository.CreateAddress(billingAddress);
+                    billingAddress = await customerRepository.CreateAddress(billingAddress);
                     customer.BillingAddress = billingAddress;
                 }
                 else
@@ -131,7 +131,7 @@ namespace Api.Controllers
                     customer.BillingAddress.County = request.BillingCounty;
                     customer.BillingAddress.PostCode = request.BillingPostCode;
                     customer.BillingAddress.Country = request.BillingCountry;
-                    await addressRepository.UpdateAddress(customer.BillingAddress);
+                    await customerRepository.UpdateAddress(customer.BillingAddress);
                 }
 
                 await customerRepository.UpdateCustomer(customer);

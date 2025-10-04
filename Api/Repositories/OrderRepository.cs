@@ -3,12 +3,8 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public class OrderRepository(
-        CustomerRepository customerRepository,
-        AddressRepository addressRepository,
-        PaymentRepository paymentRepository,
-        OrderItemRepository orderItemRepository,
-        OrderTrackingUpdateRepository trackingUpdateRepository) : RepositoryBase
+    public class OrderRepository(CustomerRepository customerRepository, ProductRepository productRepository,
+        PaymentRepository paymentRepository) : RepositoryBase
     {
         public async Task<(List<Order> Orders, int TotalCount)> GetOrdersByCustomerId(int customerId, string? orderNumber = null, int page = 1, int pageSize = 10)
         {
@@ -143,11 +139,11 @@ namespace Api.Repositories
                     reader.Close();
 
                     order.Customer = await customerRepository.GetCustomerById(customerId);
-                    order.BillingAddress = await addressRepository.GetAddress(billingAddressId);
-                    order.ShippingAddress = await addressRepository.GetAddress(shippingAddressId);
+                    order.BillingAddress = await customerRepository.GetAddress(billingAddressId);
+                    order.ShippingAddress = await customerRepository.GetAddress(shippingAddressId);
                     order.Payment = await paymentRepository.GetPayment(paymentId);
-                    order.OrderItems = await orderItemRepository.GetOrderItemsByOrderId(orderId);
-                    order.TrackingUpdates = await trackingUpdateRepository.GetTrackingUpdatesByOrderId(orderId);
+                    order.OrderItems = await GetOrderItemsByOrderId(orderId);
+                    order.TrackingUpdates = await GetTrackingUpdatesByOrderId(orderId);
                 }
 
                 return order;
@@ -290,6 +286,170 @@ namespace Api.Repositories
             {
                 conn.Open();
                 await command.ExecuteNonQueryAsync();
+            }
+            finally
+            {
+                conn.Close();
+            }
+        }
+
+        public async Task<OrderItem> CreateOrderItem(OrderItem orderItem)
+        {
+            var query =
+                "INSERT INTO OrderItem (OrderId, ProductId, Quantity, UnitPrice, TotalPrice, VATRate, CreatedAt) " +
+                "VALUES (@orderId, @productId, @quantity, @unitPrice, @totalPrice, @vatRate, @createdAt); " +
+                "SELECT last_insert_rowid();";
+
+            await using var conn = new SqliteConnection(ConnectionString);
+            await using var command = new SqliteCommand(query, conn);
+            try
+            {
+                conn.Open();
+
+                command.Parameters.AddWithValue("@orderId", orderItem.OrderId);
+                command.Parameters.AddWithValue("@productId", orderItem.Product?.Id ?? 0);
+                command.Parameters.AddWithValue("@quantity", orderItem.Quantity);
+                command.Parameters.AddWithValue("@unitPrice", orderItem.UnitPrice);
+                command.Parameters.AddWithValue("@totalPrice", orderItem.TotalPrice);
+                command.Parameters.AddWithValue("@vatRate", orderItem.VATRate);
+                command.Parameters.AddWithValue("@createdAt", orderItem.CreatedAt);
+
+                var orderItemId = await command.ExecuteScalarAsync();
+                orderItem.Id = Convert.ToInt32(orderItemId);
+                return orderItem;
+            }
+            finally
+            {
+                conn.Close();
+            }
+        }
+
+        public async Task<List<OrderItem>> CreateOrderItems(List<OrderItem> orderItems)
+        {
+            var createdItems = new List<OrderItem>();
+
+            foreach (var orderItem in orderItems)
+            {
+                var created = await CreateOrderItem(orderItem);
+                createdItems.Add(created);
+            }
+
+            return createdItems;
+        }
+
+        public async Task<List<OrderItem>> GetOrderItemsByOrderId(int orderId)
+        {
+            var query =
+                "SELECT Id, OrderId, ProductId, Quantity, UnitPrice, TotalPrice, VATRate, CreatedAt " +
+                "FROM OrderItem " +
+                "WHERE OrderId = @orderId";
+
+            await using var conn = new SqliteConnection(ConnectionString);
+            await using var command = new SqliteCommand(query, conn);
+            try
+            {
+                conn.Open();
+
+                command.Parameters.AddWithValue("@orderId", orderId);
+
+                var reader = await command.ExecuteReaderAsync();
+
+                var orderItems = new List<OrderItem>();
+
+                while (reader.Read())
+                {
+                    orderItems.Add(new OrderItem
+                    {
+                        Id = reader.GetInt32(0),
+                        OrderId = reader.GetInt32(1),
+                        Product = new Product { Id = reader.GetInt32(2) },
+                        Quantity = reader.GetInt32(3),
+                        UnitPrice = reader.GetDouble(4),
+                        TotalPrice = reader.GetDouble(5),
+                        VATRate = reader.GetDouble(6),
+                        CreatedAt = reader.GetDateTime(7)
+                    });
+                }
+
+                reader.Close();
+
+                foreach (var orderItem in orderItems)
+                {
+                    var product = await productRepository.GetProduct(orderItem.Product.Id);
+                    orderItem.Product = product;
+                }
+
+                return orderItems;
+            }
+            finally
+            {
+                conn.Close();
+            }
+        }
+
+        public async Task<OrderTrackingUpdate> CreateTrackingUpdate(OrderTrackingUpdate trackingUpdate)
+        {
+            var query =
+                "INSERT INTO OrderTrackingUpdate (OrderId, UpdatedBy, Status, Note, CreatedAt) " +
+                "VALUES (@orderId, @updatedBy, @status, @note, @createdAt); " +
+                "SELECT last_insert_rowid();";
+
+            await using var conn = new SqliteConnection(ConnectionString);
+            await using var command = new SqliteCommand(query, conn);
+            try
+            {
+                conn.Open();
+
+                command.Parameters.AddWithValue("@orderId", trackingUpdate.OrderId);
+                command.Parameters.AddWithValue("@updatedBy", trackingUpdate.UpdatedBy);
+                command.Parameters.AddWithValue("@status", trackingUpdate.Status);
+                command.Parameters.AddWithValue("@note", trackingUpdate.Note);
+                command.Parameters.AddWithValue("@createdAt", trackingUpdate.CreatedAt);
+
+                var orderTrackingUpdateId = await command.ExecuteScalarAsync();
+                trackingUpdate.Id = Convert.ToInt32(orderTrackingUpdateId);
+                return trackingUpdate;
+            }
+            finally
+            {
+                conn.Close();
+            }
+        }
+
+        public async Task<List<OrderTrackingUpdate>> GetTrackingUpdatesByOrderId(int orderId)
+        {
+            var trackingUpdates = new List<OrderTrackingUpdate>();
+
+            var query =
+                "SELECT Id, OrderId, UpdatedBy, Status, Note, CreatedAt " +
+                "FROM OrderTrackingUpdate " +
+                "WHERE OrderId = @orderId " +
+                "ORDER BY CreatedAt ASC";
+
+            await using var conn = new SqliteConnection(ConnectionString);
+            await using var command = new SqliteCommand(query, conn);
+            try
+            {
+                conn.Open();
+
+                command.Parameters.AddWithValue("@orderId", orderId);
+
+                var reader = await command.ExecuteReaderAsync();
+
+                while (reader.Read())
+                {
+                    trackingUpdates.Add(new OrderTrackingUpdate
+                    {
+                        Id = reader.GetInt32(0),
+                        OrderId = reader.GetInt32(1),
+                        UpdatedBy = reader.GetString(2),
+                        Status = reader.GetString(3),
+                        Note = reader.GetString(4),
+                        CreatedAt = reader.GetDateTime(5)
+                    });
+                }
+
+                return trackingUpdates;
             }
             finally
             {
