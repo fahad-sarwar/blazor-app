@@ -8,7 +8,6 @@ namespace Api.Repositories
 
         public async Task ExecuteNonQuery(string query, Dictionary<string, object> parameters)
         {
-
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(query, conn);
             try
@@ -21,6 +20,27 @@ namespace Api.Repositories
                 }
 
                 await command.ExecuteNonQueryAsync();
+            }
+            finally
+            {
+                conn.Close();
+            }
+        }
+
+        public async Task<int> ExecuteScalar(string query, Dictionary<string, object> parameters)
+        {
+            await using var conn = new SqliteConnection(ConnectionString);
+            await using var command = new SqliteCommand(query, conn);
+            try
+            {
+                conn.Open();
+                foreach (var parameter in parameters)
+                {
+                    command.Parameters.AddWithValue(parameter.Key, parameter.Value);
+                }
+
+                var result = await command.ExecuteScalarAsync();
+                return Convert.ToInt32(result);
             }
             finally
             {

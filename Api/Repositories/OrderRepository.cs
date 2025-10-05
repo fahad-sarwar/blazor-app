@@ -38,11 +38,15 @@ namespace Api.Repositories
                 conn.Open();
 
                 await using var countCommand = new SqliteCommand(countQuery, conn);
+
+                var countParameters = new Dictionary<string, object>();
+
                 foreach (var param in parameters)
                 {
-                    countCommand.Parameters.AddWithValue(param.name, param.value);
+                    countParameters.Add(param.name, param.value);
                 }
-                var totalCount = Convert.ToInt32(await countCommand.ExecuteScalarAsync());
+
+                var totalCount = await ExecuteScalar(countQuery, countParameters);
 
                 await using var dataCommand = new SqliteCommand(dataQuery, conn);
 
@@ -209,34 +213,25 @@ namespace Api.Repositories
                 "@estimatedDelivery, @contactPhoneNumber, @createdAt, @updatedAt); " +
                 "SELECT last_insert_rowid();";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@orderNumber", order.OrderNumber },
+                { "@customerId", order.Customer?.Id ?? 0 },
+                { "@billingAddressId", order.BillingAddress?.Id ?? 0 },
+                { "@shippingAddressId", order.ShippingAddress?.Id ?? 0 },
+                { "@totalPrice", order.TotalPrice },
+                { "@vatRate", order.VATRate },
+                { "@status", order.Status },
+                { "@paymentId", order.Payment?.Id ?? 0 },
+                { "@deliveryMethod", order.DeliveryMethod },
+                { "@estimatedDelivery", (object?)order.EstimatedDelivery ?? DBNull.Value },
+                { "@contactPhoneNumber", order.ContactPhoneNumber },
+                { "@createdAt", order.CreatedAt },
+                { "@updatedAt", order.UpdatedAt },
+            };
 
-                command.Parameters.AddWithValue("@orderNumber", order.OrderNumber);
-                command.Parameters.AddWithValue("@customerId", order.Customer?.Id ?? 0);
-                command.Parameters.AddWithValue("@billingAddressId", order.BillingAddress?.Id ?? 0);
-                command.Parameters.AddWithValue("@shippingAddressId", order.ShippingAddress?.Id ?? 0);
-                command.Parameters.AddWithValue("@totalPrice", order.TotalPrice);
-                command.Parameters.AddWithValue("@vatRate", order.VATRate);
-                command.Parameters.AddWithValue("@status", order.Status);
-                command.Parameters.AddWithValue("@paymentId", order.Payment?.Id ?? 0);
-                command.Parameters.AddWithValue("@deliveryMethod", order.DeliveryMethod);
-                command.Parameters.AddWithValue("@estimatedDelivery", (object?)order.EstimatedDelivery ?? DBNull.Value);
-                command.Parameters.AddWithValue("@contactPhoneNumber", order.ContactPhoneNumber);
-                command.Parameters.AddWithValue("@createdAt", order.CreatedAt);
-                command.Parameters.AddWithValue("@updatedAt", order.UpdatedAt);
-
-                var orderId = await command.ExecuteScalarAsync();
-                order.Id = Convert.ToInt32(orderId);
-                return order;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            order.Id = await ExecuteScalar(query, parameters);
+            return order;
         }
 
         public async Task UpdateOrderNumber(int orderId, string orderNumber)
@@ -284,28 +279,19 @@ namespace Api.Repositories
                 "VALUES (@orderId, @productId, @quantity, @unitPrice, @totalPrice, @vatRate, @createdAt); " +
                 "SELECT last_insert_rowid();";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@orderId", orderItem.OrderId },
+                { "@productId", orderItem.Product?.Id ?? 0 },
+                { "@quantity", orderItem.Quantity },
+                { "@unitPrice", orderItem.UnitPrice },
+                { "@totalPrice", orderItem.TotalPrice },
+                { "@vatRate", orderItem.VATRate },
+                { "@createdAt", orderItem.CreatedAt },
+            };
 
-                command.Parameters.AddWithValue("@orderId", orderItem.OrderId);
-                command.Parameters.AddWithValue("@productId", orderItem.Product?.Id ?? 0);
-                command.Parameters.AddWithValue("@quantity", orderItem.Quantity);
-                command.Parameters.AddWithValue("@unitPrice", orderItem.UnitPrice);
-                command.Parameters.AddWithValue("@totalPrice", orderItem.TotalPrice);
-                command.Parameters.AddWithValue("@vatRate", orderItem.VATRate);
-                command.Parameters.AddWithValue("@createdAt", orderItem.CreatedAt);
-
-                var orderItemId = await command.ExecuteScalarAsync();
-                orderItem.Id = Convert.ToInt32(orderItemId);
-                return orderItem;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            orderItem.Id = await ExecuteScalar(query, parameters);
+            return orderItem;
         }
 
         public async Task<List<OrderItem>> CreateOrderItems(List<OrderItem> orderItems)
@@ -378,26 +364,17 @@ namespace Api.Repositories
                 "VALUES (@orderId, @updatedBy, @status, @note, @createdAt); " +
                 "SELECT last_insert_rowid();";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@orderId", trackingUpdate.OrderId },
+                { "@updatedBy", trackingUpdate.UpdatedBy },
+                { "@status", trackingUpdate.Status },
+                { "@note", trackingUpdate.Note },
+                { "@createdAt", trackingUpdate.CreatedAt },
+            };
 
-                command.Parameters.AddWithValue("@orderId", trackingUpdate.OrderId);
-                command.Parameters.AddWithValue("@updatedBy", trackingUpdate.UpdatedBy);
-                command.Parameters.AddWithValue("@status", trackingUpdate.Status);
-                command.Parameters.AddWithValue("@note", trackingUpdate.Note);
-                command.Parameters.AddWithValue("@createdAt", trackingUpdate.CreatedAt);
-
-                var orderTrackingUpdateId = await command.ExecuteScalarAsync();
-                trackingUpdate.Id = Convert.ToInt32(orderTrackingUpdateId);
-                return trackingUpdate;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            trackingUpdate.Id = await ExecuteScalar(query, parameters);
+            return trackingUpdate;
         }
 
         public async Task<List<OrderTrackingUpdate>> GetTrackingUpdatesByOrderId(int orderId)

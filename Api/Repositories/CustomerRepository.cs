@@ -84,29 +84,20 @@ namespace Api.Repositories
                 "VALUES (@firstName, @lastName, @email, @phoneNumber, @userId, @createdAt, @billingAddressId, @shippingAddressId); " +
                 "SELECT last_insert_rowid();";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@firstName", customer.FirstName },
+                { "@lastName", customer.LastName },
+                { "@email", customer.Email },
+                { "@phoneNumber", customer.PhoneNumber },
+                { "@userId", customer.UserId },
+                { "@createdAt", customer.CreatedAt },
+                { "@billingAddressId", (object?)customer.BillingAddress?.Id ?? DBNull.Value },
+                { "@shippingAddressId", (object?)customer.ShippingAddress?.Id ?? DBNull.Value },
+            };
 
-                command.Parameters.AddWithValue("@firstName", customer.FirstName);
-                command.Parameters.AddWithValue("@lastName", customer.LastName);
-                command.Parameters.AddWithValue("@email", customer.Email);
-                command.Parameters.AddWithValue("@phoneNumber", customer.PhoneNumber ?? string.Empty);
-                command.Parameters.AddWithValue("@userId", customer.UserId);
-                command.Parameters.AddWithValue("@createdAt", customer.CreatedAt);
-                command.Parameters.AddWithValue("@billingAddressId", (object?)customer.BillingAddress?.Id ?? DBNull.Value);
-                command.Parameters.AddWithValue("@shippingAddressId", (object?)customer.ShippingAddress?.Id ?? DBNull.Value);
-
-                var insertedId = await command.ExecuteScalarAsync();
-                customer.Id = Convert.ToInt32(insertedId);
-                return customer;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            customer.Id = await ExecuteScalar(query, parameters);
+            return customer;
         }
 
         public async Task UpdateCustomer(Customer customer)
@@ -142,27 +133,18 @@ namespace Api.Repositories
                 "VALUES (@addressLineOne, @addressLineTwo, @town, @county, @postCode, @country); " +
                 "SELECT last_insert_rowid();";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@addressLineOne", address.AddressLineOne },
+                { "@addressLineTwo", address.AddressLineTwo },
+                { "@town", address.Town },
+                { "@county", address.County },
+                { "@postCode", address.PostCode },
+                { "@country", address.Country },
+            };
 
-                command.Parameters.AddWithValue("@addressLineOne", address.AddressLineOne);
-                command.Parameters.AddWithValue("@addressLineTwo", address.AddressLineTwo ?? string.Empty);
-                command.Parameters.AddWithValue("@town", address.Town);
-                command.Parameters.AddWithValue("@county", address.County ?? string.Empty);
-                command.Parameters.AddWithValue("@postCode", address.PostCode);
-                command.Parameters.AddWithValue("@country", address.Country);
-
-                var insertedId = await command.ExecuteScalarAsync();
-                address.Id = Convert.ToInt32(insertedId);
-                return address;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            address.Id = await ExecuteScalar(query, parameters);
+            return address;
         }
 
         public async Task<Address?> GetAddress(int addressId)
@@ -254,8 +236,13 @@ namespace Api.Repositories
                 conn.Open();
 
                 await using var countCommand = new SqliteCommand(countQuery, conn);
-                countCommand.Parameters.AddWithValue("@customerId", customerId);
-                var totalCount = Convert.ToInt32(await countCommand.ExecuteScalarAsync());
+
+                var countParameters = new Dictionary<string, object>
+                {
+                    { "@customerId", customerId }
+                };
+
+                var totalCount = await ExecuteScalar(countQuery, countParameters);
 
                 await using var wishlistCommand = new SqliteCommand(wishlistQuery, conn);
                 wishlistCommand.Parameters.AddWithValue("@customerId", customerId);
@@ -296,23 +283,14 @@ namespace Api.Repositories
                 "FROM Wishlist " +
                 "WHERE CustomerId = @customerId AND ProductId = @productId";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@customerId", customerId },
+                { "@productId", productId }
+            };
 
-                command.Parameters.AddWithValue("@customerId", customerId);
-                command.Parameters.AddWithValue("@productId", productId);
-
-                var count = Convert.ToInt32(await command.ExecuteScalarAsync());
-
-                return count > 0;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            var count = await ExecuteScalar(query, parameters);
+            return count > 0;
         }
 
         public async Task AddToWishlist(int customerId, int productId)
@@ -444,28 +422,19 @@ namespace Api.Repositories
                 "VALUES (@subject, @rating, @comment, @status, @productId, @customerId, @createdAt); " +
                 "SELECT last_insert_rowid();";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@subject", review.Subject },
+                { "@rating", review.Rating },
+                { "@comment", review.Comment },
+                { "@status", review.Status },
+                { "@productId", review.Product?.Id ?? 0 },
+                { "@customerId", review.Customer?.Id ?? 0 },
+                { "@createdAt", review.CreatedAt },
+            };
 
-                command.Parameters.AddWithValue("@subject", review.Subject);
-                command.Parameters.AddWithValue("@rating", review.Rating);
-                command.Parameters.AddWithValue("@comment", review.Comment);
-                command.Parameters.AddWithValue("@status", review.Status);
-                command.Parameters.AddWithValue("@productId", review.Product?.Id ?? 0);
-                command.Parameters.AddWithValue("@customerId", review.Customer?.Id ?? 0);
-                command.Parameters.AddWithValue("@createdAt", review.CreatedAt);
-
-                var reviewId = await command.ExecuteScalarAsync();
-                review.Id = Convert.ToInt32(reviewId);
-                return review;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            review.Id = await ExecuteScalar(query, parameters);
+            return review;
         }
     }
 }

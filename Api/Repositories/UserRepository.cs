@@ -103,25 +103,16 @@ namespace Api.Repositories
                 "VALUES (@username, @passwordHash, @isAdmin, @createdAt); " +
                 "SELECT last_insert_rowid();";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@username", user.Username },
+                { "@passwordHash", user.PasswordHash },
+                { "@isAdmin", user.IsAdmin },
+                { "@createdAt", user.CreatedAt },
+            };
 
-                command.Parameters.AddWithValue("@username", user.Username);
-                command.Parameters.AddWithValue("@passwordHash", user.PasswordHash);
-                command.Parameters.AddWithValue("@isAdmin", user.IsAdmin);
-                command.Parameters.AddWithValue("@createdAt", user.CreatedAt);
-
-                var userId = await command.ExecuteScalarAsync();
-                user.Id = Convert.ToInt32(userId);
-                return user;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            user.Id = await ExecuteScalar(query, parameters);
+            return user;
         }
 
         public async Task<bool> UserExists(string username)
@@ -131,21 +122,13 @@ namespace Api.Repositories
                 "FROM User " +
                 "WHERE Username = @username";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@username", username },
+            };
 
-                command.Parameters.AddWithValue("@username", username);
-
-                var count = Convert.ToInt32(await command.ExecuteScalarAsync());
-                return count > 0;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            var count = await ExecuteScalar(query, parameters);
+            return count > 0;
         }
 
         private string HashPassword(string password)

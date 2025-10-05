@@ -71,24 +71,15 @@ namespace Api.Repositories
                 "VALUES (@customerId, @anonymousId, @createdAt); " +
                 "SELECT last_insert_rowid();";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@customerId", (object?)basket.Customer?.Id ?? DBNull.Value },
+                { "@anonymousId", (object?)basket.AnonymousId ?? DBNull.Value },
+                { "@createdAt", basket.CreatedAt }
+            };
 
-                command.Parameters.AddWithValue("@customerId", (object?)basket.Customer?.Id ?? DBNull.Value);
-                command.Parameters.AddWithValue("@anonymousId", (object?)basket.AnonymousId ?? DBNull.Value);
-                command.Parameters.AddWithValue("@createdAt", basket.CreatedAt);
-
-                var basketId = await command.ExecuteScalarAsync();
-                basket.Id = Convert.ToInt32(basketId);
-                return basket;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            basket.Id = await ExecuteScalar(query, parameters);
+            return basket;
         }
 
         public async Task<Basket?> GetOrCreateBasket(string? anonymousId, int? customerId)
@@ -211,27 +202,18 @@ namespace Api.Repositories
                 "VALUES (@basketId, @productId, @quantity, @price, @vatRate, @createdAt); " +
                 "SELECT last_insert_rowid();";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@basketId", basketItem.BasketId },
+                { "@productId", basketItem.Product?.Id ?? 0 },
+                { "@quantity", basketItem.Quantity },
+                { "@price", basketItem.Price },
+                { "@vatRate", basketItem.VATRate },
+                { "@createdAt", basketItem.CreatedAt },
+            };
 
-                command.Parameters.AddWithValue("@basketId", basketItem.BasketId);
-                command.Parameters.AddWithValue("@productId", basketItem.Product?.Id ?? 0);
-                command.Parameters.AddWithValue("@quantity", basketItem.Quantity);
-                command.Parameters.AddWithValue("@price", basketItem.Price);
-                command.Parameters.AddWithValue("@vatRate", basketItem.VATRate);
-                command.Parameters.AddWithValue("@createdAt", basketItem.CreatedAt);
-
-                var basketItemId = await command.ExecuteScalarAsync();
-                basketItem.Id = Convert.ToInt32(basketItemId);
-                return basketItem;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            basketItem.Id = await ExecuteScalar(query, parameters);
+            return basketItem;
         }
 
         public async Task UpdateBasketItemQuantity(int basketItemId, int quantity)
@@ -271,21 +253,13 @@ namespace Api.Repositories
                 "FROM BasketItem " +
                 "WHERE Id = @basketItemId";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@basketItemId", basketItemId }
+            };
 
-                command.Parameters.AddWithValue("@basketItemId", basketItemId);
-
-                var count = Convert.ToInt32(await command.ExecuteScalarAsync());
-                return count > 0;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            var count = await ExecuteScalar(query, parameters);
+            return count > 0;
         }
     }
 }

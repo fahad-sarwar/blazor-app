@@ -70,13 +70,15 @@ namespace Api.Repositories
                 conn.Open();
 
                 await using var countCommand = new SqliteCommand(countQuery, conn);
+
+                var countParameters = new Dictionary<string, object>();
+
                 foreach (var param in commandParameters)
                 {
-                    countCommand.Parameters.AddWithValue(param.name, param.value);
+                    countParameters.Add(param.name, param.value);
                 }
 
-                var totalCountResult = await countCommand.ExecuteScalarAsync();
-                var totalCount = Convert.ToInt32(totalCountResult);
+                var totalCount = await ExecuteScalar(countQuery, countParameters);
 
                 commandParameters.Add(("@pageSize", pageSize));
                 commandParameters.Add(("@offset", (page - 1) * pageSize));

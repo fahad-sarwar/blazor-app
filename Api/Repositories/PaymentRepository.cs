@@ -12,28 +12,19 @@ namespace Api.Repositories
                 "VALUES (@amount, @paymentMethod, @cardName, @cardNumber, @expiry, @cvv, @createdAt); " +
                 "SELECT last_insert_rowid();";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@amount", payment.Amount },
+                { "@paymentMethod", payment.PaymentMethod },
+                { "@cardName", payment.CardName },
+                { "@cardNumber", payment.CardNumber },
+                { "@expiry", payment.Expiry },
+                { "@cvv", payment.CVV },
+                { "@createdAt", payment.CreatedAt },
+            };
 
-                command.Parameters.AddWithValue("@amount", payment.Amount);
-                command.Parameters.AddWithValue("@paymentMethod", payment.PaymentMethod);
-                command.Parameters.AddWithValue("@cardName", payment.CardName);
-                command.Parameters.AddWithValue("@cardNumber", payment.CardNumber);
-                command.Parameters.AddWithValue("@expiry", payment.Expiry);
-                command.Parameters.AddWithValue("@cvv", payment.CVV);
-                command.Parameters.AddWithValue("@createdAt", payment.CreatedAt);
-
-                var paymentDetailsId = await command.ExecuteScalarAsync();
-                payment.Id = Convert.ToInt32(paymentDetailsId);
-                return payment;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            payment.Id = await ExecuteScalar(query, parameters);
+            return payment;
         }
 
         public async Task<Payment?> GetPayment(int paymentId)
