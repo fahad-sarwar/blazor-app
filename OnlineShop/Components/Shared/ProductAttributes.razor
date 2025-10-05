@@ -1,0 +1,36 @@
+﻿@using OnlineShopUI.ViewModels
+@rendermode InteractiveServer
+
+@if (Product.Attributes.Count > 0)
+{
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        Product Specifications
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <tbody>
+                                @foreach (var productAttribute in Product.Attributes)
+                            {
+                                <tr>
+                                    <td class="fw-semibold" style="width: 30%;">@productAttribute.Name</td>
+                                    <td>@productAttribute.Value</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public ProductViewModel? Product { get; set; }
+}

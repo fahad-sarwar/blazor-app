@@ -107,35 +107,7 @@ else
                         </div>
                     }
 
-                    @if (_product.Attributes.Count > 0)
-                    {
-                        <div class="row mb-4">
-                            <div class="col-12">
-                                <div class="card">
-                                    <div class="card-header">
-                                        <h5 class="mb-0">
-                                            Product Specifications
-                                        </h5>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="table-responsive">
-                                            <table class="table table-striped table-hover">
-                                                <tbody>
-                                                @foreach (var productAttribute in _product.Attributes)
-                                                {
-                                                    <tr>
-                                                        <td class="fw-semibold" style="width: 30%;">@productAttribute.Name</td>
-                                                        <td>@productAttribute.Value</td>
-                                                    </tr>
-                                                }
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    }
+                    <ProductAttributes Product="@_product" />
                 </div>
             </div>
         </div>
