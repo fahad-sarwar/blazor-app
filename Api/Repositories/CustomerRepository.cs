@@ -1,5 +1,6 @@
 using Api.Models;
 using Microsoft.Data.Sqlite;
+using System.Net;
 
 namespace Api.Repositories
 {
@@ -120,26 +121,18 @@ namespace Api.Repositories
                 "ShippingAddressId = @shippingAddressId " +
                 "WHERE Id = @id";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@id", customer.Id },
+                { "@firstName", customer.FirstName },
+                { "@lastName", customer.LastName },
+                { "@email", customer.Email },
+                { "@phoneNumber", customer.PhoneNumber },
+                { "@billingAddressId", (object?)customer.BillingAddress?.Id ?? DBNull.Value },
+                { "@shippingAddressId", (object?)customer.ShippingAddress?.Id ?? DBNull.Value },
+            };
 
-                command.Parameters.AddWithValue("@id", customer.Id);
-                command.Parameters.AddWithValue("@firstName", customer.FirstName);
-                command.Parameters.AddWithValue("@lastName", customer.LastName);
-                command.Parameters.AddWithValue("@email", customer.Email);
-                command.Parameters.AddWithValue("@phoneNumber", customer.PhoneNumber ?? string.Empty);
-                command.Parameters.AddWithValue("@billingAddressId", (object?)customer.BillingAddress?.Id ?? DBNull.Value);
-                command.Parameters.AddWithValue("@shippingAddressId", (object?)customer.ShippingAddress?.Id ?? DBNull.Value);
-
-                await command.ExecuteNonQueryAsync();
-            }
-            finally
-            {
-                conn.Close();
-            }
+            await ExecuteNonQuery(query, parameters);
         }
 
         public async Task<Address> CreateAddress(Address address)
@@ -225,26 +218,18 @@ namespace Api.Repositories
                 "Country = @country " +
                 "WHERE Id = @id";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@id", address.Id },
+                { "@addressLineOne", address.AddressLineOne },
+                { "@addressLineTwo", address.AddressLineTwo },
+                { "@town", address.Town },
+                { "@county", address.County },
+                { "@postCode", address.PostCode },
+                { "@country", address.Country },
+            };
 
-                command.Parameters.AddWithValue("@id", address.Id);
-                command.Parameters.AddWithValue("@addressLineOne", address.AddressLineOne);
-                command.Parameters.AddWithValue("@addressLineTwo", address.AddressLineTwo ?? string.Empty);
-                command.Parameters.AddWithValue("@town", address.Town);
-                command.Parameters.AddWithValue("@county", address.County ?? string.Empty);
-                command.Parameters.AddWithValue("@postCode", address.PostCode);
-                command.Parameters.AddWithValue("@country", address.Country);
-
-                await command.ExecuteNonQueryAsync();
-            }
-            finally
-            {
-                conn.Close();
-            }
+            await ExecuteNonQuery(query, parameters);
         }
 
         public async Task<(List<Product> Products, int TotalCount)> GetWishlistProducts(int customerId, int page = 1, int pageSize = 10)
@@ -336,22 +321,14 @@ namespace Api.Repositories
                 "INSERT INTO Wishlist (CustomerId, ProductId, CreatedAt) " +
                 "VALUES (@customerId, @productId, @createdAt)";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@customerId", customerId },
+                { "@productId", productId },
+                { "@createdAt", DateTime.UtcNow }
+            };
 
-                command.Parameters.AddWithValue("@customerId", customerId);
-                command.Parameters.AddWithValue("@productId", productId);
-                command.Parameters.AddWithValue("@createdAt", DateTime.UtcNow);
-
-                await command.ExecuteNonQueryAsync();
-            }
-            finally
-            {
-                conn.Close();
-            }
+            await ExecuteNonQuery(query, parameters);
         }
 
         public async Task RemoveFromWishlist(int customerId, int productId)
@@ -360,21 +337,13 @@ namespace Api.Repositories
                 "DELETE FROM Wishlist " +
                 "WHERE CustomerId = @customerId AND ProductId = @productId";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@customerId", customerId },
+                { "@productId", productId }
+            };
 
-                command.Parameters.AddWithValue("@customerId", customerId);
-                command.Parameters.AddWithValue("@productId", productId);
-
-                await command.ExecuteNonQueryAsync();
-            }
-            finally
-            {
-                conn.Close();
-            }
+            await ExecuteNonQuery(query, parameters);
         }
 
         public async Task<(List<Review> Reviews, int TotalCount)> GetReviews(int productId, int page = 1, int pageSize = 10)

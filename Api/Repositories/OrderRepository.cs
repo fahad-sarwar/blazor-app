@@ -246,21 +246,13 @@ namespace Api.Repositories
                 "SET OrderNumber = @orderNumber " +
                 "WHERE Id = @orderId";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            try
+            var parameters = new Dictionary<string, object>
             {
-                conn.Open();
+                { "@orderId", orderId },
+                { "@orderNumber", orderNumber }
+            };
 
-                command.Parameters.AddWithValue("@orderId", orderId);
-                command.Parameters.AddWithValue("@orderNumber", orderNumber);
-
-                await command.ExecuteNonQueryAsync();
-            }
-            finally
-            {
-                conn.Close();
-            }
+            await ExecuteNonQuery(query, parameters);
         }
 
         public async Task UpdateOrderStatus(int orderId, string status, string? deliveryMethod = null, DateTime? estimatedDelivery = null)
@@ -273,24 +265,16 @@ namespace Api.Repositories
                     UpdatedAt = @updatedAt
                 WHERE Id = @orderId";
 
-            await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            
-            command.Parameters.AddWithValue("@orderId", orderId);
-            command.Parameters.AddWithValue("@status", status);
-            command.Parameters.AddWithValue("@deliveryMethod", (object?)deliveryMethod ?? DBNull.Value);
-            command.Parameters.AddWithValue("@estimatedDelivery", (object?)estimatedDelivery ?? DBNull.Value);
-            command.Parameters.AddWithValue("@updatedAt", DateTime.UtcNow);
+            var parameters = new Dictionary<string, object>
+            {
+                { "@orderId", orderId },
+                { "@status", status },
+                { "@deliveryMethod", (object?)deliveryMethod ?? DBNull.Value },
+                { "@estimatedDelivery", (object?)estimatedDelivery ?? DBNull.Value },
+                { "@updatedAt", DateTime.UtcNow },
+            };
 
-            try
-            {
-                conn.Open();
-                await command.ExecuteNonQueryAsync();
-            }
-            finally
-            {
-                conn.Close();
-            }
+            await ExecuteNonQuery(query, parameters);
         }
 
         public async Task<OrderItem> CreateOrderItem(OrderItem orderItem)
