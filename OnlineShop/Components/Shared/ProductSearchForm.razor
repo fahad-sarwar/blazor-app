@@ -1,0 +1,22 @@
+﻿@inject NavigationManager Navigation
+@rendermode InteractiveServer
+
+<form class="d-flex ms-3 me-auto" @onsubmit="HandleSearch" style="width: 40%;">
+    <input class="form-control me-2" @bind="_searchTerm" type="search" placeholder="Search..." />
+    <button class="btn btn-outline-light" type="submit">Search</button>
+</form>
+
+@code {
+    private string _searchTerm = string.Empty;
+
+    private void HandleSearch()
+    {
+        if (string.IsNullOrWhiteSpace(_searchTerm))
+        {
+            return;
+        }
+
+        var encoded = Uri.EscapeDataString(_searchTerm);
+        Navigation.NavigateTo($"/search-results/{encoded}");
+    }
+}
