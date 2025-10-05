@@ -1,0 +1,36 @@
+﻿@using OnlineShopUI.ViewModels
+@rendermode InteractiveServer
+
+<div class="card rounded-3 p-4 mb-3">
+    <h5 class="mb-3">Customer Details</h5>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="firstName" class="form-label fw-semibold">First Name</label>
+            <InputText id="firstName" class="form-control" @bind-Value="CheckoutModel.FirstName" disabled="true" />
+            <ValidationMessage For="@(() => CheckoutModel.FirstName)" class="text-danger" />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label for="lastName" class="form-label fw-semibold">Last Name</label>
+            <InputText id="lastName" class="form-control" @bind-Value="CheckoutModel.LastName" disabled="true" />
+            <ValidationMessage For="@(() => CheckoutModel.LastName)" class="text-danger" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="email" class="form-label fw-semibold">Email</label>
+            <InputText id="email" class="form-control" @bind-Value="CheckoutModel.Email" disabled="true" />
+            <ValidationMessage For="@(() => CheckoutModel.Email)" class="text-danger" />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label for="phoneNumber" class="form-label fw-semibold">Phone Number</label>
+            <InputText id="phoneNumber" class="form-control" @bind-Value="CheckoutModel.PhoneNumber" />
+            <ValidationMessage For="@(() => CheckoutModel.PhoneNumber)" class="text-danger" />
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public CheckoutViewModel CheckoutModel { get; set; }
+}

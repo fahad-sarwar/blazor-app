@@ -1,0 +1,47 @@
+﻿@using OnlineShopUI.ViewModels
+@rendermode InteractiveServer
+
+<div class="card rounded-3 p-4 mb-3">
+    <h5 class="mb-3">Billing Address</h5>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="billingAddressLine1" class="form-label fw-semibold">Address Line 1</label>
+            <InputText id="billingAddressLine1" class="form-control" @bind-Value="CheckoutModel.BillingAddressLineOne" />
+            <ValidationMessage For="@(() => CheckoutModel.BillingAddressLineOne)" class="text-danger" />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label for="billingAddressLine2" class="form-label fw-semibold">Address Line 2</label>
+            <InputText id="billingAddressLine2" class="form-control" @bind-Value="CheckoutModel.BillingAddressLineTwo" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="billingTown" class="form-label fw-semibold">Town</label>
+            <InputText id="billingTown" class="form-control" @bind-Value="CheckoutModel.BillingTown" />
+            <ValidationMessage For="@(() => CheckoutModel.BillingTown)" class="text-danger" />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label for="billingCounty" class="form-label fw-semibold">County</label>
+            <InputText id="billingCounty" class="form-control" @bind-Value="CheckoutModel.BillingCounty" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="billingPostcode" class="form-label fw-semibold">Postcode</label>
+            <InputText id="billingPostcode" class="form-control" @bind-Value="CheckoutModel.BillingPostCode" />
+            <ValidationMessage For="@(() => CheckoutModel.BillingPostCode)" class="text-danger" />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label for="billingCountry" class="form-label fw-semibold">Country</label>
+            <InputText id="billingCountry" class="form-control" @bind-Value="CheckoutModel.BillingCountry" />
+            <ValidationMessage For="@(() => CheckoutModel.BillingCountry)" class="text-danger" />
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public CheckoutViewModel CheckoutModel { get; set; }
+}

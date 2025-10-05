@@ -1,0 +1,47 @@
+﻿@using OnlineShopUI.ViewModels
+@rendermode InteractiveServer
+
+<div class="card rounded-3 p-4 mb-3">
+    <h5 class="mb-3">Shipping Address</h5>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="shippingAddressLine1" class="form-label fw-semibold">Address Line 1</label>
+            <InputText id="shippingAddressLine1" class="form-control" @bind-Value="CheckoutModel.ShippingAddressLineOne" />
+            <ValidationMessage For="@(() => CheckoutModel.ShippingAddressLineOne)" class="text-danger" />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label for="shippingAddressLine2" class="form-label fw-semibold">Address Line 2</label>
+            <InputText id="shippingAddressLine2" class="form-control" @bind-Value="CheckoutModel.ShippingAddressLineTwo" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="shippingTown" class="form-label fw-semibold">Town</label>
+            <InputText id="shippingTown" class="form-control" @bind-Value="CheckoutModel.ShippingTown" />
+            <ValidationMessage For="@(() => CheckoutModel.ShippingTown)" class="text-danger" />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label for="shippingCounty" class="form-label fw-semibold">County</label>
+            <InputText id="shippingCounty" class="form-control" @bind-Value="CheckoutModel.ShippingCounty" />
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="shippingPostcode" class="form-label fw-semibold">Postcode</label>
+            <InputText id="shippingPostcode" class="form-control" @bind-Value="CheckoutModel.ShippingPostCode" />
+            <ValidationMessage For="@(() => CheckoutModel.ShippingPostCode)" class="text-danger" />
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label for="billingCountry" class="form-label fw-semibold">Country</label>
+            <InputText id="billingCountry" class="form-control" @bind-Value="CheckoutModel.ShippingCountry" />
+            <ValidationMessage For="@(() => CheckoutModel.ShippingCountry)" class="text-danger" />
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public CheckoutViewModel CheckoutModel { get; set; }
+}
