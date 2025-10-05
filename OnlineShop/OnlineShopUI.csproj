@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Bogus" Version="35.6.3" />
     <PackageReference Include="CountryData.Bogus" Version="6.13.0" />
     <PackageReference Include="Jenin.FontAwesome.Blazor" Version="1.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Cookies" Version="2.3.0" />
