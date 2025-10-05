@@ -36,7 +36,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error updating the customers details with id {Customer}"., request.Id);
+                logger.LogError(ex, "There was an error updating the customers details with id {Customer}.", request.Id);
                 return false;
             }
         }
