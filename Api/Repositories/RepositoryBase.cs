@@ -10,42 +10,29 @@ namespace Api.Repositories
         {
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(query, conn);
-            try
-            {
-                conn.Open();
+            conn.Open();
 
-                foreach(var parameter in parameters)
-                {
-                    command.Parameters.AddWithValue(parameter.Key, parameter.Value);
-                }
-
-                await command.ExecuteNonQueryAsync();
-            }
-            finally
+            foreach (var parameter in parameters)
             {
-                conn.Close();
+                command.Parameters.AddWithValue(parameter.Key, parameter.Value);
             }
+
+            await command.ExecuteNonQueryAsync();
         }
 
         public async Task<int> ExecuteScalar(string query, Dictionary<string, object> parameters)
         {
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(query, conn);
-            try
-            {
-                conn.Open();
-                foreach (var parameter in parameters)
-                {
-                    command.Parameters.AddWithValue(parameter.Key, parameter.Value);
-                }
+            conn.Open();
 
-                var result = await command.ExecuteScalarAsync();
-                return Convert.ToInt32(result);
-            }
-            finally
+            foreach (var parameter in parameters)
             {
-                conn.Close();
+                command.Parameters.AddWithValue(parameter.Key, parameter.Value);
             }
+
+            var result = await command.ExecuteScalarAsync();
+            return Convert.ToInt32(result);
         }
     }
 }

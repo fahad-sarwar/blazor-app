@@ -7,7 +7,7 @@ namespace Api.Repositories
     {
         public async Task<Payment> CreatePayment(Payment payment)
         {
-            var query = 
+            var query =
                 "INSERT INTO Payment (Amount, PaymentMethod, CardName, CardNumber, Expiry, CVV, CreatedAt) " +
                 "VALUES (@amount, @paymentMethod, @cardName, @cardNumber, @expiry, @cvv, @createdAt); " +
                 "SELECT last_insert_rowid();";
@@ -31,42 +31,35 @@ namespace Api.Repositories
         {
             Payment? payment = null;
 
-            var query = 
+            var query =
                 "SELECT Id, Amount, PaymentMethod, CardName, CardNumber, Expiry, CVV, CreatedAt " +
                 "FROM Payment " +
                 "WHERE Id = @paymentId";
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(query, conn);
-            try
+            conn.Open();
+
+            command.Parameters.AddWithValue("@paymentId", paymentId);
+
+            var reader = await command.ExecuteReaderAsync();
+
+            if (reader.Read())
             {
-                conn.Open();
-
-                command.Parameters.AddWithValue("@paymentId", paymentId);
-
-                var reader = await command.ExecuteReaderAsync();
-
-                if (reader.Read())
+                payment = new Payment
                 {
-                    payment = new Payment
-                    {
-                        Id = reader.GetInt32(0),
-                        Amount = reader.GetDouble(1),
-                        PaymentMethod = reader.GetString(2),
-                        CardName = reader.GetString(3),
-                        CardNumber = reader.GetString(4),
-                        Expiry = reader.GetString(5),
-                        CVV = reader.GetString(6),
-                        CreatedAt = reader.GetDateTime(7)
-                    };
-                }
+                    Id = reader.GetInt32(0),
+                    Amount = reader.GetDouble(1),
+                    PaymentMethod = reader.GetString(2),
+                    CardName = reader.GetString(3),
+                    CardNumber = reader.GetString(4),
+                    Expiry = reader.GetString(5),
+                    CVV = reader.GetString(6),
+                    CreatedAt = reader.GetDateTime(7)
+                };
+            }
 
-                return payment;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            return payment;
         }
     }
 }

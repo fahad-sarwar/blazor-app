@@ -9,43 +9,36 @@ namespace Api.Repositories
         {
             var categories = new List<Category>();
 
-            var query = 
+            var query =
                 "SELECT Id, Name, Description, CreatedAt " +
                 "FROM Category;";
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(query, conn);
-            try
-            {
-                conn.Open();
+            conn.Open();
 
-                var reader = await command.ExecuteReaderAsync();
+            var reader = await command.ExecuteReaderAsync();
 
-                if (!reader.HasRows)
-                    return categories;
-
-                while (reader.Read())
-                {
-                    var id = reader.GetInt32(0);
-                    var name = reader.GetString(1);
-                    var description = reader.GetString(2);
-                    var createdAt = reader.GetDateTime(3);
-
-                    categories.Add(new Category
-                    {
-                        Id = id,
-                        Name = name,
-                        Description = description,
-                        CreatedAt = createdAt
-                    });
-                }
-
+            if (!reader.HasRows)
                 return categories;
-            }
-            finally
+
+            while (reader.Read())
             {
-                conn.Close();
+                var id = reader.GetInt32(0);
+                var name = reader.GetString(1);
+                var description = reader.GetString(2);
+                var createdAt = reader.GetDateTime(3);
+
+                categories.Add(new Category
+                {
+                    Id = id,
+                    Name = name,
+                    Description = description,
+                    CreatedAt = createdAt
+                });
             }
+
+            return categories;
         }
 
         public async Task<Category?> GetCategory(int categoryId)
@@ -59,39 +52,32 @@ namespace Api.Repositories
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(query, conn);
-            try
+            conn.Open();
+
+            command.Parameters.AddWithValue("@categoryId", categoryId);
+
+            var reader = await command.ExecuteReaderAsync();
+
+            if (!reader.HasRows)
+                return category;
+
+            while (reader.Read())
             {
-                conn.Open();
+                var id = reader.GetInt32(0);
+                var name = reader.GetString(1);
+                var description = reader.GetString(2);
+                var createdAt = reader.GetDateTime(3);
 
-                command.Parameters.AddWithValue("@categoryId", categoryId);
-
-                var reader = await command.ExecuteReaderAsync();
-
-                if (!reader.HasRows)
-                    return category;
-
-                while (reader.Read())
+                category = new Category
                 {
-                    var id = reader.GetInt32(0);
-                    var name = reader.GetString(1);
-                    var description = reader.GetString(2);
-                    var createdAt = reader.GetDateTime(3);
-
-                    category = new Category
-                    {
-                        Id = id,
-                        Name = name,
-                        Description = description,
-                        CreatedAt = createdAt
-                    };
-                }
-            }
-            finally
-            {
-                conn.Close();
+                    Id = id,
+                    Name = name,
+                    Description = description,
+                    CreatedAt = createdAt
+                };
             }
 
             return category;
-        }           
+        }
     }
 }

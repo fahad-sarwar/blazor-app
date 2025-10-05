@@ -12,80 +12,66 @@ namespace Api.Repositories
         private readonly PasswordConfiguration _passwordConfig = passwordConfiguration.Value;
         public async Task<User?> GetUserByUsername(string username)
         {
-            var query = 
+            var query =
                 "SELECT Id, Username, PasswordHash, IsAdmin, CreatedAt " +
                 "FROM User " +
                 "WHERE Username = @username";
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(query, conn);
-            try
+            conn.Open();
+
+            command.Parameters.AddWithValue("@username", username);
+
+            var reader = await command.ExecuteReaderAsync();
+
+            User? user = null;
+
+            if (reader.Read())
             {
-                conn.Open();
-
-                command.Parameters.AddWithValue("@username", username);
-
-                var reader = await command.ExecuteReaderAsync();
-
-                User? user = null;
-
-                if (reader.Read())
+                user = new User
                 {
-                    user = new User
-                    {
-                        Id = reader.GetInt32(0),
-                        Username = reader.GetString(1),
-                        PasswordHash = reader.GetString(2),
-                        IsAdmin = reader.GetBoolean(3),
-                        CreatedAt = reader.GetDateTime(4)
-                    };
-                }
+                    Id = reader.GetInt32(0),
+                    Username = reader.GetString(1),
+                    PasswordHash = reader.GetString(2),
+                    IsAdmin = reader.GetBoolean(3),
+                    CreatedAt = reader.GetDateTime(4)
+                };
+            }
 
-                return user;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            return user;
         }
 
         public async Task<User?> GetUserById(int userId)
         {
-            var query = 
+            var query =
                 "SELECT Id, Username, PasswordHash, IsAdmin, CreatedAt " +
                 "FROM User " +
                 "WHERE Id = @userId";
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(query, conn);
-            try
+            conn.Open();
+
+            command.Parameters.AddWithValue("@userId", userId);
+
+            var reader = await command.ExecuteReaderAsync();
+
+            User? user = null;
+
+            if (reader.Read())
             {
-                conn.Open();
-
-                command.Parameters.AddWithValue("@userId", userId);
-
-                var reader = await command.ExecuteReaderAsync();
-
-                User? user = null;
-
-                if (reader.Read())
+                user = new User
                 {
-                    user = new User
-                    {
-                        Id = reader.GetInt32(0),
-                        Username = reader.GetString(1),
-                        PasswordHash = reader.GetString(2),
-                        IsAdmin = reader.GetBoolean(3),
-                        CreatedAt = reader.GetDateTime(4)
-                    };
-                }
+                    Id = reader.GetInt32(0),
+                    Username = reader.GetString(1),
+                    PasswordHash = reader.GetString(2),
+                    IsAdmin = reader.GetBoolean(3),
+                    CreatedAt = reader.GetDateTime(4)
+                };
+            }
 
-                return user;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            return user;
         }
 
         public async Task<User> CreateUser(string username, string password, bool isAdmin = false)

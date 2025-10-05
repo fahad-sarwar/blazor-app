@@ -41,21 +41,9 @@ namespace Api.Data
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(schema, conn);
-            try
-            {
-                conn.Open();
+            conn.Open();
 
-                await command.ExecuteNonQueryAsync();
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error building database schema.");
-                throw;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            await command.ExecuteNonQueryAsync();
 
             logger.LogInformation("Created database schema.");
         }
@@ -68,21 +56,9 @@ namespace Api.Data
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(schema, conn);
-            try
-            {
-                conn.Open();
+            conn.Open();
 
-                await command.ExecuteNonQueryAsync();
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "Error creating test data.");
-                throw;
-            }
-            finally
-            {
-                conn.Close();
-            }
+            await command.ExecuteNonQueryAsync();
 
             logger.LogInformation("Created test data.");
         }

@@ -26,42 +26,35 @@ namespace Api.Repositories
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(query, conn);
-            try
+            conn.Open();
+
+            command.Parameters.AddWithValue("@fieldValue", fieldValue);
+
+            var reader = await command.ExecuteReaderAsync();
+
+            if (reader.Read())
             {
-                conn.Open();
+                var customerId = reader.IsDBNull(1) ? (int?)null : reader.GetInt32(1);
 
-                command.Parameters.AddWithValue("@fieldValue", fieldValue);
-
-                var reader = await command.ExecuteReaderAsync();
-
-                if (reader.Read())
+                basket = new Basket
                 {
-                    var customerId = reader.IsDBNull(1) ? (int?)null : reader.GetInt32(1);
+                    Id = reader.GetInt32(0),
+                    AnonymousId = reader.IsDBNull(2) ? null : reader.GetString(2),
+                    CreatedAt = reader.GetDateTime(3),
+                    Items = new List<BasketItem>()
+                };
 
-                    basket = new Basket
-                    {
-                        Id = reader.GetInt32(0),
-                        AnonymousId = reader.IsDBNull(2) ? null : reader.GetString(2),
-                        CreatedAt = reader.GetDateTime(3),
-                        Items = new List<BasketItem>()
-                    };
+                reader.Close();
 
-                    reader.Close();
-
-                    if (customerId.HasValue)
-                    {
-                        basket.Customer = await customerRepository.GetCustomerById(customerId.Value);
-                    }
-
-                    basket.Items = await GetBasketItems(basket.Id);
+                if (customerId.HasValue)
+                {
+                    basket.Customer = await customerRepository.GetCustomerById(customerId.Value);
                 }
 
-                return basket;
+                basket.Items = await GetBasketItems(basket.Id);
             }
-            finally
-            {
-                conn.Close();
-            }
+
+            return basket;
         }
 
         public async Task<Basket> CreateBasket(Basket basket)
@@ -120,7 +113,7 @@ namespace Api.Repositories
 
         public async Task DeleteBasket(int basketId)
         {
-            var query = 
+            var query =
                 "DELETE FROM Basket " +
                 "WHERE Id = @basketId";
 
@@ -134,7 +127,7 @@ namespace Api.Repositories
 
         public async Task RemoveAllBasketItems(int basketId)
         {
-            var query = 
+            var query =
                 "DELETE FROM BasketItem " +
                 "WHERE BasketId = @basketId";
 
@@ -155,44 +148,37 @@ namespace Api.Repositories
 
             await using var conn = new SqliteConnection(ConnectionString);
             await using var command = new SqliteCommand(query, conn);
-            try
+            conn.Open();
+
+            command.Parameters.AddWithValue("@basketId", basketId);
+
+            var reader = await command.ExecuteReaderAsync();
+
+            var basketItems = new List<BasketItem>();
+
+            while (reader.Read())
             {
-                conn.Open();
-
-                command.Parameters.AddWithValue("@basketId", basketId);
-
-                var reader = await command.ExecuteReaderAsync();
-
-                var basketItems = new List<BasketItem>();
-
-                while (reader.Read())
+                basketItems.Add(new BasketItem
                 {
-                    basketItems.Add(new BasketItem
-                    {
-                        Id = reader.GetInt32(0),
-                        BasketId = reader.GetInt32(1),
-                        Product = new Product { Id = reader.GetInt32(2) },
-                        Quantity = reader.GetInt32(3),
-                        Price = reader.GetDouble(4),
-                        VATRate = reader.GetDouble(5),
-                        CreatedAt = reader.GetDateTime(6)
-                    });
-                }
-
-                reader.Close();
-
-                foreach (var basketItem in basketItems)
-                {
-                    var product = await productRepository.GetProduct(basketItem.Product.Id);
-                    basketItem.Product = product;
-                }
-
-                return basketItems;
+                    Id = reader.GetInt32(0),
+                    BasketId = reader.GetInt32(1),
+                    Product = new Product { Id = reader.GetInt32(2) },
+                    Quantity = reader.GetInt32(3),
+                    Price = reader.GetDouble(4),
+                    VATRate = reader.GetDouble(5),
+                    CreatedAt = reader.GetDateTime(6)
+                });
             }
-            finally
+
+            reader.Close();
+
+            foreach (var basketItem in basketItems)
             {
-                conn.Close();
+                var product = await productRepository.GetProduct(basketItem.Product.Id);
+                basketItem.Product = product;
             }
+
+            return basketItems;
         }
 
         public async Task<BasketItem> CreateBasketItem(BasketItem basketItem)
