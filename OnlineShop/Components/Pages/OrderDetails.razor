@@ -31,88 +31,15 @@
                 <a href="/orders" class="btn btn-primary">Back to Orders</a>
             </div>
 
-            <div class="d-flex gap-3 justify-content-between mb-5">
-                @foreach (var status in _statusMilestones)
-                {
-                    <div class="text-center flex-fill">
-                        <div class="p-2 rounded text-white fw-semibold @GetMilestoneClass(status)">
-                            @GetMilestone(status)
-                        </div>
-                    </div>
-                }
-            </div>
+            <OrderMilestones Order="@_order" />
 
-            <div class="row g-3 mb-4">
-                <div class="col-md-3">
-                    <div class="card p-3 h-100">
-                        <h5 class="mb-3">Order & Payment</h5>
-                        <p><strong>Paid With:</strong> @_order.Payment.PaymentMethod</p>
-                        <p><strong>Cardholder:</strong> @_order.Payment.CardName</p>
-                        <p><strong>Card:</strong> @_order.Payment.MaskedCardNumber()</p>
-                        <p><strong>Estimated Delivery:</strong> @_order.GetFormattedEstimatedDeliveryDate()</p>
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="card p-3 h-100">
-                        <h5 class="mb-3">Customer Info</h5>
-                        <p><strong>First Name:</strong> @_order.Customer.FirstName</p>
-                        <p><strong>Last Name:</strong> @_order.Customer.LastName</p>
-                        <p><strong>Email:</strong> @_order.Customer.Email</p>
-                        <p><strong>Phone:</strong> @_order.Customer.PhoneNumber</p>
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="card p-3 h-100">
-                        <h5 class="mb-3">Billing Address</h5>
-                        <p>@_order.BillingAddress.AddressLineOne</p>
-                        <p>@_order.BillingAddress.AddressLineTwo</p>
-                        <p>@_order.BillingAddress.Town, @_order.BillingAddress.County</p>
-                        <p>@_order.BillingAddress.PostCode, @_order.BillingAddress.Country</p>
-                    </div>
-                </div>
-
-                <div class="col-md-3">
-                    <div class="card p-3 h-100">
-                        <h5 class="mb-3">Shipping Address</h5>
-                        <p>@_order.ShippingAddress.AddressLineOne</p>
-                        <p>@_order.ShippingAddress.AddressLineTwo</p>
-                        <p>@_order.ShippingAddress.Town, @_order.ShippingAddress.County</p>
-                        <p>@_order.ShippingAddress.PostCode, @_order.ShippingAddress.Country</p>
-                    </div>
-                </div>
-            </div>
+            <OrderCustomerPaymentDetails Order="@_order" />
 
             <div class="col-md-12">
                 <OrderSummary Order="@_order" />
             </div>
-
-            <div class="card mb-5 p-4">
-                <h5 class="mb-3">Tracking History</h5>
-                @if (_order.TrackingUpdates.Count == 0)
-                {
-                    <p class="text-muted">No tracking updates yet.</p>
-                }
-                else if (_order.TrackingUpdates.Count > 0)
-                {
-                    <ul class="timeline list-unstyled">
-                        @foreach (var update in _order.TrackingUpdates.OrderByDescending(u => u.CreatedAt))
-                        {
-                            <li class="mb-4">
-                                <div class="fw-bold">@update.Status</div>
-
-                                <small class="text-muted">@update.GetFormattedCreatedAtDate() by @update.UpdatedBy</small>
-
-                                @if (!string.IsNullOrWhiteSpace(update.Note))
-                                {
-                                    <div class="mt-1">@update.Note</div>
-                                }
-                            </li>
-                        }
-                    </ul>
-                }
-            </div>
+            
+            <OrderTrackingUpdates Order="@_order" />
         }
     </Authorized>
     <NotAuthorized>
@@ -122,8 +49,6 @@
 
 @code {
     [Parameter] public int OrderId { get; set; }
-
-    private readonly string[] _statusMilestones = new[] { "Pending", "Inventory check", "Packed", "Shipped", "In transit", "At local depot", "Out for delivery", "Delivered" };
 
     private OrderViewModel? _order;
     private string? _errorMessage;
@@ -147,40 +72,5 @@
         }
 
         _isLoading = false;
-    }
-
-    private string GetMilestone(string status)
-    {
-        if (status == "Delivered" && _order.Status == "Cancelled")
-        {
-            return "Cancelled";
-        }
-
-        return status;
-    }
-
-    private string GetMilestoneClass(string status)
-    {
-        if (_order == null)
-        {
-            return "";
-        }
-
-        var currentIndex = Array.IndexOf(_statusMilestones, _order.Status);
-        var statusIndex = Array.IndexOf(_statusMilestones, status);
-
-        if(_order.TrackingUpdates.Any(o => o.Status == status))
-        {
-            return "bg-success text-white";
-        }
-
-        if (_order.Status == "Cancelled")
-        {
-            return "bg-danger text-white";
-        }
-
-        return statusIndex == currentIndex
-            ? "bg-warning text-dark"
-            : "bg-light text-muted";
     }
 }

@@ -1,0 +1,48 @@
+﻿@using OnlineShopUI.ViewModels
+@rendermode InteractiveServer
+
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card p-3 h-100">
+            <h5 class="mb-3">Order & Payment</h5>
+            <p><strong>Paid With:</strong> @Order.Payment.PaymentMethod</p>
+            <p><strong>Cardholder:</strong> @Order.Payment.CardName</p>
+            <p><strong>Card:</strong> @Order.Payment.MaskedCardNumber()</p>
+            <p><strong>Estimated Delivery:</strong> @Order.GetFormattedEstimatedDeliveryDate()</p>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card p-3 h-100">
+            <h5 class="mb-3">Customer Info</h5>
+            <p><strong>First Name:</strong> @Order.Customer.FirstName</p>
+            <p><strong>Last Name:</strong> @Order.Customer.LastName</p>
+            <p><strong>Email:</strong> @Order.Customer.Email</p>
+            <p><strong>Phone:</strong> @Order.Customer.PhoneNumber</p>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card p-3 h-100">
+            <h5 class="mb-3">Billing Address</h5>
+            <p>@Order.BillingAddress.AddressLineOne</p>
+            <p>@Order.BillingAddress.AddressLineTwo</p>
+            <p>@Order.BillingAddress.Town, @Order.BillingAddress.County</p>
+            <p>@Order.BillingAddress.PostCode, @Order.BillingAddress.Country</p>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card p-3 h-100">
+            <h5 class="mb-3">Shipping Address</h5>
+            <p>@Order.ShippingAddress.AddressLineOne</p>
+            <p>@Order.ShippingAddress.AddressLineTwo</p>
+            <p>@Order.ShippingAddress.Town, @Order.ShippingAddress.County</p>
+            <p>@Order.ShippingAddress.PostCode, @Order.ShippingAddress.Country</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public OrderViewModel? Order { get; set; }
+}

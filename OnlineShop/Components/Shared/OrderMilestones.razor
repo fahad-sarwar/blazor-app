@@ -1,0 +1,54 @@
+﻿@using OnlineShopUI.ViewModels
+@rendermode InteractiveServer
+
+<div class="d-flex gap-3 justify-content-between mb-5">
+    @foreach (var status in _statusMilestones)
+    {
+        <div class="text-center flex-fill">
+            <div class="p-2 rounded text-white fw-semibold @GetMilestoneClass(status)">
+                @GetMilestone(status)
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public OrderViewModel? Order { get; set; }
+
+    private readonly string[] _statusMilestones = new[] { "Pending", "Inventory check", "Packed", "Shipped", "In transit", "At local depot", "Out for delivery", "Delivered" };
+
+    private string GetMilestone(string status)
+    {
+        if (status == "Delivered" && Order.Status == "Cancelled")
+        {
+            return "Cancelled";
+        }
+
+        return status;
+    }
+
+    private string GetMilestoneClass(string status)
+    {
+        if (Order == null)
+        {
+            return "";
+        }
+
+        var currentIndex = Array.IndexOf(_statusMilestones, Order.Status);
+        var statusIndex = Array.IndexOf(_statusMilestones, status);
+
+        if (Order.TrackingUpdates.Any(o => o.Status == status))
+        {
+            return "bg-success text-white";
+        }
+
+        if (Order.Status == "Cancelled")
+        {
+            return "bg-danger text-white";
+        }
+
+        return statusIndex == currentIndex
+            ? "bg-warning text-dark"
+            : "bg-light text-muted";
+    }
+}

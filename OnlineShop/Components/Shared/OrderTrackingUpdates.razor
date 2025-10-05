@@ -1,0 +1,32 @@
+﻿@using OnlineShopUI.ViewModels
+@rendermode InteractiveServer
+
+<div class="card mb-5 p-4">
+    <h5 class="mb-3">Tracking History</h5>
+    @if (Order.TrackingUpdates.Count == 0)
+    {
+        <p class="text-muted">No tracking updates yet.</p>
+    }
+    else if (Order.TrackingUpdates.Count > 0)
+    {
+        <ul class="timeline list-unstyled">
+            @foreach (var update in Order.TrackingUpdates.OrderByDescending(u => u.CreatedAt))
+            {
+                <li class="mb-4">
+                    <div class="fw-bold">@update.Status</div>
+
+                    <small class="text-muted">@update.GetFormattedCreatedAtDate() by @update.UpdatedBy</small>
+
+                    @if (!string.IsNullOrWhiteSpace(update.Note))
+                    {
+                        <div class="mt-1">@update.Note</div>
+                    }
+                </li>
+            }
+        </ul>
+    }
+</div>
+
+@code {
+    [Parameter] public OrderViewModel? Order { get; set; }
+}
