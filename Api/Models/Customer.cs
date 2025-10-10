@@ -9,7 +9,7 @@
         public string PhoneNumber { get; set; } = string.Empty;
         public Address? BillingAddress { get; set; }
         public Address? ShippingAddress { get; set; }
-        public string UserId { get; set; }
+        public int UserId { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }
 }

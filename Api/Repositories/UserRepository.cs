@@ -4,78 +4,36 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Options;
 using System.Text;
 using Microsoft.AspNetCore.Cryptography.KeyDerivation;
+using Dapper;
 
 namespace Api.Repositories
 {
     public class UserRepository(ILogger<UserRepository> logger, IOptions<PasswordConfiguration> passwordConfiguration) : RepositoryBase
     {
         private readonly PasswordConfiguration _passwordConfig = passwordConfiguration.Value;
+
         public async Task<User?> GetUserByUsername(string username)
         {
-            var query =
-                "SELECT Id, Username, PasswordHash, IsAdmin, CreatedAt " +
-                "FROM User " +
-                "WHERE Username = @username";
+            var query = "SELECT Id, Username, PasswordHash, IsAdmin, CreatedAt FROM User WHERE Username = @username";
 
             await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            conn.Open();
 
-            command.Parameters.AddWithValue("@username", username);
-
-            var reader = await command.ExecuteReaderAsync();
-
-            User? user = null;
-
-            if (reader.Read())
-            {
-                user = new User
-                {
-                    Id = reader.GetInt32(0),
-                    Username = reader.GetString(1),
-                    PasswordHash = reader.GetString(2),
-                    IsAdmin = reader.GetBoolean(3),
-                    CreatedAt = reader.GetDateTime(4)
-                };
-            }
-
-            return user;
+            return await conn.QueryFirstOrDefaultAsync<User>(query, new { username });
         }
 
         public async Task<User?> GetUserById(int userId)
         {
-            var query =
-                "SELECT Id, Username, PasswordHash, IsAdmin, CreatedAt " +
-                "FROM User " +
-                "WHERE Id = @userId";
+            var query = "SELECT Id, Username, PasswordHash, IsAdmin, CreatedAt FROM User WHERE Id = @userId";
 
             await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            conn.Open();
 
-            command.Parameters.AddWithValue("@userId", userId);
-
-            var reader = await command.ExecuteReaderAsync();
-
-            User? user = null;
-
-            if (reader.Read())
-            {
-                user = new User
-                {
-                    Id = reader.GetInt32(0),
-                    Username = reader.GetString(1),
-                    PasswordHash = reader.GetString(2),
-                    IsAdmin = reader.GetBoolean(3),
-                    CreatedAt = reader.GetDateTime(4)
-                };
-            }
-
-            return user;
+            return await conn.QueryFirstOrDefaultAsync<User>(query, new { userId });
         }
 
         public async Task<User> CreateUser(string username, string password, bool isAdmin = false)
         {
+            var now = DateTime.UtcNow;
+            var passwordHash = HashPassword(password);
             var user = new User
             {
                 Username = username,
@@ -89,31 +47,33 @@ namespace Api.Repositories
                 "VALUES (@username, @passwordHash, @isAdmin, @createdAt); " +
                 "SELECT last_insert_rowid();";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@username", user.Username },
-                { "@passwordHash", user.PasswordHash },
-                { "@isAdmin", user.IsAdmin },
-                { "@createdAt", user.CreatedAt },
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            user.Id = await ExecuteScalar(query, parameters);
-            return user;
+            var userId = await conn.QuerySingleAsync<int>(query, new
+            {
+                username,
+                passwordHash,
+                isAdmin,
+                createdAt = now
+            });
+
+            return new User
+            {
+                Id = userId,
+                Username = username,
+                PasswordHash = passwordHash,
+                IsAdmin = isAdmin,
+                CreatedAt = now
+            };
         }
 
         public async Task<bool> UserExists(string username)
         {
-            var query =
-                "SELECT COUNT(*) " +
-                "FROM User " +
-                "WHERE Username = @username";
+            var query = "SELECT COUNT(*) FROM User WHERE Username = @username";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@username", username },
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            var count = await ExecuteScalar(query, parameters);
+            var count = await conn.QuerySingleAsync<int>(query, new { username });
             return count > 0;
         }
 

@@ -40,7 +40,7 @@ namespace Api.Controllers
                     return Unauthorized();
                 }
 
-                var customer = await customerRepository.GetCustomerByUserId(userId);
+                var customer = await customerRepository.GetCustomerByUserId(userIdInt);
 
                 return Ok(new
                 {
@@ -81,7 +81,7 @@ namespace Api.Controllers
                     FirstName = model.FirstName,
                     LastName = model.LastName,
                     Email = model.Email,
-                    UserId = user.Id.ToString(),
+                    UserId = user.Id,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -116,7 +116,7 @@ namespace Api.Controllers
                     return Unauthorized("The entered password does not match the current users password.");
                 }
 
-                var customer = await customerRepository.GetCustomerByUserId(user.Id.ToString());
+                var customer = await customerRepository.GetCustomerByUserId(user.Id);
 
                 if (customer == null)
                 {
@@ -158,7 +158,7 @@ namespace Api.Controllers
                     return Unauthorized();
                 }
 
-                var customer = await customerRepository.GetCustomerByUserId(user.Id.ToString());
+                var customer = await customerRepository.GetCustomerByUserId(user.Id);
 
                 if (customer != null)
                 {

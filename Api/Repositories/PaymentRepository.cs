@@ -1,4 +1,5 @@
 using Api.Models;
+using Dapper;
 using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
@@ -12,54 +13,33 @@ namespace Api.Repositories
                 "VALUES (@amount, @paymentMethod, @cardName, @cardNumber, @expiry, @cvv, @createdAt); " +
                 "SELECT last_insert_rowid();";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@amount", payment.Amount },
-                { "@paymentMethod", payment.PaymentMethod },
-                { "@cardName", payment.CardName },
-                { "@cardNumber", payment.CardNumber },
-                { "@expiry", payment.Expiry },
-                { "@cvv", payment.CVV },
-                { "@createdAt", payment.CreatedAt },
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            payment.Id = await ExecuteScalar(query, parameters);
+            var paymentId = await conn.QuerySingleAsync<int>(query, new
+            {
+                amount = payment.Amount,
+                paymentMethod = payment.PaymentMethod,
+                cardName = payment.CardName,
+                cardNumber = payment.CardNumber,
+                expiry = payment.Expiry,
+                cvv = payment.CVV,
+                createdAt = payment.CreatedAt
+            });
+
+            payment.Id = paymentId;
             return payment;
         }
 
         public async Task<Payment?> GetPayment(int paymentId)
         {
-            Payment? payment = null;
-
             var query =
                 "SELECT Id, Amount, PaymentMethod, CardName, CardNumber, Expiry, CVV, CreatedAt " +
                 "FROM Payment " +
                 "WHERE Id = @paymentId";
 
             await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            conn.Open();
 
-            command.Parameters.AddWithValue("@paymentId", paymentId);
-
-            var reader = await command.ExecuteReaderAsync();
-
-            if (reader.Read())
-            {
-                payment = new Payment
-                {
-                    Id = reader.GetInt32(0),
-                    Amount = reader.GetDouble(1),
-                    PaymentMethod = reader.GetString(2),
-                    CardName = reader.GetString(3),
-                    CardNumber = reader.GetString(4),
-                    Expiry = reader.GetString(5),
-                    CVV = reader.GetString(6),
-                    CreatedAt = reader.GetDateTime(7)
-                };
-            }
-
-            return payment;
+            return await conn.QueryFirstOrDefaultAsync<Payment>(query, new { paymentId });
         }
     }
 }

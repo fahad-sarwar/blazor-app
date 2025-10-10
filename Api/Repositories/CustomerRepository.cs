@@ -1,4 +1,5 @@
 using Api.Models;
+using Dapper;
 using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
@@ -10,7 +11,7 @@ namespace Api.Repositories
             return await GetCustomerByField("Email", email);
         }
 
-        public async Task<Customer?> GetCustomerByUserId(string userId)
+        public async Task<Customer?> GetCustomerByUserId(int userId)
         {
             return await GetCustomerByField("UserId", userId);
         }
@@ -28,42 +29,28 @@ namespace Api.Repositories
                 $"WHERE {fieldName} = @fieldValue";
 
             await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            conn.Open();
 
-            command.Parameters.AddWithValue("@fieldValue", fieldValue);
+            var customerData = await conn.QueryFirstOrDefaultAsync<dynamic>(query, new { fieldValue = fieldValue });
 
-            var reader = await command.ExecuteReaderAsync();
-
-            Customer? customer = null;
-
-            if (reader.Read())
+            var customer = new Customer
             {
-                var billingAddressId = reader.IsDBNull(7) ? (int?)null : reader.GetInt32(7);
-                var shippingAddressId = reader.IsDBNull(8) ? (int?)null : reader.GetInt32(8);
+                Id = Convert.ToInt32(customerData.Id),
+                FirstName = customerData.FirstName,
+                LastName = customerData.LastName,
+                Email = customerData.Email,
+                PhoneNumber = customerData.PhoneNumber,
+                UserId = Convert.ToInt32(customerData.UserId),
+                CreatedAt = DateTime.Parse(customerData.CreatedAt.ToString())
+            };
 
-                customer = new Customer
-                {
-                    Id = reader.GetInt32(0),
-                    FirstName = reader.GetString(1),
-                    LastName = reader.GetString(2),
-                    Email = reader.GetString(3),
-                    PhoneNumber = reader.GetString(4),
-                    UserId = reader.GetString(5),
-                    CreatedAt = reader.GetDateTime(6)
-                };
+            if (customerData.BillingAddressId != null)
+            {
+                customer.BillingAddress = await GetAddress(Convert.ToInt32(customerData.BillingAddressId));
+            }
 
-                reader.Close();
-
-                if (billingAddressId.HasValue)
-                {
-                    customer.BillingAddress = await GetAddress(billingAddressId.Value);
-                }
-
-                if (shippingAddressId.HasValue)
-                {
-                    customer.ShippingAddress = await GetAddress(shippingAddressId.Value);
-                }
+            if (customerData.ShippingAddressId != null)
+            {
+                customer.ShippingAddress = await GetAddress(Convert.ToInt32(customerData.ShippingAddressId));
             }
 
             return customer;
@@ -76,19 +63,21 @@ namespace Api.Repositories
                 "VALUES (@firstName, @lastName, @email, @phoneNumber, @userId, @createdAt, @billingAddressId, @shippingAddressId); " +
                 "SELECT last_insert_rowid();";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@firstName", customer.FirstName },
-                { "@lastName", customer.LastName },
-                { "@email", customer.Email },
-                { "@phoneNumber", customer.PhoneNumber },
-                { "@userId", customer.UserId },
-                { "@createdAt", customer.CreatedAt },
-                { "@billingAddressId", (object?)customer.BillingAddress?.Id ?? DBNull.Value },
-                { "@shippingAddressId", (object?)customer.ShippingAddress?.Id ?? DBNull.Value },
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            customer.Id = await ExecuteScalar(query, parameters);
+            var customerId = await conn.QuerySingleAsync<int>(query, new
+            {
+                firstName = customer.FirstName,
+                lastName = customer.LastName,
+                email = customer.Email,
+                phoneNumber = customer.PhoneNumber,
+                userId = customer.UserId,
+                createdAt = customer.CreatedAt,
+                billingAddressId = customer.BillingAddress?.Id,
+                shippingAddressId = customer.ShippingAddress?.Id
+            });
+
+            customer.Id = customerId;
             return customer;
         }
 
@@ -104,18 +93,18 @@ namespace Api.Repositories
                 "ShippingAddressId = @shippingAddressId " +
                 "WHERE Id = @id";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@id", customer.Id },
-                { "@firstName", customer.FirstName },
-                { "@lastName", customer.LastName },
-                { "@email", customer.Email },
-                { "@phoneNumber", customer.PhoneNumber },
-                { "@billingAddressId", (object?)customer.BillingAddress?.Id ?? DBNull.Value },
-                { "@shippingAddressId", (object?)customer.ShippingAddress?.Id ?? DBNull.Value },
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            await ExecuteNonQuery(query, parameters);
+            await conn.ExecuteAsync(query, new
+            {
+                id = customer.Id,
+                firstName = customer.FirstName,
+                lastName = customer.LastName,
+                email = customer.Email,
+                phoneNumber = customer.PhoneNumber,
+                billingAddressId = customer.BillingAddress?.Id,
+                shippingAddressId = customer.ShippingAddress?.Id
+            });
         }
 
         public async Task<Address> CreateAddress(Address address)
@@ -125,17 +114,19 @@ namespace Api.Repositories
                 "VALUES (@addressLineOne, @addressLineTwo, @town, @county, @postCode, @country); " +
                 "SELECT last_insert_rowid();";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@addressLineOne", address.AddressLineOne },
-                { "@addressLineTwo", address.AddressLineTwo },
-                { "@town", address.Town },
-                { "@county", address.County },
-                { "@postCode", address.PostCode },
-                { "@country", address.Country },
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            address.Id = await ExecuteScalar(query, parameters);
+            var addressId = await conn.QuerySingleAsync<int>(query, new
+            {
+                addressLineOne = address.AddressLineOne,
+                addressLineTwo = address.AddressLineTwo,
+                town = address.Town,
+                county = address.County,
+                postCode = address.PostCode,
+                country = address.Country
+            });
+
+            address.Id = addressId;
             return address;
         }
 
@@ -149,28 +140,8 @@ namespace Api.Repositories
                 "WHERE Id = @addressId";
 
             await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            conn.Open();
 
-            command.Parameters.AddWithValue("@addressId", addressId);
-
-            var reader = await command.ExecuteReaderAsync();
-
-            if (reader.Read())
-            {
-                address = new Address
-                {
-                    Id = reader.GetInt32(0),
-                    AddressLineOne = reader.GetString(1),
-                    AddressLineTwo = reader.GetString(2),
-                    Town = reader.GetString(3),
-                    County = reader.GetString(4),
-                    PostCode = reader.GetString(5),
-                    Country = reader.GetString(6)
-                };
-            }
-
-            return address;
+            return await conn.QueryFirstOrDefaultAsync<Address>(query, new { addressId });
         }
 
         public async Task UpdateAddress(Address address)
@@ -185,28 +156,23 @@ namespace Api.Repositories
                 "Country = @country " +
                 "WHERE Id = @id";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@id", address.Id },
-                { "@addressLineOne", address.AddressLineOne },
-                { "@addressLineTwo", address.AddressLineTwo },
-                { "@town", address.Town },
-                { "@county", address.County },
-                { "@postCode", address.PostCode },
-                { "@country", address.Country },
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            await ExecuteNonQuery(query, parameters);
+            await conn.ExecuteAsync(query, new
+            {
+                id = address.Id,
+                addressLineOne = address.AddressLineOne,
+                addressLineTwo = address.AddressLineTwo,
+                town = address.Town,
+                county = address.County,
+                postCode = address.PostCode,
+                country = address.Country
+            });
         }
 
         public async Task<(List<Product> Products, int TotalCount)> GetWishlistProducts(int customerId, int page = 1, int pageSize = 10)
         {
-            var products = new List<Product>();
-
-            var countQuery =
-                "SELECT COUNT(*) " +
-                "FROM Wishlist " +
-                "WHERE CustomerId = @customerId";
+            var countQuery = "SELECT COUNT(*) FROM Wishlist WHERE CustomerId = @customerId";
 
             var wishlistQuery =
                 "SELECT ProductId " +
@@ -216,31 +182,17 @@ namespace Api.Repositories
                 "LIMIT @pageSize OFFSET @offset";
 
             await using var conn = new SqliteConnection(ConnectionString);
-            conn.Open();
 
-            await using var countCommand = new SqliteCommand(countQuery, conn);
+            var totalCount = await conn.QuerySingleAsync<int>(countQuery, new { customerId });
 
-            var countParameters = new Dictionary<string, object>
-                {
-                    { "@customerId", customerId }
-                };
-
-            var totalCount = await ExecuteScalar(countQuery, countParameters);
-
-            await using var wishlistCommand = new SqliteCommand(wishlistQuery, conn);
-            wishlistCommand.Parameters.AddWithValue("@customerId", customerId);
-            wishlistCommand.Parameters.AddWithValue("@pageSize", pageSize);
-            wishlistCommand.Parameters.AddWithValue("@offset", (page - 1) * pageSize);
-
-            var productIds = new List<int>();
-            var reader = await wishlistCommand.ExecuteReaderAsync();
-
-            while (reader.Read())
+            var productIds = await conn.QueryAsync<int>(wishlistQuery, new
             {
-                productIds.Add(reader.GetInt32(0));
-            }
+                customerId,
+                pageSize,
+                offset = (page - 1) * pageSize
+            });
 
-            reader.Close();
+            var products = new List<Product>();
 
             foreach (var productId in productIds)
             {
@@ -261,13 +213,9 @@ namespace Api.Repositories
                 "FROM Wishlist " +
                 "WHERE CustomerId = @customerId AND ProductId = @productId";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@customerId", customerId },
-                { "@productId", productId }
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            var count = await ExecuteScalar(query, parameters);
+            var count = await conn.QuerySingleAsync<int>(query, new { customerId, productId });
             return count > 0;
         }
 
@@ -277,37 +225,28 @@ namespace Api.Repositories
                 "INSERT INTO Wishlist (CustomerId, ProductId, CreatedAt) " +
                 "VALUES (@customerId, @productId, @createdAt)";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@customerId", customerId },
-                { "@productId", productId },
-                { "@createdAt", DateTime.UtcNow }
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            await ExecuteNonQuery(query, parameters);
+            await conn.ExecuteAsync(query, new
+            {
+                customerId,
+                productId,
+                createdAt = DateTime.UtcNow
+            });
         }
 
         public async Task RemoveFromWishlist(int customerId, int productId)
         {
-            var query =
-                "DELETE FROM Wishlist " +
-                "WHERE CustomerId = @customerId AND ProductId = @productId";
+            var query = "DELETE FROM Wishlist WHERE CustomerId = @customerId AND ProductId = @productId";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@customerId", customerId },
-                { "@productId", productId }
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            await ExecuteNonQuery(query, parameters);
+            await conn.ExecuteAsync(query, new { customerId, productId });
         }
 
         public async Task<(List<Review> Reviews, int TotalCount)> GetReviews(int productId, int page = 1, int pageSize = 10)
         {
-            var countQuery =
-                "SELECT COUNT(*) " +
-                "FROM Review " +
-                "WHERE ProductId = @productId AND Status = 'Approved'";
+            var countQuery = "SELECT COUNT(*) FROM Review WHERE ProductId = @productId AND Status = 'Approved'";
 
             var reviewsQuery =
                 "SELECT r.Id, r.Subject, r.Rating, r.Comment, r.Status, r.ProductId, r.CustomerId, r.CreatedAt " +
@@ -317,42 +256,35 @@ namespace Api.Repositories
                 "LIMIT @pageSize OFFSET @offset";
 
             await using var conn = new SqliteConnection(ConnectionString);
-            conn.Open();
 
-            await using var countCommand = new SqliteCommand(countQuery, conn);
-            countCommand.Parameters.AddWithValue("@productId", productId);
-            var totalCount = Convert.ToInt32(await countCommand.ExecuteScalarAsync());
+            var totalCount = await conn.QuerySingleAsync<int>(countQuery, new { productId });
 
-            await using var reviewsCommand = new SqliteCommand(reviewsQuery, conn);
-            reviewsCommand.Parameters.AddWithValue("@productId", productId);
-            reviewsCommand.Parameters.AddWithValue("@pageSize", pageSize);
-            reviewsCommand.Parameters.AddWithValue("@offset", (page - 1) * pageSize);
-
-            var reader = await reviewsCommand.ExecuteReaderAsync();
+            var reviewData = await conn.QueryAsync<dynamic>(reviewsQuery, new
+            {
+                productId,
+                pageSize,
+                offset = (page - 1) * pageSize
+            });
 
             var reviews = new List<Review>();
 
-            while (reader.Read())
+            foreach(var review in reviewData)
             {
-                reviews.Add(new Review
+                var r = new Review
                 {
-                    Id = reader.GetInt32(0),
-                    Subject = reader.GetString(1),
-                    Rating = reader.GetInt32(2),
-                    Comment = reader.GetString(3),
-                    Status = reader.GetString(4),
-                    Product = new Product { Id = reader.GetInt32(5) },
-                    Customer = new Customer { Id = reader.GetInt32(6) },
-                    CreatedAt = reader.GetDateTime(7)
-                });
-            }
+                    Id = Convert.ToInt32(review.Id),
+                    Subject = review.Subject,
+                    Rating = Convert.ToInt32(review.Rating),
+                    Comment = review.Comment,
+                    Status = review.Status,
+                    Product = new Product { Id = Convert.ToInt32(review.ProductId) },
+                    Customer = new Customer { Id = Convert.ToInt32(review.CustomerId) },
+                    CreatedAt = DateTime.Parse(review.CreatedAt.ToString())
+                };
 
-            reader.Close();
+                r.Customer = await GetCustomerById(r.Customer.Id);
 
-            foreach (var review in reviews)
-            {
-                var customer = await GetCustomerById(review.Customer.Id);
-                review.Customer = customer;
+                reviews.Add(r);
             }
 
             return (reviews, totalCount);
@@ -360,23 +292,11 @@ namespace Api.Repositories
 
         public async Task<double?> GetAverageRating(int productId)
         {
-            var query =
-                "SELECT AVG(CAST(Rating AS REAL)) " +
-                "FROM Review " +
-                "WHERE ProductId = @productId AND Status = 'Approved'";
+            var query = "SELECT AVG(CAST(Rating AS REAL)) FROM Review WHERE ProductId = @productId AND Status = 'Approved'";
 
             await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            conn.Open();
 
-            command.Parameters.AddWithValue("@productId", productId);
-
-            var averageRating = await command.ExecuteScalarAsync();
-
-            if (averageRating == null || averageRating == DBNull.Value)
-                return null;
-
-            return Convert.ToDouble(averageRating);
+            return await conn.QuerySingleOrDefaultAsync<double?>(query, new { productId });
         }
 
         public async Task<Review> CreateReview(Review review)
@@ -386,18 +306,20 @@ namespace Api.Repositories
                 "VALUES (@subject, @rating, @comment, @status, @productId, @customerId, @createdAt); " +
                 "SELECT last_insert_rowid();";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@subject", review.Subject },
-                { "@rating", review.Rating },
-                { "@comment", review.Comment },
-                { "@status", review.Status },
-                { "@productId", review.Product?.Id ?? 0 },
-                { "@customerId", review.Customer?.Id ?? 0 },
-                { "@createdAt", review.CreatedAt },
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            review.Id = await ExecuteScalar(query, parameters);
+            var reviewId = await conn.QuerySingleAsync<int>(query, new
+            {
+                subject = review.Subject,
+                rating = review.Rating,
+                comment = review.Comment,
+                status = review.Status,
+                productId = review.Product?.Id ?? 0,
+                customerId = review.Customer?.Id ?? 0,
+                createdAt = review.CreatedAt
+            });
+
+            review.Id = reviewId;
             return review;
         }
     }

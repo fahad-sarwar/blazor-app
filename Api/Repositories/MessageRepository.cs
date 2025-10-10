@@ -1,4 +1,5 @@
 using Api.Models;
+using Dapper;
 using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
@@ -13,26 +14,18 @@ namespace Api.Repositories
                 "SELECT last_insert_rowid() FROM Message LIMIT 1;";
 
             await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            conn.Open();
 
-            command.Parameters.AddWithValue("@name", message.Name);
-            command.Parameters.AddWithValue("@email", message.Email);
-            command.Parameters.AddWithValue("@subject", message.Subject);
-            command.Parameters.AddWithValue("@content", message.Content);
-            command.Parameters.AddWithValue("@processed", message.Processed);
-            command.Parameters.AddWithValue("@createdAt", message.CreatedAt.ToString("yyyy-MM-dd HH:mm:dd.fffffff"));
-
-            var reader = await command.ExecuteReaderAsync();
-
-            if (!reader.HasRows)
-                throw new Exception("Failed to insert message.");
-
-            while (reader.Read())
+            var messageId = await conn.QuerySingleAsync<int>(query, new
             {
-                message.Id = reader.GetInt32(0);
-            }
+                name = message.Name,
+                email = message.Email,
+                subject = message.Subject,
+                content = message.Content,
+                processed = message.Processed,
+                createdAt = message.CreatedAt.ToString("yyyy-MM-dd HH:mm:dd.fffffff")
+            });
 
+            message.Id = messageId;
             return message;
         }
     }

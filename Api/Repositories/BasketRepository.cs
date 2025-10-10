@@ -1,4 +1,5 @@
 using Api.Models;
+using Dapper;
 using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
@@ -17,44 +18,34 @@ namespace Api.Repositories
 
         private async Task<Basket?> GetBasketByField(string fieldName, object fieldValue)
         {
-            Basket? basket = null;
-
             var query =
                 "SELECT Id, CustomerId, AnonymousId, CreatedAt " +
                 "FROM Basket " +
                 $"WHERE {fieldName} = @fieldValue";
 
             await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            conn.Open();
 
-            command.Parameters.AddWithValue("@fieldValue", fieldValue);
+            var basket = await conn.QueryFirstOrDefaultAsync<dynamic>(query, new { fieldValue });
 
-            var reader = await command.ExecuteReaderAsync();
+            if (basket == null)
+                return null;
 
-            if (reader.Read())
+            var result = new Basket
             {
-                var customerId = reader.IsDBNull(1) ? (int?)null : reader.GetInt32(1);
+                Id = Convert.ToInt32(basket.Id),
+                AnonymousId = basket.AnonymousId,
+                CreatedAt = DateTime.Parse(basket.CreatedAt.ToString()),
+                Items = new List<BasketItem>()
+            };
 
-                basket = new Basket
-                {
-                    Id = reader.GetInt32(0),
-                    AnonymousId = reader.IsDBNull(2) ? null : reader.GetString(2),
-                    CreatedAt = reader.GetDateTime(3),
-                    Items = new List<BasketItem>()
-                };
-
-                reader.Close();
-
-                if (customerId.HasValue)
-                {
-                    basket.Customer = await customerRepository.GetCustomerById(customerId.Value);
-                }
-
-                basket.Items = await GetBasketItems(basket.Id);
+            if (basket.CustomerId != null)
+            {
+                result.Customer = await customerRepository.GetCustomerById(basket.CustomerId);
             }
 
-            return basket;
+            result.Items = await GetBasketItems(result.Id);
+
+            return result;
         }
 
         public async Task<Basket> CreateBasket(Basket basket)
@@ -64,14 +55,16 @@ namespace Api.Repositories
                 "VALUES (@customerId, @anonymousId, @createdAt); " +
                 "SELECT last_insert_rowid();";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@customerId", (object?)basket.Customer?.Id ?? DBNull.Value },
-                { "@anonymousId", (object?)basket.AnonymousId ?? DBNull.Value },
-                { "@createdAt", basket.CreatedAt }
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            basket.Id = await ExecuteScalar(query, parameters);
+            var basketId = await conn.QuerySingleAsync<int>(query, new
+            {
+                customerId = basket.Customer?.Id,
+                anonymousId = basket.AnonymousId,
+                createdAt = basket.CreatedAt
+            });
+
+            basket.Id = basketId;
             return basket;
         }
 
@@ -113,30 +106,20 @@ namespace Api.Repositories
 
         public async Task DeleteBasket(int basketId)
         {
-            var query =
-                "DELETE FROM Basket " +
-                "WHERE Id = @basketId";
+            var query = "DELETE FROM Basket WHERE Id = @basketId";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@basketId", basketId }
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            await ExecuteNonQuery(query, parameters);
+            await conn.ExecuteAsync(query, new { basketId });
         }
 
         public async Task RemoveAllBasketItems(int basketId)
         {
-            var query =
-                "DELETE FROM BasketItem " +
-                "WHERE BasketId = @basketId";
+            var query = "DELETE FROM BasketItem WHERE BasketId = @basketId";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@basketId", basketId }
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            await ExecuteNonQuery(query, parameters);
+            await conn.ExecuteAsync(query, new { basketId });
         }
 
         public async Task<List<BasketItem>?> GetBasketItems(int basketId)
@@ -147,38 +130,29 @@ namespace Api.Repositories
                 "WHERE BasketId = @basketId";
 
             await using var conn = new SqliteConnection(ConnectionString);
-            await using var command = new SqliteCommand(query, conn);
-            conn.Open();
 
-            command.Parameters.AddWithValue("@basketId", basketId);
+            var basketItems = await conn.QueryAsync<dynamic>(query, new { basketId });
 
-            var reader = await command.ExecuteReaderAsync();
-
-            var basketItems = new List<BasketItem>();
-
-            while (reader.Read())
-            {
-                basketItems.Add(new BasketItem
+            var result = basketItems
+                .Select(item => new BasketItem
                 {
-                    Id = reader.GetInt32(0),
-                    BasketId = reader.GetInt32(1),
-                    Product = new Product { Id = reader.GetInt32(2) },
-                    Quantity = reader.GetInt32(3),
-                    Price = reader.GetDouble(4),
-                    VATRate = reader.GetDouble(5),
-                    CreatedAt = reader.GetDateTime(6)
-                });
-            }
+                    Id = Convert.ToInt32(item.Id),
+                    BasketId = Convert.ToInt32(item.BasketId),
+                    Product = new Product { Id = Convert.ToInt32(item.ProductId) },
+                    Quantity = Convert.ToInt32(item.Quantity),
+                    Price = item.Price,
+                    VATRate = item.VATRate,
+                    CreatedAt = DateTime.Parse(item.CreatedAt.ToString())
+                })
+                .ToList();
 
-            reader.Close();
-
-            foreach (var basketItem in basketItems)
+            foreach (var basketItem in result)
             {
                 var product = await productRepository.GetProduct(basketItem.Product.Id);
                 basketItem.Product = product;
             }
 
-            return basketItems;
+            return result;
         }
 
         public async Task<BasketItem> CreateBasketItem(BasketItem basketItem)
@@ -188,63 +162,47 @@ namespace Api.Repositories
                 "VALUES (@basketId, @productId, @quantity, @price, @vatRate, @createdAt); " +
                 "SELECT last_insert_rowid();";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@basketId", basketItem.BasketId },
-                { "@productId", basketItem.Product?.Id ?? 0 },
-                { "@quantity", basketItem.Quantity },
-                { "@price", basketItem.Price },
-                { "@vatRate", basketItem.VATRate },
-                { "@createdAt", basketItem.CreatedAt },
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            basketItem.Id = await ExecuteScalar(query, parameters);
+            var basketItemId = await conn.QuerySingleAsync<int>(query, new
+            {
+                basketId = basketItem.BasketId,
+                productId = basketItem.Product?.Id ?? 0,
+                quantity = basketItem.Quantity,
+                price = basketItem.Price,
+                vatRate = basketItem.VATRate,
+                createdAt = basketItem.CreatedAt
+            });
+
+            basketItem.Id = basketItemId;
             return basketItem;
         }
 
         public async Task UpdateBasketItemQuantity(int basketItemId, int quantity)
         {
-            var query =
-                "UPDATE BasketItem " +
-                "SET Quantity = @quantity " +
-                "WHERE Id = @basketItemId";
+            var query = "UPDATE BasketItem SET Quantity = @quantity WHERE Id = @basketItemId";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@basketItemId", basketItemId },
-                { "@quantity", quantity }
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            await ExecuteNonQuery(query, parameters);
+            await conn.ExecuteAsync(query, new { basketItemId, quantity });
         }
 
         public async Task DeleteBasketItem(int basketItemId)
         {
-            var query =
-                "DELETE FROM BasketItem " +
-                "WHERE Id = @basketItemId";
+            var query = "DELETE FROM BasketItem WHERE Id = @basketItemId";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@basketItemId", basketItemId }
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            await ExecuteNonQuery(query, parameters);
+            await conn.ExecuteAsync(query, new { basketItemId });
         }
 
         public async Task<bool> BasketItemExists(int basketItemId)
         {
-            var query =
-                "SELECT COUNT(*) " +
-                "FROM BasketItem " +
-                "WHERE Id = @basketItemId";
+            var query = "SELECT COUNT(*) FROM BasketItem WHERE Id = @basketItemId";
 
-            var parameters = new Dictionary<string, object>
-            {
-                { "@basketItemId", basketItemId }
-            };
+            await using var conn = new SqliteConnection(ConnectionString);
 
-            var count = await ExecuteScalar(query, parameters);
+            var count = await conn.QuerySingleAsync<int>(query, new { basketItemId });
             return count > 0;
         }
     }
