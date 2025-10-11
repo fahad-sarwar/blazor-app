@@ -57,7 +57,7 @@ namespace Api.Repositories
                 $"{whereClause} ";
 
             var dataQuery =
-                "SELECT p.Id, p.Name, p.Description, p.Price, p.ImageURL, p.Stock, p.ForSale, p.SalePrice, p.CreatedAt, c.Id as CategoryId, c.Name, c.Description, c.CreatedAt " +
+                "SELECT p.Id, p.Name, p.Description, p.Price, p.ImageURL, p.Stock, p.ForSale, p.SalePrice, p.CreatedAt, c.Id, c.Name, c.Description, c.CreatedAt " +
                 "FROM Product p " +
                 " INNER JOIN Category c ON p.CategoryId = c.Id " +
                 $"{whereClause} " +
@@ -79,7 +79,7 @@ namespace Api.Repositories
                     return product;
                 },
                 commandParameters,
-                splitOn: "CategoryId"
+                splitOn: "Id"
             );
 
             return (productData.ToList(), totalCount);
@@ -89,7 +89,7 @@ namespace Api.Repositories
         {
             var query =
                 "SELECT p.Id, p.Name, p.Description, p.Price, p.ImageURL, p.Stock, p.ForSale, p.SalePrice, p.CreatedAt, " +
-                "c.Id as CategoryId, c.Name, c.Description, c.CreatedAt " +
+                "c.Id, c.Name, c.Description, c.CreatedAt " +
                 "FROM Product p " +
                 "INNER JOIN Category c ON p.CategoryId = c.Id " +
                 "WHERE p.Id = @productId";
@@ -109,7 +109,7 @@ namespace Api.Repositories
                     return product;
                 },
                 new { productId },
-                splitOn: "CategoryId"
+                splitOn: "Id"
             );
 
             var result = product.FirstOrDefault();
