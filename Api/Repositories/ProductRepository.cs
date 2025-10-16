@@ -8,30 +8,46 @@ namespace Api.Repositories
     {
         public async Task<(List<Product> Products, int TotalCount)> GetProducts(int? categoryId, bool? forSale, string? searchTerm, string sort, int page, int pageSize)
         {
-            var queryWhereConditions = new List<string>();
-            var commandParameters = new DynamicParameters();
+            var productCountQuery = 
+                "SELECT COUNT(*) FROM Product p " +
+                "INNER JOIN Category c ON p.CategoryId = c.Id ";
 
-            if (categoryId.HasValue)
+            var productSearchQuery =
+                "SELECT p.Id, p.Name, p.Description, p.Price, p.ImageURL, p.Stock, p.ForSale, p.SalePrice, p.CreatedAt, c.Id, c.Name, c.Description, c.CreatedAt " +
+                "FROM Product p " +
+                " INNER JOIN Category c ON p.CategoryId = c.Id ";
+
+            var parameters = new DynamicParameters();
+
+            if(IncludeCategoryFilter(categoryId) || IncludeForSaleFilter(forSale) || IncludeSearchTermFilter(searchTerm))
             {
-                queryWhereConditions.Add("p.CategoryId = @categoryId");
-                commandParameters.Add("@categoryId", categoryId.Value);
-            }
+                var whereFilters = new List<string>();
 
-            if (forSale.HasValue)
-            {
-                queryWhereConditions.Add("p.ForSale = @forSale");
-                commandParameters.Add("@forSale", forSale.Value);
-            }
+                if (IncludeCategoryFilter(categoryId))
+                {
+                    whereFilters.Add("p.CategoryId = @categoryId");
+                    parameters.Add("@categoryId", categoryId.Value);
+                }
 
-            if (!string.IsNullOrWhiteSpace(searchTerm))
-            {
-                queryWhereConditions.Add("(LOWER(p.Name) LIKE @searchTerm OR LOWER(p.Description) LIKE @searchTerm)");
-                commandParameters.Add("@searchTerm", $"%{searchTerm.ToLower()}%");
-            }
+                if (IncludeForSaleFilter(forSale))
+                {
+                    whereFilters.Add("p.ForSale = @forSale");
+                    parameters.Add("@forSale", forSale.Value);
+                }
 
-            var whereClause = queryWhereConditions.Count > 0
-                ? "WHERE " + string.Join(" AND ", queryWhereConditions)
-                : "";
+                if (IncludeSearchTermFilter(searchTerm))
+                {
+                    whereFilters.Add("(LOWER(p.Name) LIKE @searchTerm OR LOWER(p.Description) LIKE @searchTerm)");
+                    parameters.Add("@searchTerm", $"%{searchTerm.ToLower()}%");
+                }
+
+                var whereClause = whereFilters.Count > 0
+                    ? "WHERE " + string.Join(" AND ", whereFilters)
+                    : "";
+
+                productCountQuery += whereClause;
+                productSearchQuery += whereClause;
+            }
 
             string orderBy;
             switch (sort)
@@ -50,35 +66,24 @@ namespace Api.Repositories
                     break;
             }
 
-            var countQuery =
-                "SELECT COUNT(*) " +
-                "FROM Product p " +
-                "INNER JOIN Category c ON p.CategoryId = c.Id " +
-                $"{whereClause} ";
+            productSearchQuery += $" {orderBy}";
+            productSearchQuery += " LIMIT @pageSize OFFSET @offset";
 
-            var dataQuery =
-                "SELECT p.Id, p.Name, p.Description, p.Price, p.ImageURL, p.Stock, p.ForSale, p.SalePrice, p.CreatedAt, c.Id, c.Name, c.Description, c.CreatedAt " +
-                "FROM Product p " +
-                " INNER JOIN Category c ON p.CategoryId = c.Id " +
-                $"{whereClause} " +
-                $"{orderBy} " +
-                "LIMIT @pageSize OFFSET @offset";
-
-            commandParameters.Add("pageSize", pageSize);
-            commandParameters.Add("offset", (page - 1) * pageSize);
+            parameters.Add("pageSize", pageSize);
+            parameters.Add("offset", (page - 1) * pageSize);
 
             await using var conn = new SqliteConnection(ConnectionString);
 
-            var totalCount = await conn.QuerySingleAsync<int>(countQuery, commandParameters);
+            var totalCount = await conn.QuerySingleAsync<int>(productCountQuery, parameters);
 
             var productData = await conn.QueryAsync<Product, Category, Product>(
-                dataQuery,
+                productSearchQuery,
                 (product, category) =>
                 {
                     product.Category = category;
                     return product;
                 },
-                commandParameters,
+                parameters,
                 splitOn: "Id"
             );
 
@@ -121,6 +126,21 @@ namespace Api.Repositories
             }
 
             return result;
+        }
+
+        private static bool IncludeSearchTermFilter(string? searchTerm)
+        {
+            return !string.IsNullOrWhiteSpace(searchTerm);
+        }
+
+        private static bool IncludeForSaleFilter(bool? forSale)
+        {
+            return forSale.HasValue;
+        }
+
+        private static bool IncludeCategoryFilter(int? categoryId)
+        {
+            return categoryId.HasValue;
         }
     }
 }
