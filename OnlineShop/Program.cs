@@ -13,14 +13,18 @@ builder.Host.ConfigureLogging(logging =>
     logging.AddConsole();
 });
 
+var sharedCookieContainer = new CookieContainer();
+
+builder.Services.AddSingleton(sharedCookieContainer);
+
 builder.Services.AddHttpClient("Api", client =>
     {
         client.BaseAddress = new Uri("http://localhost:5110/");
     })
-    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    .ConfigurePrimaryHttpMessageHandler(serviceProvider => new HttpClientHandler
     {
         UseCookies = true,
-        CookieContainer = new CookieContainer(),
+        CookieContainer = serviceProvider.GetRequiredService<CookieContainer>(),
         UseDefaultCredentials = false
     });
 

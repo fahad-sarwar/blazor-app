@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components.Authorization;
 using OnlineShopUI.ViewModels;
-using System.Text.Json;
 
 namespace OnlineShopUI.Services
 {
@@ -15,12 +14,11 @@ namespace OnlineShopUI.Services
 
                 if (result.IsSuccessStatusCode)
                 {
-                    var user = await GetUserFromApi();
-                    if (user != null && authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
+                    if (authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
                     {
-                        await apiProvider.NotifyAuthenticationStateChangedAsync();
-                        return true;
+                        apiProvider.NotifyAuthenticationStateChangedAsync();
                     }
+                    return true;
                 }
             }
             catch (Exception ex)
@@ -39,12 +37,11 @@ namespace OnlineShopUI.Services
 
                 if (result.IsSuccessStatusCode)
                 {
-                    var user = await GetUserFromApi();
-                    if (user != null && authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
+                    if (authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
                     {
-                        await apiProvider.NotifyAuthenticationStateChangedAsync();
-                        return true;
+                        apiProvider.NotifyAuthenticationStateChangedAsync();
                     }
+                    return true;
                 }
             }
             catch (Exception ex)
@@ -72,7 +69,7 @@ namespace OnlineShopUI.Services
             {
                 if (authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
                 {
-                    await apiProvider.NotifyAuthenticationStateChangedAsync();
+                    apiProvider.NotifyAuthenticationStateChangedAsync();
                 }
             }
 
@@ -87,7 +84,7 @@ namespace OnlineShopUI.Services
 
                 if (authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
                 {
-                    await apiProvider.NotifyAuthenticationStateChangedAsync();
+                    apiProvider.NotifyAuthenticationStateChangedAsync();
                     return true;
                 }
             }
@@ -97,27 +94,6 @@ namespace OnlineShopUI.Services
             }
 
             return false;
-        }
-
-        private async Task<UserInfo?> GetUserFromApi()
-        {
-            try
-            {
-                var userResponse = await GetClientFactory().GetAsync("api/auth/user");
-
-                if (userResponse.IsSuccessStatusCode)
-                {
-                    var userJson = await userResponse.Content.ReadAsStringAsync();
-                    return JsonSerializer.Deserialize<UserInfo>(userJson,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, "There was an error getting user details.");
-            }
-
-            return null;
         }
     }
 }

@@ -7,7 +7,6 @@ namespace OnlineShopUI.Services
 {
     public class ApiAuthenticationStateProvider(
         IHttpClientFactory httpClientFactory,
-        IHttpContextAccessor httpContextAccessor,
         ILogger<ApiAuthenticationStateProvider> logger)
         : AuthenticationStateProvider
     {
@@ -16,17 +15,6 @@ namespace OnlineShopUI.Services
             try
             {
                 var httpClient = httpClientFactory.CreateClient("Api");
-                
-                var httpContext = httpContextAccessor.HttpContext;
-                if (httpContext?.Request.Cookies != null)
-                {
-                    var cookieHeader = string.Join("; ", httpContext.Request.Cookies.Select(c => $"{c.Key}={c.Value}"));
-                    if (!string.IsNullOrEmpty(cookieHeader))
-                    {
-                        httpClient.DefaultRequestHeaders.Add("Cookie", cookieHeader);
-                    }
-                }
-                
                 var response = await httpClient.GetAsync("api/auth/user");
 
                 if (response.IsSuccessStatusCode)
@@ -50,23 +38,26 @@ namespace OnlineShopUI.Services
                             claims.Add(new Claim("CustomerId", user.CustomerId.Value.ToString()));
                         }
 
-                        logger.LogInformation("Creating authentication state with {ClaimCount} claims: {Claims}", 
-                            claims.Count, string.Join(", ", claims.Select(c => $"{c.Type}={c.Value}")));
+                        logger.LogInformation("User authenticated: {Email} with {ClaimCount} claims", user.Email, claims.Count);
 
                         var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
                         return new AuthenticationState(new ClaimsPrincipal(identity));
                     }
                 }
+                else
+                {
+                    logger.LogInformation("User not authenticated. API returned: {StatusCode}", response.StatusCode);
+                }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting the customers current authentication state.");
+                logger.LogError(ex, "Error getting authentication state from API");
             }
 
             return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
         }
 
-        public async Task NotifyAuthenticationStateChangedAsync()
+        public void NotifyAuthenticationStateChangedAsync()
         {
             NotifyAuthenticationStateChanged(GetAuthenticationStateAsync());
         }
