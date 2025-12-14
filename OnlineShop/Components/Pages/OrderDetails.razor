@@ -4,48 +4,49 @@
 @using OnlineShopUI.ViewModels
 @using OnlineShopUI.Components.Shared
 @inject OrderService OrderService
+@inject CustomAuthenticationStateService CustomAuthenticationStateProvider
 @rendermode InteractiveServer
 
-<AuthorizeView Context="authContext">
-    <Authorized>
-        @if (!string.IsNullOrEmpty(_errorMessage))
-        {
-            <div class="alert alert-danger">@_errorMessage</div>
-        }
+@if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+{
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="alert alert-danger">@_errorMessage</div>
+    }
 
-        @if (_isLoading)
-        {
-            <p>Loading order details...</p>
-        }
-        else if (_order == null)
-        {
-            <div class="alert alert-warning">
-                <p>Order not found, or you don't have permission to view this order.</p>
-                <a href="/orders" class="btn btn-primary">Back to My Orders</a>
-            </div>
-        }
-        else
-        {
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>#@_order.OrderNumber</h2>
-                <a href="/orders" class="btn btn-primary">Back to Orders</a>
-            </div>
+    @if (_isLoading)
+    {
+        <p>Loading order details...</p>
+    }
+    else if (_order == null)
+    {
+        <div class="alert alert-warning">
+            <p>Order not found, or you don't have permission to view this order.</p>
+            <a href="/orders" class="btn btn-primary">Back to My Orders</a>
+        </div>
+    }
+    else
+    {
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>#@_order.OrderNumber</h2>
+            <a href="/orders" class="btn btn-primary">Back to Orders</a>
+        </div>
 
-            <OrderMilestones Order="@_order" />
+        <OrderMilestones Order="@_order" />
 
-            <OrderCustomerPaymentDetails Order="@_order" />
+        <OrderCustomerPaymentDetails Order="@_order" />
 
-            <div class="col-md-12">
-                <OrderSummary Order="@_order" />
-            </div>
-            
-            <OrderTrackingUpdates Order="@_order" />
-        }
-    </Authorized>
-    <NotAuthorized>
-        <LoginRegisterAlert ReturnUrl="%2Forder-details%2F@OrderId" />
-    </NotAuthorized>
-</AuthorizeView>
+        <div class="col-md-12">
+            <OrderSummary Order="@_order" />
+        </div>
+
+        <OrderTrackingUpdates Order="@_order" />
+    }
+}
+else
+{
+    <LoginRegisterAlert ReturnUrl="%2Forder-details%2F@OrderId" />
+}
 
 @code {
     [Parameter] public int OrderId { get; set; }
@@ -56,7 +57,18 @@
 
     protected override async Task OnInitializedAsync()
     {
+        CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
         await LoadOrderDetails();
+    }
+
+    public void Dispose()
+    {
+        CustomAuthenticationStateProvider.OnUserInfoChanged -= OnAuthStateChanged;
+    }
+
+    private async Task OnAuthStateChanged()
+    {
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadOrderDetails()

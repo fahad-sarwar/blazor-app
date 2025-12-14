@@ -5,6 +5,7 @@
 @using OnlineShopUI.Components.Shared
 @inject BasketCountService BasketCountService
 @inject OrderService OrderService
+@inject CustomAuthenticationStateService CustomAuthenticationStateProvider
 @rendermode InteractiveServer
 
 @if (_showSuccessMessage)
@@ -22,37 +23,37 @@
 
 <h3>Order Confirmation</h3>
 
-<AuthorizeView Context="authContext">
-    <Authorized>
-        @if (_loading)
-        {
-            <p>Loading order...</p>
-        }
-        else
-        {
-            <div class="card mb-4">
-                <div class="card-body">
-                    <h5 class="card-title">#@_order.OrderNumber</h5>
-                    <strong>Status:</strong> @_order.Status
-                    <br />
-                    <strong>Placed on:</strong> @_order.GetFormattedCreatedAtDate()
-                </div>
+@if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+{
+    @if (_loading)
+    {
+        <p>Loading order...</p>
+    }
+    else
+    {
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">#@_order.OrderNumber</h5>
+                <strong>Status:</strong> @_order.Status
+                <br />
+                <strong>Placed on:</strong> @_order.GetFormattedCreatedAtDate()
             </div>
-
-            <div class="col-md-12">
-                <OrderSummary Order="@_order" />
-            </div>
-        }
-
-        <div class="mt-4">
-            <a class="btn btn-primary me-2" href="/">Continue Shopping</a>
-            <a class="btn btn-secondary" href="/order-details/@OrderId">View Order</a>
         </div>
-    </Authorized>
-    <NotAuthorized>
-        <LoginRegisterAlert ReturnUrl="%2F" />
-    </NotAuthorized>
-</AuthorizeView>
+
+        <div class="col-md-12">
+            <OrderSummary Order="@_order" />
+        </div>
+    }
+
+    <div class="mt-4">
+        <a class="btn btn-primary me-2" href="/">Continue Shopping</a>
+        <a class="btn btn-secondary" href="/order-details/@OrderId">View Order</a>
+    </div>
+}
+else
+{
+    <LoginRegisterAlert ReturnUrl="%2F" />
+}
 
 @code {
     [Parameter] public int OrderId { get; set; }
@@ -65,6 +66,8 @@
     protected override async Task OnInitializedAsync()
     {
         _loading = true;
+
+        CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
 
         _order = await OrderService.GetOrderById(OrderId);
 
@@ -80,5 +83,15 @@
         }
 
         _loading = false;
+    }
+
+    public void Dispose()
+    {
+        CustomAuthenticationStateProvider.OnUserInfoChanged -= OnAuthStateChanged;
+    }
+
+    private async Task OnAuthStateChanged()
+    {
+        await InvokeAsync(StateHasChanged);
     }
 }

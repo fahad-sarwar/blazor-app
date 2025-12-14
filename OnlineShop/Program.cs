@@ -1,6 +1,3 @@
-using System.Net;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using OnlineShopUI.Components;
 using OnlineShopUI.Services;
@@ -13,39 +10,16 @@ builder.Host.ConfigureLogging(logging =>
     logging.AddConsole();
 });
 
-var sharedCookieContainer = new CookieContainer();
-
-builder.Services.AddSingleton(sharedCookieContainer);
-
 builder.Services.AddHttpClient("Api", client =>
     {
         client.BaseAddress = new Uri("http://localhost:5110/");
-    })
-    .ConfigurePrimaryHttpMessageHandler(serviceProvider => new HttpClientHandler
-    {
-        UseCookies = true,
-        CookieContainer = serviceProvider.GetRequiredService<CookieContainer>(),
-        UseDefaultCredentials = false
     });
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
-builder.Services.AddCascadingAuthenticationState();
-
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.Cookie.HttpOnly = true;
-        options.Cookie.SecurePolicy = CookieSecurePolicy.None;
-        options.Cookie.SameSite = SameSiteMode.Lax;
-        options.LoginPath = "/account/login";
-        options.AccessDeniedPath = "/access-denied";
-        options.ExpireTimeSpan = TimeSpan.FromMinutes(15);
-        options.SlidingExpiration = true;
-    });
 
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<AuthenticationStateProvider, ApiAuthenticationStateProvider>();
+builder.Services.AddSingleton<CustomAuthenticationStateService>();
 
 builder.Services.AddScoped<CheckoutService>();
 builder.Services.AddScoped<ServiceBase>();
@@ -60,7 +34,6 @@ builder.Services.AddScoped<WishlistService>();
 builder.Services.AddScoped<ReviewService>();
 builder.Services.AddScoped<MessageService>();
 builder.Services.AddScoped<ProtectedSessionStorage>();
-builder.Services.AddScoped<ApiAuthenticationStateProvider>();
 builder.Services.AddScoped<AuthService>();
 
 var app = builder.Build();
@@ -76,9 +49,6 @@ if (!app.Environment.IsDevelopment())
 
 app.UseStaticFiles();
 app.UseAntiforgery();
-
-app.UseAuthentication();
-app.UseAuthorization();
 
 app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 

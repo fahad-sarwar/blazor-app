@@ -2,9 +2,9 @@
 
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
+@inject CustomAuthenticationStateService CustomAuthenticationStateProvider
 @inject BasketService BasketService
 @inject NavigationManager Navigation
-@inject ApiAuthenticationStateProvider ApiAuthenticationStateProvider
 @rendermode InteractiveServer
 
 @if (!string.IsNullOrEmpty(_errorMessage))
@@ -162,9 +162,9 @@ else
 
     private async Task ProceedToCheckout()
     {
-        var authState = await ApiAuthenticationStateProvider.GetAuthenticationStateAsync();
+        var userInfo = CustomAuthenticationStateProvider.GetUserInfoDetails();
 
-        if (authState?.User == null || !authState.User.Identity.IsAuthenticated)
+        if (userInfo == null)
         {
             var returnUrl = Uri.EscapeDataString("/checkout");
             Navigation.NavigateTo($"/account/register?returnUrl={returnUrl}");

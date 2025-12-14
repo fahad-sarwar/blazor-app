@@ -2,6 +2,7 @@
 @using OnlineShopUI.ViewModels
 @inject BasketService BasketService
 @inject WishlistService WishlistService
+@inject CustomAuthenticationStateService CustomAuthenticationStateProvider
 
 <div class="col">
     <div class="card h-100">
@@ -18,15 +19,17 @@
                 }
                 else
                 {
-                    <p>@Product.FormattedPrice()</p>
+                <p>@Product.FormattedPrice()</p>
                 }
             </p>
         </div>
         <div class="card-footer">
-            <a class="btn btn-primary" href="/product/@Product.Id">View</a>
-            <button class="btn btn-secondary" @onclick="AddToBasket">Add to Basket</button>
-            <AuthorizeView>
-                <Authorized>
+            <div class="d-flex gap-2">
+                <a class="btn btn-primary" href="/product/@Product.Id">View</a>
+                <button class="btn btn-secondary" @onclick="AddToBasket">Add to Basket</button>
+
+                @if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+                {
                     @if (ShowRemoveButton.HasValue && !ShowRemoveButton.Value)
                     {
                         <button class="btn @GetWishlistButtonClass()" @onclick="AddToWishlist" disabled="@_isOnWishlist">
@@ -38,13 +41,13 @@
                     {
                         <button class="btn btn-danger" @onclick="RemoveFromWishlist">Remove from Wishlist</button>
                     }
-                </Authorized>
-            </AuthorizeView>
+                }
 
-            @if (!string.IsNullOrEmpty(_errorMessage))
-            {
-                <div class="text-danger mt-2">@_errorMessage</div>
-            }
+                @if (!string.IsNullOrEmpty(_errorMessage))
+                {
+                    <div class="text-danger mt-2">@_errorMessage</div>
+                }
+            </div>
         </div>
     </div>
 </div>
@@ -59,7 +62,18 @@
 
     protected override async Task OnInitializedAsync()
     {
+        CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
         _isOnWishlist = await WishlistService.IsOnWishlist(Product.Id);
+    }
+
+    public void Dispose()
+    {
+        CustomAuthenticationStateProvider.OnUserInfoChanged -= OnAuthStateChanged;
+    }
+
+    private async Task OnAuthStateChanged()
+    {
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task AddToBasket()

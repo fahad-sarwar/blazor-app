@@ -9,7 +9,7 @@
 @inject CheckoutService CheckoutDummyDataService
 @inject CustomerService CustomerService
 @inject OrderService OrderService
-@inject ApiAuthenticationStateProvider ApiAuthenticationStateProvider
+@inject CustomAuthenticationStateService CustomAuthenticationStateProvider
 
 @if (_errorMessage != null)
 {
@@ -18,40 +18,39 @@
 
 <h3 class="mb-4">Checkout</h3>
 
-<AuthorizeView Context="authContext">
-    <Authorized>
-
-        @if (!_loaded)
-        {
-            <p>Loading basket...</p>
-        }
-        else if (_basket == null || !_basket.Items.Any())
-        {
-            <div class="alert alert-warning">Your basket is empty.</div>
-        }
-        else
-        {
-            <div class="row g-5">
-                <div class="col-md-7">
-                    <EditForm Model="@_checkoutModel" OnValidSubmit="SubmitOrder" Context="editContext">
-                        <DataAnnotationsValidator />
-                        <CheckoutCustomerDetails CheckoutModel="@_checkoutModel" />
-                        <CheckoutBillingAddressDetails CheckoutModel="@_checkoutModel" />
-                        <CheckoutShippingAddressDetails CheckoutModel="@_checkoutModel" />
-                        <CheckoutPaymentDetails CheckoutModel="@_checkoutModel" />
-                    </EditForm>
-                </div>
-
-                <div class="col-md-5">
-                    <BasketSummary Basket="@_basket" />
-                </div>
+@if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+{
+    @if (!_loaded)
+    {
+        <p>Loading basket...</p>
+    }
+    else if (_basket == null || !_basket.Items.Any())
+    {
+        <div class="alert alert-warning">Your basket is empty.</div>
+    }
+    else
+    {
+        <div class="row g-5">
+            <div class="col-md-7">
+                <EditForm Model="@_checkoutModel" OnValidSubmit="SubmitOrder" Context="editContext">
+                    <DataAnnotationsValidator />
+                    <CheckoutCustomerDetails CheckoutModel="@_checkoutModel" />
+                    <CheckoutBillingAddressDetails CheckoutModel="@_checkoutModel" />
+                    <CheckoutShippingAddressDetails CheckoutModel="@_checkoutModel" />
+                    <CheckoutPaymentDetails CheckoutModel="@_checkoutModel" />
+                </EditForm>
             </div>
-        }
-    </Authorized>
-    <NotAuthorized>
-        <LoginRegisterAlert ReturnUrl="%2Fcheckout" />
-    </NotAuthorized>
-</AuthorizeView>
+
+            <div class="col-md-5">
+                <BasketSummary Basket="@_basket" />
+            </div>
+        </div>
+    }
+}
+else
+{
+    <LoginRegisterAlert ReturnUrl="%2Fcheckout" />
+}
 
 @code {
     private BasketViewModel? _basket;
@@ -62,14 +61,25 @@
 
     protected override async Task OnInitializedAsync()
     {
+        CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
         await LoadBasketAsync();
         await CreateDummyCheckoutModel();
     }
 
+    public void Dispose()
+    {
+        CustomAuthenticationStateProvider.OnUserInfoChanged -= OnAuthStateChanged;
+    }
+
+    private async Task OnAuthStateChanged()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
     private async Task CreateDummyCheckoutModel()
     {
-        var authState = await ApiAuthenticationStateProvider.GetAuthenticationStateAsync();
-        _checkoutModel = await CheckoutDummyDataService.GetDummyCheckoutModel(authState.User, CustomerService);
+        var userInfo = CustomAuthenticationStateProvider.GetUserInfoDetails();
+        _checkoutModel = await CheckoutDummyDataService.GetDummyCheckoutModel(userInfo, CustomerService);
     }
 
     private async Task LoadBasketAsync()

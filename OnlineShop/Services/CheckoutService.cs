@@ -1,23 +1,17 @@
 ﻿using OnlineShopUI.ViewModels;
-using System.Security.Claims;
 
 namespace OnlineShopUI.Services
 {
     public class CheckoutService
     {
-        public async Task<CheckoutViewModel> GetDummyCheckoutModel(ClaimsPrincipal user, CustomerService customerService)
+        public async Task<CheckoutViewModel> GetDummyCheckoutModel(UserInfoViewModel? userInfo, CustomerService customerService)
         {
-            var customerId = int.Parse(user.FindFirst("CustomerId")?.Value);
-            var firstName = user.FindFirst(ClaimTypes.GivenName)?.Value ?? string.Empty;
-            var lastName = user.FindFirst(ClaimTypes.Surname)?.Value ?? string.Empty;
-            var email = user.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty;
-
             var checkoutViewModel = new CheckoutViewModel
             {
-                CustomerId = customerId,
-                FirstName = firstName,
-                LastName = lastName,
-                Email = email
+                CustomerId = userInfo.CustomerId.Value,
+                FirstName = userInfo.FirstName ?? string.Empty,
+                LastName = userInfo.LastName ?? string.Empty,
+                Email = userInfo.Email ?? string.Empty
             };
 
             var customer = await customerService.GetCustomer();

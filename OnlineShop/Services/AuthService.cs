@@ -3,7 +3,13 @@ using OnlineShopUI.ViewModels;
 
 namespace OnlineShopUI.Services
 {
-    public class AuthService(IHttpClientFactory httpClientFactory, AuthenticationStateProvider authenticationStateProvider, ILogger<AuthService> logger)
+    public class AuthService
+        (
+            IHttpClientFactory httpClientFactory, 
+            AuthenticationStateProvider authenticationStateProvider,
+            CustomAuthenticationStateService customAuthenticationStateService,
+            ILogger<AuthService> logger
+        )
         : ServiceBase(httpClientFactory)
     {
         public async Task<bool> Register(RegisterViewModel registerModel)
@@ -14,10 +20,9 @@ namespace OnlineShopUI.Services
 
                 if (result.IsSuccessStatusCode)
                 {
-                    if (authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
-                    {
-                        apiProvider.NotifyAuthenticationStateChangedAsync();
-                    }
+                    var user = await GetClientFactory().GetFromJsonAsync<UserInfoViewModel>("api/auth/user");
+                    await customAuthenticationStateService.SetUserInfoDetails(user);
+
                     return true;
                 }
             }
@@ -37,10 +42,9 @@ namespace OnlineShopUI.Services
 
                 if (result.IsSuccessStatusCode)
                 {
-                    if (authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
-                    {
-                        apiProvider.NotifyAuthenticationStateChangedAsync();
-                    }
+                    var user = await GetClientFactory().GetFromJsonAsync<UserInfoViewModel>("api/auth/user");
+                    await customAuthenticationStateService.SetUserInfoDetails(user);
+
                     return true;
                 }
             }
@@ -59,18 +63,12 @@ namespace OnlineShopUI.Services
             try
             {
                 await GetClientFactory().PostAsync("api/auth/logout", null);
+                await customAuthenticationStateService.ClearUserInfoDetails();
                 result = true;
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "There was an error logging out the customer.");
-            }
-            finally
-            {
-                if (authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
-                {
-                    apiProvider.NotifyAuthenticationStateChangedAsync();
-                }
             }
 
             return result;
@@ -82,11 +80,10 @@ namespace OnlineShopUI.Services
             {
                 await GetClientFactory().PostAsync("api/auth/refresh-claims", null);
 
-                if (authenticationStateProvider is ApiAuthenticationStateProvider apiProvider)
-                {
-                    apiProvider.NotifyAuthenticationStateChangedAsync();
-                    return true;
-                }
+                var user = await GetClientFactory().GetFromJsonAsync<UserInfoViewModel>("api/auth/user");
+                await customAuthenticationStateService.SetUserInfoDetails(user);
+
+                return true;
             }
             catch (Exception ex)
             {

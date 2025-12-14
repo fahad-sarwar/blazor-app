@@ -3,60 +3,76 @@
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
 @using OnlineShopUI.Components.Shared
+
+@inject CustomAuthenticationStateService CustomAuthenticationStateProvider
 @inject OrderService OrderService
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-<AuthorizeView Context="authContext">
-    <Authorized>
-
-        @if (!string.IsNullOrEmpty(_errorMessage))
-        {
-            <div class="alert alert-danger">
-                @_errorMessage
-            </div>
-        }
-
-        <h3>Track your order</h3>
-
-        <p class="mb-4">Enter your order number to check the status of your delivery.</p>
-
-        @if (!string.IsNullOrEmpty(_successMessage))
-        {
-            <div class="alert alert-success">>@_successMessage</div>
-        }
-
-        <div class="row mb-5">
-            <div class="col-md-3">
-                <EditForm Model="@_trackingModel" OnValidSubmit="FindOrder" Context="editContext">
-                    <DataAnnotationsValidator />
-
-                    <div class="mb-3">
-                        <label for="orderNumber" class="form-label fw-semibold">Order Number</label>
-                        <InputText id="orderNumber" class="form-control" @bind-Value="_trackingModel.OrderNumber" placeholder="e.g. ORD0000123" />
-                        <ValidationMessage For="@(() => _trackingModel.OrderNumber)" class="text-danger" />
-                        <div class="form-text">
-                            Your order number starts with "ORD" followed by numbers
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary" disabled="@_isSearching">
-                        Track Order
-                    </button>
-                </EditForm>
-            </div>
+@if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+{
+    @if (!string.IsNullOrEmpty(_errorMessage))
+    {
+        <div class="alert alert-danger">
+            @_errorMessage
         </div>
-    </Authorized>
-    <NotAuthorized>
-        <LoginRegisterAlert ReturnUrl="%2Ftrack-order" />
-    </NotAuthorized>
-</AuthorizeView>
+    }
+
+    <h3>Track your order</h3>
+
+    <p class="mb-4">Enter your order number to check the status of your delivery.</p>
+
+    @if (!string.IsNullOrEmpty(_successMessage))
+    {
+        <div class="alert alert-success">>@_successMessage</div>
+    }
+
+    <div class="row mb-5">
+        <div class="col-md-3">
+            <EditForm Model="@_trackingModel" OnValidSubmit="FindOrder" Context="editContext">
+                <DataAnnotationsValidator />
+
+                <div class="mb-3">
+                    <label for="orderNumber" class="form-label fw-semibold">Order Number</label>
+                    <InputText id="orderNumber" class="form-control" @bind-Value="_trackingModel.OrderNumber" placeholder="e.g. ORD0000123" />
+                    <ValidationMessage For="@(() => _trackingModel.OrderNumber)" class="text-danger" />
+                    <div class="form-text">
+                        Your order number starts with "ORD" followed by numbers
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary" disabled="@_isSearching">
+                    Track Order
+                </button>
+            </EditForm>
+        </div>
+    </div>
+}
+else
+{
+    <LoginRegisterAlert ReturnUrl="%2Ftrack-order" />
+}
 
 @code {
     private TrackingModelViewModel _trackingModel = new();
     private bool _isSearching = false;
     private string? _errorMessage;
     private string? _successMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
+    }
+
+    public void Dispose()
+    {
+        CustomAuthenticationStateProvider.OnUserInfoChanged -= OnAuthStateChanged;
+    }
+
+    private async Task OnAuthStateChanged()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
 
     private async Task FindOrder()
     {

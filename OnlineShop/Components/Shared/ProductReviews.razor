@@ -1,6 +1,7 @@
 ﻿@using OnlineShopUI.ViewModels
 @using OnlineShopUI.Services
 @inject ReviewService ReviewService
+@inject CustomAuthenticationStateService CustomAuthenticationStateProvider
 @rendermode InteractiveServer
 
 @if (_isLoading)
@@ -51,11 +52,10 @@ else
     </div>
 }
 
-<AuthorizeView Context="authContext">
-    <Authorized>
-        <CreateProductReview ProductId="@ProductId" />
-    </Authorized>
-</AuthorizeView>
+@if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+{
+    <CreateProductReview ProductId="@ProductId" />
+}
 
 @code {
     [Parameter] public int ProductId { get; set; }
@@ -69,7 +69,18 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
         await LoadReviews(reset: true);
+    }
+
+    public void Dispose()
+    {
+        CustomAuthenticationStateProvider.OnUserInfoChanged -= OnAuthStateChanged;
+    }
+
+    private async Task OnAuthStateChanged()
+    {
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadReviews(bool reset = false)

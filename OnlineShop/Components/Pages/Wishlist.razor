@@ -4,41 +4,42 @@
 @using OnlineShopUI.ViewModels
 @using OnlineShopUI.Components.Shared
 @inject WishlistService WishlistService
+@inject CustomAuthenticationStateService CustomAuthenticationStateProvider
 @rendermode InteractiveServer
 
 <h3>My Wishlist</h3>
 
-<AuthorizeView Context="authContext">
-    <Authorized>
-        @if (_isLoading)
-        {
-            <p>Loading wishlist...</p>
-        }
-        else if (_products.Count == 0)
-        {
-            <p>Your wishlist is empty.</p>
-        }
-        else
-        {
-            <div class="row row-cols-1 row-cols-md-3 g-4">
-                @foreach (var product in _products)
-                {
-                    <ProductSummaryItem Product="product" ShowRemoveButton="true" OnProductRemovedFromWishlist="HandleItemRemoved" />
-                }
-            </div>
-
-            @if (HasMore())
+@if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+{
+    @if (_isLoading)
+    {
+        <p>Loading wishlist...</p>
+    }
+    else if (_products.Count == 0)
+    {
+        <p>Your wishlist is empty.</p>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            @foreach (var product in _products)
             {
-                <div class="text-center mt-4">
-                    <button class="btn btn-outline-primary" @onclick="LoadMore">Load More</button>
-                </div>
+                <ProductSummaryItem Product="product" ShowRemoveButton="true" OnProductRemovedFromWishlist="HandleItemRemoved" />
             }
+        </div>
+
+        @if (HasMore())
+        {
+            <div class="text-center mt-4">
+                <button class="btn btn-outline-primary" @onclick="LoadMore">Load More</button>
+            </div>
         }
-    </Authorized>
-    <NotAuthorized>
-        <LoginRegisterAlert ReturnUrl="%2F" />
-    </NotAuthorized>
-</AuthorizeView>
+    }
+}
+else
+{
+    <LoginRegisterAlert ReturnUrl="%2F" />
+}
 
 @code {
     private List<ProductViewModel> _products = new();
@@ -49,11 +50,23 @@
 
     protected override async Task OnInitializedAsync()
     {
+        CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
+
         _isLoading = true;
 
         await LoadWishlist();
 
         _isLoading = false;
+    }
+
+    public void Dispose()
+    {
+        CustomAuthenticationStateProvider.OnUserInfoChanged -= OnAuthStateChanged;
+    }
+
+    private async Task OnAuthStateChanged()
+    {
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadWishlist()

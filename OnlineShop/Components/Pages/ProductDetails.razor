@@ -6,6 +6,7 @@
 @inject BasketService BasketService
 @inject ProductService ProductService
 @inject WishlistService WishlistService
+@inject CustomAuthenticationStateService CustomAuthenticationStateProvider
 @rendermode InteractiveServer
 
 @if (!string.IsNullOrEmpty(_errorMessage))
@@ -91,13 +92,12 @@ else
                             Add to Basket
                         </button>
 
-                        <AuthorizeView>
-                            <Authorized>
-                                <button class="btn @GetWishlistButtonClass()" @onclick="AddToWishlist" disabled="@_isOnWishlist">
-                                    @(_isOnWishlist ? "In Wishlist" : "Add to Wishlist")
-                                </button>
-                            </Authorized>
-                        </AuthorizeView>
+                        @if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+                        {
+                            <button class="btn @GetWishlistButtonClass()" @onclick="AddToWishlist" disabled="@_isOnWishlist">
+                                @(_isOnWishlist ? "In Wishlist" : "Add to Wishlist")
+                            </button>
+                        }
                     </div>
 
                     @if (_product.Stock == 0)
@@ -133,6 +133,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
+
         _product = await ProductService.GetProduct(Id);
 
         if (_product != null)
@@ -143,6 +145,16 @@ else
         {
             _errorMessage = "Failed to load product details. Please try again.";
         }
+    }
+
+    public void Dispose()
+    {
+        CustomAuthenticationStateProvider.OnUserInfoChanged -= OnAuthStateChanged;
+    }
+
+    private async Task OnAuthStateChanged()
+    {
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task AddToBasket()
