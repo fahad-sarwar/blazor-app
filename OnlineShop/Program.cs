@@ -17,10 +17,7 @@ builder.Services.AddHttpClient("Api", client =>
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
-builder.Services.AddAuthorization();
-builder.Services.AddHttpContextAccessor();
 builder.Services.AddSingleton<CustomAuthenticationStateService>();
-
 builder.Services.AddScoped<CheckoutService>();
 builder.Services.AddScoped<ServiceBase>();
 builder.Services.AddScoped<BasketService>();
