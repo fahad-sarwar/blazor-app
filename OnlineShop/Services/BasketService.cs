@@ -34,37 +34,30 @@ namespace OnlineShopUI.Services
 
         public async Task<bool> AddToBasket(int productId, int quantity)
         {
-            try
+            var anonymousUserId = await _anonymousUserService.GetOrCreateAnonymousId();
+
+            var existingBasket = await GetBasket();
+
+            var existingItem = existingBasket.Items.FirstOrDefault(item => item.Product.Id == productId);
+
+            if (existingItem != null)
             {
-                var anonymousUserId = await _anonymousUserService.GetOrCreateAnonymousId();
-
-                var existingBasket = await GetBasket();
-
-                var existingItem = existingBasket.Items.FirstOrDefault(item => item.Product.Id == productId);
-
-                if (existingItem != null)
-                {
-                    return await UpdateBasketQuantity(existingItem.Id, existingItem.Quantity + quantity);
-                }
-
-                var basketItem = new
-                {
-                    AnonymousId = anonymousUserId,
-                    ProductId = productId,
-                    Quantity = quantity
-                };
-
-                var response = await GetClientFactory().PostAsJsonAsync("api/BasketItems", basketItem);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    _basketCountService.Increment(1);
-                    return true;
-                }
+                return await UpdateBasketQuantity(existingItem.Id, existingItem.Quantity + quantity);
             }
-            catch(Exception ex)
+
+            var basketItem = new
             {
-                _logger.LogError(ex, "There was an error adding the product {Product} to the customers basket.", productId);
+                AnonymousId = anonymousUserId,
+                ProductId = productId,
+                Quantity = quantity
+            };
+
+            var response = await GetClientFactory().PostAsJsonAsync("api/BasketItems", basketItem);
+
+            if (response.IsSuccessStatusCode)
+            {
+                _basketCountService.Increment(1);
+                return true;
             }
 
             return false;
@@ -72,40 +65,24 @@ namespace OnlineShopUI.Services
 
         public async Task<bool> UpdateBasketQuantity(int basketItemId, int newQuantity)
         {
-            try
+            var updatedItem = new
             {
-                var updatedItem = new
-                {
-                    Quantity = newQuantity
-                };
+                Quantity = newQuantity
+            };
 
-                var response = await GetClientFactory().PutAsJsonAsync($"api/BasketItems/{basketItemId}", updatedItem);
+            var response = await GetClientFactory().PutAsJsonAsync($"api/BasketItems/{basketItemId}", updatedItem);
 
-                return response.IsSuccessStatusCode;
-            }
-            catch(Exception ex)
-            {
-                _logger.LogError(ex, "There was an error updating basket item {BasketItem} quantity.", basketItemId);
-            }
-
-            return false;
+            return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> RemoveItemFromBasket(int basketItemId)
         {
-            try
-            {
-                var response = await GetClientFactory().DeleteAsync($"api/BasketItems/{basketItemId}");
+            var response = await GetClientFactory().DeleteAsync($"api/BasketItems/{basketItemId}");
 
-                if (response.IsSuccessStatusCode)
-                {
-                    _basketCountService.Decrement(1);
-                    return true;
-                }
-            }
-            catch (Exception ex)
+            if (response.IsSuccessStatusCode)
             {
-                _logger.LogError(ex, "There was an error removing the basket item with id {BasketItemId} from the basket.", basketItemId);
+                _basketCountService.Decrement(1);
+                return true;
             }
 
             return false;

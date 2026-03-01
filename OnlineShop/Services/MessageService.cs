@@ -13,16 +13,8 @@ namespace OnlineShopUI.Services
 
         public async Task<bool> SendMessage(SendMessageViewModel message)
         {
-            try
-            {
-                var response = await GetClientFactory().PostAsJsonAsync("api/messages", message);
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "There was an error sending the customers message.");
-                return false;
-            }
+            var response = await GetClientFactory().PostAsJsonAsync("api/messages", message);
+            return response.IsSuccessStatusCode;
         }
     }
 }

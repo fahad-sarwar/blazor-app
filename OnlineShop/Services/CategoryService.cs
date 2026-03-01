@@ -13,38 +13,22 @@ namespace OnlineShopUI.Services
 
         public async Task<List<CategoryViewModel>?> GetCategories()
         {
-            try
-            {
-                var response = await GetClientFactory().GetFromJsonAsync<List<CategoryViewModel>>("api/categories");
+            var response = await GetClientFactory().GetFromJsonAsync<List<CategoryViewModel>>("api/categories");
 
-                return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "There was an error getting a list of categories.");
-                return null;
-            }
+            return response;
         }
 
         public async Task<CategoryViewModel?> GetCategory(int? categoryId)
         {
-            try
+            if (categoryId == null)
             {
-                if(categoryId == null)
-                {
-                    _logger.LogWarning("The category Id is required.  Please provide the correct details.");
-                    return null;
-                }
-                    
-                var response = await GetClientFactory().GetFromJsonAsync<CategoryViewModel>($"api/categories/{categoryId}");
-
-                return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "There was an error getting a category with id {Category}.", categoryId);
+                _logger.LogWarning("The category Id is required.  Please provide the correct details.");
                 return null;
             }
+
+            var response = await GetClientFactory().GetFromJsonAsync<CategoryViewModel>($"api/categories/{categoryId}");
+
+            return response;
         }
     }
 }

@@ -13,39 +13,23 @@ namespace OnlineShopUI.Services
 
         public async Task<CustomerViewModel?> GetCustomer()
         {
-            try
-            {
-                var response = await GetClientFactory().GetFromJsonAsync<CustomerViewModel>($"api/customers");
-                return response;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "There was an error getting the customers details.");
-                return null;
-            }
+            var response = await GetClientFactory().GetFromJsonAsync<CustomerViewModel>($"api/customers");
+            return response;
         }
 
         public async Task<bool> UpdateCustomer(UpdateCustomerViewModel request)
         {
-            try
+            var response = await GetClientFactory().PutAsJsonAsync($"api/customers/{request.Id}", request);
+
+            if (response.IsSuccessStatusCode)
             {
-                var response = await GetClientFactory().PutAsJsonAsync($"api/customers/{request.Id}", request);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    return response.IsSuccessStatusCode;
-                }
-
-                var responseContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("There was an error updating the customers details with id {Customer}.  The API responded with '{ResponseContent}'", request.Id, responseContent);
-
                 return response.IsSuccessStatusCode;
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "There was an error updating the customers details with id {Customer}.", request.Id);
-                return false;
-            }
+
+            var responseContent = await response.Content.ReadAsStringAsync();
+            _logger.LogError("There was an error updating the customers details with id {Customer}.  The API responded with '{ResponseContent}'", request.Id, responseContent);
+
+            return response.IsSuccessStatusCode;
         }
     }
 }

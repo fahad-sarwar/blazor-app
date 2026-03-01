@@ -8,7 +8,7 @@ namespace OnlineShopUI.Services
         private readonly CustomAuthenticationStateService _customAuthenticationStateService;
         private readonly ILogger<AuthService> _logger;
 
-        public AuthService(IHttpClientFactory httpClientFactory, 
+        public AuthService(IHttpClientFactory httpClientFactory,
             AuthenticationStateProvider authenticationStateProvider,
             CustomAuthenticationStateService customAuthenticationStateService,
             ILogger<AuthService> logger) : base(httpClientFactory)
@@ -19,21 +19,14 @@ namespace OnlineShopUI.Services
 
         public async Task<bool> Register(RegisterViewModel registerModel)
         {
-            try
-            {
-                var result = await GetClientFactory().PostAsJsonAsync("api/auth/register", registerModel);
+            var result = await GetClientFactory().PostAsJsonAsync("api/auth/register", registerModel);
 
-                if (result.IsSuccessStatusCode)
-                {
-                    var user = await GetClientFactory().GetFromJsonAsync<UserInfoViewModel>("api/auth/user");
-                    await _customAuthenticationStateService.SetUserInfoDetails(user);
-
-                    return true;
-                }
-            }
-            catch (Exception ex)
+            if (result.IsSuccessStatusCode)
             {
-                _logger.LogError(ex, "There was an error during the registration process.");
+                var user = await GetClientFactory().GetFromJsonAsync<UserInfoViewModel>("api/auth/user");
+                await _customAuthenticationStateService.SetUserInfoDetails(user);
+
+                return true;
             }
 
             return false;
@@ -41,21 +34,14 @@ namespace OnlineShopUI.Services
 
         public async Task<bool> Login(LoginViewModel loginModel)
         {
-            try
-            {
-                var result = await GetClientFactory().PostAsJsonAsync("api/auth/login", loginModel);
+            var result = await GetClientFactory().PostAsJsonAsync("api/auth/login", loginModel);
 
-                if (result.IsSuccessStatusCode)
-                {
-                    var user = await GetClientFactory().GetFromJsonAsync<UserInfoViewModel>("api/auth/user");
-                    await _customAuthenticationStateService.SetUserInfoDetails(user);
-
-                    return true;
-                }
-            }
-            catch (Exception ex)
+            if (result.IsSuccessStatusCode)
             {
-                _logger.LogError(ex, "There was an error logging in the customer.");
+                var user = await GetClientFactory().GetFromJsonAsync<UserInfoViewModel>("api/auth/user");
+                await _customAuthenticationStateService.SetUserInfoDetails(user);
+
+                return true;
             }
 
             return false;
