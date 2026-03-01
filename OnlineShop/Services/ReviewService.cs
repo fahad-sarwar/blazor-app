@@ -16,7 +16,7 @@ namespace OnlineShopUI.Services
             try
             {
                 var response = await GetClientFactory().GetFromJsonAsync<PagedReviewResultViewModel>($"api/reviews?productId={productId}&page={page}&pageSize={pageSize}");
-                return response ?? null;
+                return response;
             }
 
             catch (Exception ex)
