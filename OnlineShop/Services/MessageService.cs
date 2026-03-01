@@ -2,8 +2,15 @@
 
 namespace OnlineShopUI.Services
 {
-    public class MessageService(IHttpClientFactory httpClientFactory, ILogger<MessageService> logger) : ServiceBase(httpClientFactory)
+    public class MessageService : ServiceBase
     {
+        private readonly ILogger<MessageService> _logger;
+
+        public MessageService(IHttpClientFactory httpClientFactory, ILogger<MessageService> logger) : base(httpClientFactory)
+        {
+            _logger = logger;
+        }
+
         public async Task<bool> SendMessage(SendMessageViewModel message)
         {
             try
@@ -13,7 +20,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error sending the customers message.");
+                _logger.LogError(ex, "There was an error sending the customers message.");
                 return false;
             }
         }

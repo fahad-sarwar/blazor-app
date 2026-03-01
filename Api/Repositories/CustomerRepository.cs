@@ -4,8 +4,15 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public class CustomerRepository(ProductRepository productRepository) : RepositoryBase
+    public class CustomerRepository : RepositoryBase
     {
+        private readonly ProductRepository _productRepository;
+
+        public CustomerRepository(ProductRepository productRepository)
+        {
+            _productRepository = productRepository;
+        }
+
         public async Task<Customer?> GetCustomerByEmail(string email)
         {
             return await GetCustomerByField("Email", email);
@@ -196,7 +203,7 @@ namespace Api.Repositories
 
             foreach (var productId in productIds)
             {
-                var product = await productRepository.GetProduct(productId);
+                var product = await _productRepository.GetProduct(productId);
                 if (product != null)
                 {
                     products.Add(product);

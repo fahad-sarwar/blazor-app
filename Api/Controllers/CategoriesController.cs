@@ -5,19 +5,28 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CategoriesController(CategoryRepository categoryRepository, ILogger<CategoriesController> logger) : ControllerBase
+    public class CategoriesController : ControllerBase
     {
+        private readonly CategoryRepository _categoryRepository;
+        private readonly ILogger<CategoriesController> _logger;
+
+        public CategoriesController(CategoryRepository categoryRepository, ILogger<CategoriesController> logger)
+        {
+            _categoryRepository = categoryRepository;
+            _logger = logger;
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetCategories()
         {
             try
             {
-                var categories = await categoryRepository.GetCategories();
+                var categories = await _categoryRepository.GetCategories();
                 return Ok(categories);
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, "There was an error getting all categories.");
+                _logger.LogError(ex, "There was an error getting all categories.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -27,7 +36,7 @@ namespace Api.Controllers
         {
             try
             {
-                var category = await categoryRepository.GetCategory(id);
+                var category = await _categoryRepository.GetCategory(id);
 
                 return category == null
                     ? NotFound()
@@ -35,7 +44,7 @@ namespace Api.Controllers
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, "There was an error getting a category with id {CategoryId}.", id);
+                _logger.LogError(ex, "There was an error getting a category with id {CategoryId}.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

@@ -4,9 +4,20 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public class OrderRepository(CustomerRepository customerRepository, ProductRepository productRepository,
-        PaymentRepository paymentRepository) : RepositoryBase
+    public class OrderRepository : RepositoryBase
     {
+        private readonly CustomerRepository _customerRepository;
+        private readonly ProductRepository _productRepository;
+        private readonly PaymentRepository _paymentRepository;
+
+        public OrderRepository(CustomerRepository customerRepository, ProductRepository productRepository,
+            PaymentRepository paymentRepository)
+        {
+            _customerRepository = customerRepository;
+            _productRepository = productRepository;
+            _paymentRepository = paymentRepository;
+        }
+
         public async Task<(List<Order> Orders, int TotalCount)> GetOrdersByCustomerId(int customerId, string? orderNumber = null, int page = 1, int pageSize = 10)
         {
             var whereConditions = new List<string> { "CustomerId = @customerId" };
@@ -60,7 +71,7 @@ namespace Api.Repositories
 
             foreach (var order in orders)
             {
-                var customer = await customerRepository.GetCustomerById(order.Customer.Id);
+                var customer = await _customerRepository.GetCustomerById(order.Customer.Id);
                 order.Customer = customer;
             }
 
@@ -96,10 +107,10 @@ namespace Api.Repositories
                 UpdatedAt = DateTime.Parse(orderData.UpdatedAt.ToString())
             };
 
-            order.Customer = await customerRepository.GetCustomerById(customerId);
-            order.BillingAddress = await customerRepository.GetAddress(Convert.ToInt32(orderData.BillingAddressId));
-            order.ShippingAddress = await customerRepository.GetAddress(Convert.ToInt32(orderData.ShippingAddressId));
-            order.Payment = await paymentRepository.GetPayment(Convert.ToInt32(orderData.PaymentId));
+            order.Customer = await _customerRepository.GetCustomerById(customerId);
+            order.BillingAddress = await _customerRepository.GetAddress(Convert.ToInt32(orderData.BillingAddressId));
+            order.ShippingAddress = await _customerRepository.GetAddress(Convert.ToInt32(orderData.ShippingAddressId));
+            order.Payment = await _paymentRepository.GetPayment(Convert.ToInt32(orderData.PaymentId));
             order.OrderItems = await GetOrderItemsByOrderId(orderId);
             order.TrackingUpdates = await GetTrackingUpdatesByOrderId(orderId);
 
@@ -244,7 +255,7 @@ namespace Api.Repositories
 
             foreach (var orderItem in orderItems)
             {
-                var product = await productRepository.GetProduct(orderItem.Product.Id);
+                var product = await _productRepository.GetProduct(orderItem.Product.Id);
                 orderItem.Product = product;
             }
 

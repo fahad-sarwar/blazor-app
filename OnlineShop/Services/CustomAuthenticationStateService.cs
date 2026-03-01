@@ -2,10 +2,14 @@
 
 namespace OnlineShopUI.Services
 {
-    public class CustomAuthenticationStateService(IHttpClientFactory httpClientFactory)
-        : ServiceBase(httpClientFactory)
+    public class CustomAuthenticationStateService : ServiceBase
     {
         private UserInfoViewModel? _userInfoViewModel;
+
+        public CustomAuthenticationStateService(IHttpClientFactory httpClientFactory) : base(httpClientFactory)
+        {
+        }
+
         public event Func<Task>? OnUserInfoChanged;
 
         public UserInfoViewModel? GetUserInfoDetails()

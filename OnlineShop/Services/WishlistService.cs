@@ -2,8 +2,15 @@
 
 namespace OnlineShopUI.Services
 {
-    public class WishlistService(IHttpClientFactory httpClientFactory, ILogger<WishlistService> logger) : ServiceBase(httpClientFactory)
+    public class WishlistService : ServiceBase
     {
+        private readonly ILogger<WishlistService> _logger;
+
+        public WishlistService(IHttpClientFactory httpClientFactory, ILogger<WishlistService> logger) : base(httpClientFactory)
+        {
+            _logger = logger;
+        }
+
         public async Task<PagedProductResultViewModel?> GetWishlist(int page, int pageSize)
         {
             try
@@ -14,7 +21,7 @@ namespace OnlineShopUI.Services
 
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting products on the customers wishlist.");
+                _logger.LogError(ex, "There was an error getting products on the customers wishlist.");
                 return null;
             }
         }
@@ -29,7 +36,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error checking if the product with an id of {ProductId} is on the customers wishlist.", productId);
+                _logger.LogError(ex, "There was an error checking if the product with an id of {ProductId} is on the customers wishlist.", productId);
                 return false;
             }
         }
@@ -48,7 +55,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error adding a product with an id of {ProductId} to the customers wishlist.", productId);
+                _logger.LogError(ex, "There was an error adding a product with an id of {ProductId} to the customers wishlist.", productId);
                 return false;
             }
         }
@@ -62,7 +69,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error removing product a product with an id of {ProductId} from the customers wishlist.", productId);
+                _logger.LogError(ex, "There was an error removing product a product with an id of {ProductId} from the customers wishlist.", productId);
                 return false;
             }
         }

@@ -8,9 +8,16 @@ using Dapper;
 
 namespace Api.Repositories
 {
-    public class UserRepository(ILogger<UserRepository> logger, IOptions<PasswordConfiguration> passwordConfiguration) : RepositoryBase
+    public class UserRepository : RepositoryBase
     {
-        private readonly PasswordConfiguration _passwordConfig = passwordConfiguration.Value;
+        private readonly PasswordConfiguration _passwordConfig;
+        private readonly ILogger<UserRepository> _logger;
+
+        public UserRepository(ILogger<UserRepository> logger, IOptions<PasswordConfiguration> passwordConfiguration)
+        {
+            _logger = logger;
+            _passwordConfig = passwordConfiguration.Value;
+        }
 
         public async Task<User?> GetUserByUsername(string username)
         {
@@ -107,7 +114,7 @@ namespace Api.Repositories
             }
             catch (Exception ex)
             {
-                logger.LogWarning(ex, "Password verification failed");
+                _logger.LogWarning(ex, "Password verification failed");
                 return false;
             }
         }

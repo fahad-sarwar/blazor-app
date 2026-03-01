@@ -1,10 +1,17 @@
 ﻿namespace OnlineShopUI.Services
 {
-    public class ServiceBase(IHttpClientFactory httpClientFactory)
+    public class ServiceBase
     {
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public ServiceBase(IHttpClientFactory httpClientFactory)
+        {
+            _httpClientFactory = httpClientFactory;
+        }
+
         public HttpClient GetClientFactory()
         {
-            return httpClientFactory.CreateClient("Api");
+            return _httpClientFactory.CreateClient("Api");
         }
     }
 }

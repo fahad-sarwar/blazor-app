@@ -7,8 +7,17 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class MessagesController(MessageRepository messageRepository, ILogger<MessagesController> logger) : ControllerBase
+    public class MessagesController : ControllerBase
     {
+        private readonly MessageRepository _messageRepository;
+        private readonly ILogger<MessagesController> _logger;
+
+        public MessagesController(MessageRepository messageRepository, ILogger<MessagesController> logger)
+        {
+            _messageRepository = messageRepository;
+            _logger = logger;
+        }
+
         [HttpPost]
         public async Task<IActionResult> CreateMessage(SendMessageDTO request)
         {
@@ -22,13 +31,13 @@ namespace Api.Controllers
                     Content = request.Content,
                 };
 
-                var createdMessage = await messageRepository.CreateMessage(message);
+                var createdMessage = await _messageRepository.CreateMessage(message);
 
                 return Ok(createdMessage);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error saving message from {Email}.", request.Email);
+                _logger.LogError(ex, "There was an error saving message from {Email}.", request.Email);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

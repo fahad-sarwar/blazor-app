@@ -4,8 +4,17 @@ using Microsoft.Data.Sqlite;
 
 namespace Api.Repositories
 {
-    public class BasketRepository(CustomerRepository customerRepository, ProductRepository productRepository) : RepositoryBase
+    public class BasketRepository : RepositoryBase
     {
+        private readonly CustomerRepository _customerRepository;
+        private readonly ProductRepository _productRepository;
+
+        public BasketRepository(CustomerRepository customerRepository, ProductRepository productRepository)
+        {
+            _customerRepository = customerRepository;
+            _productRepository = productRepository;
+        }
+
         public async Task<Basket?> GetBasketByAnonymousId(string anonymousId)
         {
             return await GetBasketByField("AnonymousId", anonymousId);
@@ -40,7 +49,7 @@ namespace Api.Repositories
 
             if (basket.CustomerId != null)
             {
-                result.Customer = await customerRepository.GetCustomerById(basket.CustomerId);
+                result.Customer = await _customerRepository.GetCustomerById(basket.CustomerId);
             }
 
             result.Items = await GetBasketItems(result.Id);
@@ -91,7 +100,7 @@ namespace Api.Repositories
 
                 if (customerId.HasValue)
                 {
-                    newBasket.Customer = await customerRepository.GetCustomerById(customerId.Value);
+                    newBasket.Customer = await _customerRepository.GetCustomerById(customerId.Value);
                 }
 
                 basket = await CreateBasket(newBasket);
@@ -148,7 +157,7 @@ namespace Api.Repositories
 
             foreach (var basketItem in result)
             {
-                var product = await productRepository.GetProduct(basketItem.Product.Id);
+                var product = await _productRepository.GetProduct(basketItem.Product.Id);
                 basketItem.Product = product;
             }
 

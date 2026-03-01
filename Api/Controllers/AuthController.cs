@@ -10,19 +10,30 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AuthController(UserRepository userRepository, CustomerRepository customerRepository, ILogger<AuthController> logger) : ControllerBase
+    public class AuthController : ControllerBase
     {
+        private readonly UserRepository _userRepository;
+        private readonly CustomerRepository _customerRepository;
+        private readonly ILogger<AuthController> _logger;
+
+        public AuthController(UserRepository userRepository, CustomerRepository customerRepository, ILogger<AuthController> logger)
+        {
+            _userRepository = userRepository;
+            _customerRepository = customerRepository;
+            _logger = logger;
+        }
+
         [HttpGet("user")]
         public async Task<IActionResult> GetCurrentUser()
         {
             try
             {
-                logger.LogInformation("Getting the current user to see if they are authenticated. IsAuthenticated: {IsAuthenticated}, Identity: {Identity}", 
+                _logger.LogInformation("Getting the current user to see if they are authenticated. IsAuthenticated: {IsAuthenticated}, Identity: {Identity}", 
                     User.Identity?.IsAuthenticated, User.Identity?.Name);
                 
                 if (User.Identity?.IsAuthenticated != true)
                 {
-                    logger.LogWarning("The user is not currently logged in.");
+                    _logger.LogWarning("The user is not currently logged in.");
                     return Unauthorized();
                 }
 
@@ -33,14 +44,14 @@ namespace Api.Controllers
                     return Unauthorized();
                 }
 
-                var user = await userRepository.GetUserById(userIdInt);
+                var user = await _userRepository.GetUserById(userIdInt);
 
                 if (user == null)
                 {
                     return Unauthorized();
                 }
 
-                var customer = await customerRepository.GetCustomerByUserId(userIdInt);
+                var customer = await _customerRepository.GetCustomerByUserId(userIdInt);
 
                 return Ok(new
                 {
@@ -57,7 +68,7 @@ namespace Api.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError(e, "There was an error getting current user details.  Exception message: '{Message}'", e.Message);
+                _logger.LogError(e, "There was an error getting current user details.  Exception message: '{Message}'", e.Message);
                 return StatusCode(500, "Error getting the current user.");
             }
         }
@@ -67,14 +78,14 @@ namespace Api.Controllers
         {
             try
             {
-                var existingUser = await userRepository.UserExists(model.Email);
+                var existingUser = await _userRepository.UserExists(model.Email);
 
                 if (existingUser)
                 {
                     return BadRequest("The current username already exists");
                 }
 
-                var user = await userRepository.CreateUser(model.Email, model.Password, false);
+                var user = await _userRepository.CreateUser(model.Email, model.Password, false);
 
                 var customer = new Customer
                 {
@@ -85,14 +96,14 @@ namespace Api.Controllers
                     CreatedAt = DateTime.UtcNow
                 };
 
-                await customerRepository.CreateCustomer(customer);
+                await _customerRepository.CreateCustomer(customer);
 
                 await SignInUserAsync(user, customer);
                 return Ok();
             }
             catch (Exception e)
             {
-                logger.LogError(e, "There was an error registering user.  Exception message: '{Message}'", e.Message);
+                _logger.LogError(e, "There was an error registering user.  Exception message: '{Message}'", e.Message);
                 return StatusCode(500, "Error registering the user.");
             }
         }
@@ -102,25 +113,25 @@ namespace Api.Controllers
         {
             try
             {
-                var user = await userRepository.GetUserByUsername(model.Email);
+                var user = await _userRepository.GetUserByUsername(model.Email);
 
                 if (user == null)
                 {
                     return Unauthorized("The user doesn't exist.");
                 }
 
-                var isValidPassword = await userRepository.ValidatePassword(model.Email, model.Password);
+                var isValidPassword = await _userRepository.ValidatePassword(model.Email, model.Password);
 
                 if (!isValidPassword)
                 {
                     return Unauthorized("The entered password does not match the current users password.");
                 }
 
-                var customer = await customerRepository.GetCustomerByUserId(user.Id);
+                var customer = await _customerRepository.GetCustomerByUserId(user.Id);
 
                 if (customer == null)
                 {
-                    logger.LogWarning("User {Username} found but no there was no corresponding customer record.", user.Username);
+                    _logger.LogWarning("User {Username} found but no there was no corresponding customer record.", user.Username);
                     return Unauthorized("Unable to find the customers account.");
                 }
 
@@ -129,7 +140,7 @@ namespace Api.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError(e, "There was an error whilst logging in the user.");
+                _logger.LogError(e, "There was an error whilst logging in the user.");
                 return StatusCode(500, "Error logging in the user.");
             }
         }
@@ -151,14 +162,14 @@ namespace Api.Controllers
                     return Unauthorized();
                 }
 
-                var user = await userRepository.GetUserById(userIdInt);
+                var user = await _userRepository.GetUserById(userIdInt);
 
                 if (user == null)
                 {
                     return Unauthorized();
                 }
 
-                var customer = await customerRepository.GetCustomerByUserId(user.Id);
+                var customer = await _customerRepository.GetCustomerByUserId(user.Id);
 
                 if (customer != null)
                 {
@@ -169,7 +180,7 @@ namespace Api.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError(e, "An error occured whilst refreshing the users claims.");
+                _logger.LogError(e, "An error occured whilst refreshing the users claims.");
                 return StatusCode(500, "Error refreshing the users claims.");
             }
         }
@@ -184,7 +195,7 @@ namespace Api.Controllers
             }
             catch (Exception e)
             {
-                logger.LogError(e, "There was an error whilst logging out user.");
+                _logger.LogError(e, "There was an error whilst logging out user.");
                 return StatusCode(500, "Error whilst logging out the user.");
             }
         }
@@ -205,12 +216,12 @@ namespace Api.Controllers
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
 
-            logger.LogInformation("Signing in the user {UserId} with {ClaimCount} active claims: {Claims}", 
+            _logger.LogInformation("Signing in the user {UserId} with {ClaimCount} active claims: {Claims}", 
                 user.Id, claims.Count, string.Join(", ", claims.Select(c => $"{c.Type}={c.Value}")));
             
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
             
-            logger.LogInformation("The user with id ({UserId}) has signed in successfully.", user.Id);
+            _logger.LogInformation("The user with id ({UserId}) has signed in successfully.", user.Id);
         }
     }
 }

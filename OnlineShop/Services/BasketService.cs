@@ -2,14 +2,24 @@
 
 namespace OnlineShopUI.Services
 {
-    public class BasketService(IHttpClientFactory httpClientFactory, AnonymousUserService anonymousUserService, BasketCountService basketCountService, ILogger<BasketService> logger)
-        : ServiceBase(httpClientFactory)
+    public class BasketService : ServiceBase
     {
+        private readonly AnonymousUserService _anonymousUserService;
+        private readonly BasketCountService _basketCountService;
+        private readonly ILogger<BasketService> _logger;
+
+        public BasketService(IHttpClientFactory httpClientFactory, AnonymousUserService anonymousUserService, BasketCountService basketCountService, ILogger<BasketService> logger) : base(httpClientFactory)
+        {
+            _anonymousUserService = anonymousUserService;
+            _basketCountService = basketCountService;
+            _logger = logger;
+        }
+
         public async Task<BasketViewModel?> GetBasket()
         {
             try
             {
-                var anonymousUserId = await anonymousUserService.GetOrCreateAnonymousId();
+                var anonymousUserId = await _anonymousUserService.GetOrCreateAnonymousId();
 
                 var basketViewModel = await GetClientFactory().GetFromJsonAsync<BasketViewModel>($"api/Baskets?anonymousUserId={anonymousUserId}");
 
@@ -17,7 +27,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting the customers basket.");
+                _logger.LogError(ex, "There was an error getting the customers basket.");
                 return null;
             }
         }
@@ -26,7 +36,7 @@ namespace OnlineShopUI.Services
         {
             try
             {
-                var anonymousUserId = await anonymousUserService.GetOrCreateAnonymousId();
+                var anonymousUserId = await _anonymousUserService.GetOrCreateAnonymousId();
 
                 var existingBasket = await GetBasket();
 
@@ -48,13 +58,13 @@ namespace OnlineShopUI.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    basketCountService.Increment(1);
+                    _basketCountService.Increment(1);
                     return true;
                 }
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, "There was an error adding the product {Product} to the customers basket.", productId);
+                _logger.LogError(ex, "There was an error adding the product {Product} to the customers basket.", productId);
             }
 
             return false;
@@ -75,7 +85,7 @@ namespace OnlineShopUI.Services
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, "There was an error updating basket item {BasketItem} quantity.", basketItemId);
+                _logger.LogError(ex, "There was an error updating basket item {BasketItem} quantity.", basketItemId);
             }
 
             return false;
@@ -89,13 +99,13 @@ namespace OnlineShopUI.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    basketCountService.Decrement(1);
+                    _basketCountService.Decrement(1);
                     return true;
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error removing the basket item with id {BasketItemId} from the basket.", basketItemId);
+                _logger.LogError(ex, "There was an error removing the basket item with id {BasketItemId} from the basket.", basketItemId);
             }
 
             return false;

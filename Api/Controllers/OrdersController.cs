@@ -9,9 +9,28 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class OrdersController(OrderRepository orderRepository, CustomerRepository customerRepository, BasketRepository basketRepository,
-        TaxRateRepository taxRateRepository, PaymentRepository paymentRepository, BackgroundOrderQueue queue, ILogger<OrdersController> logger) : ControllerBase
+    public class OrdersController : ControllerBase
     {
+        private readonly OrderRepository _orderRepository;
+        private readonly CustomerRepository _customerRepository;
+        private readonly BasketRepository _basketRepository;
+        private readonly TaxRateRepository _taxRateRepository;
+        private readonly PaymentRepository _paymentRepository;
+        private readonly BackgroundOrderQueue _queue;
+        private readonly ILogger<OrdersController> _logger;
+
+        public OrdersController(OrderRepository orderRepository, CustomerRepository customerRepository, BasketRepository basketRepository,
+            TaxRateRepository taxRateRepository, PaymentRepository paymentRepository, BackgroundOrderQueue queue, ILogger<OrdersController> logger)
+        {
+            _orderRepository = orderRepository;
+            _customerRepository = customerRepository;
+            _basketRepository = basketRepository;
+            _taxRateRepository = taxRateRepository;
+            _paymentRepository = paymentRepository;
+            _queue = queue;
+            _logger = logger;
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetOrders([FromQuery] string? orderNumber, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
@@ -24,14 +43,14 @@ namespace Api.Controllers
                     return Unauthorized();
                 }
 
-                var customer = await customerRepository.GetCustomerByEmail(email);
+                var customer = await _customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
                 {
                     return NotFound("The customer was not found.  Please ensure the customer is logged in.");
                 }
 
-                var (orders, totalCount) = await orderRepository.GetOrdersByCustomerId(customer.Id, orderNumber, page, pageSize);
+                var (orders, totalCount) = await _orderRepository.GetOrdersByCustomerId(customer.Id, orderNumber, page, pageSize);
 
                 return Ok(
                     new
@@ -43,7 +62,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting a list of orders.");
+                _logger.LogError(ex, "There was an error getting a list of orders.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -60,14 +79,14 @@ namespace Api.Controllers
                     return Unauthorized();
                 }
 
-                var customer = await customerRepository.GetCustomerByEmail(email);
+                var customer = await _customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
                 {
                     return NotFound("The customers account was not found.  Please ensure the customer is logged in.");
                 }
 
-                var order = await orderRepository.GetOrder(id, customer.Id);
+                var order = await _orderRepository.GetOrder(id, customer.Id);
 
                 return order == null
                     ? NotFound()
@@ -75,7 +94,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting an order with id {OrderId}.", id);
+                _logger.LogError(ex, "There was an error getting an order with id {OrderId}.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -85,7 +104,7 @@ namespace Api.Controllers
         {
             try
             {
-                var basket = await basketRepository.GetBasketById(createOrderRequest.BasketId);
+                var basket = await _basketRepository.GetBasketById(createOrderRequest.BasketId);
 
                 if (basket == null)
                 {
@@ -97,14 +116,14 @@ namespace Api.Controllers
                     return BadRequest("The basket is currently empty.  Please add some products before checking out.");
                 }
 
-                var taxRate = await taxRateRepository.GetCurrentTaxRate();
+                var taxRate = await _taxRateRepository.GetCurrentTaxRate();
 
                 if (taxRate == null)
                 {
                     return BadRequest("A valid tax rate was not found.");
                 }
 
-                var customer = await customerRepository.GetCustomerById(createOrderRequest.Customer.Id);
+                var customer = await _customerRepository.GetCustomerById(createOrderRequest.Customer.Id);
 
                 if (customer == null)
                 {
@@ -133,8 +152,8 @@ namespace Api.Controllers
                         Country = createOrderRequest.Customer.ShippingAddress.Country,
                     };
 
-                    customer.BillingAddress = await customerRepository.CreateAddress(customerBillingAddress);
-                    customer.ShippingAddress = await customerRepository.CreateAddress(customerShippingAddress);
+                    customer.BillingAddress = await _customerRepository.CreateAddress(customerBillingAddress);
+                    customer.ShippingAddress = await _customerRepository.CreateAddress(customerShippingAddress);
                 }
 
                 if (string.IsNullOrEmpty(customer.PhoneNumber))
@@ -142,11 +161,11 @@ namespace Api.Controllers
                     customer.PhoneNumber = createOrderRequest.Customer.PhoneNumber;
                 }
 
-                await customerRepository.UpdateCustomer(customer);
+                await _customerRepository.UpdateCustomer(customer);
 
                 var totalPrice = basket.Items.Sum(bi => bi.TotalPrice);
 
-                var orderBillingAddress = await customerRepository.CreateAddress(new Address
+                var orderBillingAddress = await _customerRepository.CreateAddress(new Address
                 {
                     AddressLineOne = createOrderRequest.Customer.BillingAddress.AddressLineOne,
                     AddressLineTwo = createOrderRequest.Customer.BillingAddress.AddressLineTwo,
@@ -156,7 +175,7 @@ namespace Api.Controllers
                     Country = createOrderRequest.Customer.BillingAddress.Country,
                 });
 
-                var orderShippingAddress = await customerRepository.CreateAddress(new Address
+                var orderShippingAddress = await _customerRepository.CreateAddress(new Address
                 {
                     AddressLineOne = createOrderRequest.Customer.ShippingAddress.AddressLineOne,
                     AddressLineTwo = createOrderRequest.Customer.ShippingAddress.AddressLineTwo,
@@ -166,7 +185,7 @@ namespace Api.Controllers
                     Country = createOrderRequest.Customer.ShippingAddress.Country,
                 });
 
-                var payment = await paymentRepository.CreatePayment(new Payment
+                var payment = await _paymentRepository.CreatePayment(new Payment
                 {
                     Amount = totalPrice,
                     PaymentMethod = "Credit Card",
@@ -193,9 +212,9 @@ namespace Api.Controllers
                     UpdatedAt = DateTime.UtcNow,
                 };
 
-                var createdOrder = await orderRepository.CreateOrder(order);
+                var createdOrder = await _orderRepository.CreateOrder(order);
 
-                await orderRepository.UpdateOrderNumber(createdOrder.Id, $"ORD{createdOrder.Id:D7}");
+                await _orderRepository.UpdateOrderNumber(createdOrder.Id, $"ORD{createdOrder.Id:D7}");
 
                 var orderItems = new List<OrderItem>();
 
@@ -215,19 +234,19 @@ namespace Api.Controllers
                     orderItems.Add(orderItem);
                 }
 
-                await orderRepository.CreateOrderItems(orderItems);
+                await _orderRepository.CreateOrderItems(orderItems);
 
-                await basketRepository.RemoveAllBasketItems(basket.Id);
-                await basketRepository.DeleteBasket(basket.Id);
+                await _basketRepository.RemoveAllBasketItems(basket.Id);
+                await _basketRepository.DeleteBasket(basket.Id);
 
-                queue.Enqueue(createdOrder.Id);
+                _queue.Enqueue(createdOrder.Id);
 
-                var completeOrder = await orderRepository.GetOrder(createdOrder.Id, customer.Id);
+                var completeOrder = await _orderRepository.GetOrder(createdOrder.Id, customer.Id);
                 return Ok(completeOrder);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error creating the order.");
+                _logger.LogError(ex, "There was an error creating the order.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

@@ -7,28 +7,43 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class BasketItemsController(BasketRepository basketRepository, ProductRepository productRepository,
-        TaxRateRepository taxRateRepository, CustomerRepository customerRepository, ILogger<BasketItemsController> logger) : ControllerBase
+    public class BasketItemsController : ControllerBase
     {
+        private readonly BasketRepository _basketRepository;
+        private readonly ProductRepository _productRepository;
+        private readonly TaxRateRepository _taxRateRepository;
+        private readonly CustomerRepository _customerRepository;
+        private readonly ILogger<BasketItemsController> _logger;
+
+        public BasketItemsController(BasketRepository basketRepository, ProductRepository productRepository,
+            TaxRateRepository taxRateRepository, CustomerRepository customerRepository, ILogger<BasketItemsController> logger)
+        {
+            _basketRepository = basketRepository;
+            _productRepository = productRepository;
+            _taxRateRepository = taxRateRepository;
+            _customerRepository = customerRepository;
+            _logger = logger;
+        }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateBasketItem(int id, UpdateBasketItemQuantityDTO updateBasketItemQuantity)
         {
             try
             {
-                var exists = await basketRepository.BasketItemExists(id);
+                var exists = await _basketRepository.BasketItemExists(id);
 
                 if (!exists)
                 {
                     return NotFound();
                 }
 
-                await basketRepository.UpdateBasketItemQuantity(id, updateBasketItemQuantity.Quantity);
+                await _basketRepository.UpdateBasketItemQuantity(id, updateBasketItemQuantity.Quantity);
 
                 return NoContent();
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, "Error updating the quantity for the {BasketItemId} basket item.", id);
+                _logger.LogError(ex, "Error updating the quantity for the {BasketItemId} basket item.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -38,14 +53,14 @@ namespace Api.Controllers
         {
             try
             {
-                var taxRate = await taxRateRepository.GetCurrentTaxRate();
+                var taxRate = await _taxRateRepository.GetCurrentTaxRate();
 
                 if (taxRate == null)
                 {
                     return BadRequest("There was no valid tax rate found in the system.");
                 }
 
-                var product = await productRepository.GetProduct(addBasketItem.ProductId);
+                var product = await _productRepository.GetProduct(addBasketItem.ProductId);
 
                 if (product == null)
                 {
@@ -64,7 +79,7 @@ namespace Api.Controllers
 
                 if (addBasketItem.CustomerId.HasValue)
                 {
-                    var customer = await customerRepository.GetCustomerById(addBasketItem.CustomerId.Value);
+                    var customer = await _customerRepository.GetCustomerById(addBasketItem.CustomerId.Value);
 
                     if (customer == null)
                     {
@@ -72,7 +87,7 @@ namespace Api.Controllers
                     }
                 }
 
-                var basket = await basketRepository.GetOrCreateBasket(addBasketItem.AnonymousId, addBasketItem.CustomerId);
+                var basket = await _basketRepository.GetOrCreateBasket(addBasketItem.AnonymousId, addBasketItem.CustomerId);
 
                 if (basket == null)
                 {
@@ -89,13 +104,13 @@ namespace Api.Controllers
                     CreatedAt = DateTime.UtcNow
                 };
 
-                var createdBasketItem = await basketRepository.CreateBasketItem(basketItem);
+                var createdBasketItem = await _basketRepository.CreateBasketItem(basketItem);
 
                 return Ok(createdBasketItem);
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, "There was an error adding a basket item for the product with an id of {ProductId}", addBasketItem.ProductId);
+                _logger.LogError(ex, "There was an error adding a basket item for the product with an id of {ProductId}", addBasketItem.ProductId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -105,20 +120,20 @@ namespace Api.Controllers
         {
             try
             {
-                var exists = await basketRepository.BasketItemExists(id);
+                var exists = await _basketRepository.BasketItemExists(id);
 
                 if (!exists)
                 {
                     return NotFound();
                 }
 
-                await basketRepository.DeleteBasketItem(id);
+                await _basketRepository.DeleteBasketItem(id);
 
                 return NoContent();
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error deleting basket item with id {BasketItemId}", id);
+                _logger.LogError(ex, "There was an error deleting basket item with id {BasketItemId}", id);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

@@ -2,8 +2,15 @@
 
 namespace OnlineShopUI.Services
 {
-    public class ProductService(IHttpClientFactory httpClientFactory, ILogger<ProductService> logger) : ServiceBase(httpClientFactory)
+    public class ProductService : ServiceBase
     {
+        private readonly ILogger<ProductService> _logger;
+
+        public ProductService(IHttpClientFactory httpClientFactory, ILogger<ProductService> logger) : base(httpClientFactory)
+        {
+            _logger = logger;
+        }
+
         public async Task<PagedProductResultViewModel?> GetProducts(string searchTerm, string selectedSort, int currentPage, int pageSize)
         {
             try
@@ -15,7 +22,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error searching for products using search term '{SearchTerm}'.", searchTerm);
+                _logger.LogError(ex, "There was an error searching for products using search term '{SearchTerm}'.", searchTerm);
                 return null;
             }
         }
@@ -31,7 +38,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting products currently on sale.");
+                _logger.LogError(ex, "There was an error getting products currently on sale.");
                 return null;
             }
         }
@@ -42,7 +49,7 @@ namespace OnlineShopUI.Services
             {
                 if (categoryId == null)
                 {
-                    logger.LogWarning("The category id is required.  Please provide the correct details.");
+                    _logger.LogWarning("The category id is required.  Please provide the correct details.");
                     return null;
                 }
 
@@ -53,7 +60,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting products in category {CategoryId}.", categoryId);
+                _logger.LogError(ex, "There was an error getting products in category {CategoryId}.", categoryId);
                 return null;
             }
         }
@@ -72,7 +79,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting product details for product with id {ProductId}.", productId);
+                _logger.LogError(ex, "There was an error getting product details for product with id {ProductId}.", productId);
                 return null;
             }
         }

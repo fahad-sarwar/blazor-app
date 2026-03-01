@@ -3,15 +3,20 @@ using OnlineShopUI.ViewModels;
 
 namespace OnlineShopUI.Services
 {
-    public class AuthService
-        (
-            IHttpClientFactory httpClientFactory, 
+    public class AuthService : ServiceBase
+    {
+        private readonly CustomAuthenticationStateService _customAuthenticationStateService;
+        private readonly ILogger<AuthService> _logger;
+
+        public AuthService(IHttpClientFactory httpClientFactory, 
             AuthenticationStateProvider authenticationStateProvider,
             CustomAuthenticationStateService customAuthenticationStateService,
-            ILogger<AuthService> logger
-        )
-        : ServiceBase(httpClientFactory)
-    {
+            ILogger<AuthService> logger) : base(httpClientFactory)
+        {
+            _customAuthenticationStateService = customAuthenticationStateService;
+            _logger = logger;
+        }
+
         public async Task<bool> Register(RegisterViewModel registerModel)
         {
             try
@@ -21,14 +26,14 @@ namespace OnlineShopUI.Services
                 if (result.IsSuccessStatusCode)
                 {
                     var user = await GetClientFactory().GetFromJsonAsync<UserInfoViewModel>("api/auth/user");
-                    await customAuthenticationStateService.SetUserInfoDetails(user);
+                    await _customAuthenticationStateService.SetUserInfoDetails(user);
 
                     return true;
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error during the registration process.");
+                _logger.LogError(ex, "There was an error during the registration process.");
             }
 
             return false;
@@ -43,14 +48,14 @@ namespace OnlineShopUI.Services
                 if (result.IsSuccessStatusCode)
                 {
                     var user = await GetClientFactory().GetFromJsonAsync<UserInfoViewModel>("api/auth/user");
-                    await customAuthenticationStateService.SetUserInfoDetails(user);
+                    await _customAuthenticationStateService.SetUserInfoDetails(user);
 
                     return true;
                 }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error logging in the customer.");
+                _logger.LogError(ex, "There was an error logging in the customer.");
             }
 
             return false;
@@ -63,12 +68,12 @@ namespace OnlineShopUI.Services
             try
             {
                 await GetClientFactory().PostAsync("api/auth/logout", null);
-                await customAuthenticationStateService.ClearUserInfoDetails();
+                await _customAuthenticationStateService.ClearUserInfoDetails();
                 result = true;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error logging out the customer.");
+                _logger.LogError(ex, "There was an error logging out the customer.");
             }
 
             return result;
@@ -81,13 +86,13 @@ namespace OnlineShopUI.Services
                 await GetClientFactory().PostAsync("api/auth/refresh-claims", null);
 
                 var user = await GetClientFactory().GetFromJsonAsync<UserInfoViewModel>("api/auth/user");
-                await customAuthenticationStateService.SetUserInfoDetails(user);
+                await _customAuthenticationStateService.SetUserInfoDetails(user);
 
                 return true;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error refreshing the customers authentication state.");
+                _logger.LogError(ex, "There was an error refreshing the customers authentication state.");
             }
 
             return false;

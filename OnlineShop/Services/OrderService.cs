@@ -2,8 +2,15 @@
 
 namespace OnlineShopUI.Services
 {
-    public class OrderService(IHttpClientFactory httpClientFactory, ILogger<OrderService> logger) : ServiceBase(httpClientFactory)
+    public class OrderService : ServiceBase
     {
+        private readonly ILogger<OrderService> _logger;
+
+        public OrderService(IHttpClientFactory httpClientFactory, ILogger<OrderService> logger) : base(httpClientFactory)
+        {
+            _logger = logger;
+        }
+
         public async Task<PagedOrderResultViewModel?> GetOrders(int page, int pageSize)
         {
             try
@@ -13,7 +20,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting a list of orders.");
+                _logger.LogError(ex, "There was an error getting a list of orders.");
                 return null;
             }
         }
@@ -27,7 +34,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting an order with '{OrderNumber}'.", orderNumber);
+                _logger.LogError(ex, "There was an error getting an order with '{OrderNumber}'.", orderNumber);
                 return null;
             }
         }
@@ -41,7 +48,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting an order with an id of {OrderId}", orderId);
+                _logger.LogError(ex, "There was an error getting an order with an id of {OrderId}", orderId);
                 return null;
             }
         }
@@ -96,12 +103,12 @@ namespace OnlineShopUI.Services
                     return order;
                 }
 
-                logger.LogError("There was an error creating the order.  The API response code was '{StatusCode}'", response.StatusCode);
+                _logger.LogError("There was an error creating the order.  The API response code was '{StatusCode}'", response.StatusCode);
                 return null;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error creating an order.");
+                _logger.LogError(ex, "There was an error creating an order.");
                 return null;
             }
         }

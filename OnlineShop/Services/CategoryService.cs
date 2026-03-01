@@ -2,8 +2,15 @@
 
 namespace OnlineShopUI.Services
 {
-    public class CategoryService(IHttpClientFactory httpClientFactory, ILogger<CategoryService> logger) : ServiceBase(httpClientFactory)
+    public class CategoryService : ServiceBase
     {
+        private readonly ILogger<CategoryService> _logger;
+
+        public CategoryService(IHttpClientFactory httpClientFactory, ILogger<CategoryService> logger) : base(httpClientFactory)
+        {
+            _logger = logger;
+        }
+
         public async Task<List<CategoryViewModel>?> GetCategories()
         {
             try
@@ -14,7 +21,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting a list of categories.");
+                _logger.LogError(ex, "There was an error getting a list of categories.");
                 return null;
             }
         }
@@ -25,7 +32,7 @@ namespace OnlineShopUI.Services
             {
                 if(categoryId == null)
                 {
-                    logger.LogWarning("The category Id is required.  Please provide the correct details.");
+                    _logger.LogWarning("The category Id is required.  Please provide the correct details.");
                     return null;
                 }
                     
@@ -35,7 +42,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting a category with id {Category}.", categoryId);
+                _logger.LogError(ex, "There was an error getting a category with id {Category}.", categoryId);
                 return null;
             }
         }

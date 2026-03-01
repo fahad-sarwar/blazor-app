@@ -2,8 +2,15 @@
 
 namespace OnlineShopUI.Services
 {
-    public class ReviewService(IHttpClientFactory httpClientFactory, ILogger<ReviewService> logger) : ServiceBase(httpClientFactory)
+    public class ReviewService : ServiceBase
     {
+        private readonly ILogger<ReviewService> _logger;
+
+        public ReviewService(IHttpClientFactory httpClientFactory, ILogger<ReviewService> logger) : base(httpClientFactory)
+        {
+            _logger = logger;
+        }
+
         public async Task<PagedReviewResultViewModel?> GetPagedReviews(int productId, int page, int pageSize)
         {
             try
@@ -14,7 +21,7 @@ namespace OnlineShopUI.Services
 
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting product reviews for product with an id of {ProductId}.", productId);
+                _logger.LogError(ex, "There was an error getting product reviews for product with an id of {ProductId}.", productId);
                 return null;
             }
         }
@@ -28,7 +35,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error creating a product review for product with an id of {ProductId}.", createReviewViewModel.ProductId);
+                _logger.LogError(ex, "There was an error creating a product review for product with an id of {ProductId}.", createReviewViewModel.ProductId);
                 return false;
             }
         }

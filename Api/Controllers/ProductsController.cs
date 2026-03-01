@@ -5,8 +5,17 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ProductsController(ProductRepository productRepository, ILogger<ProductsController> logger) : ControllerBase
+    public class ProductsController : ControllerBase
     {
+        private readonly ProductRepository _productRepository;
+        private readonly ILogger<ProductsController> _logger;
+
+        public ProductsController(ProductRepository productRepository, ILogger<ProductsController> logger)
+        {
+            _productRepository = productRepository;
+            _logger = logger;
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetProducts([FromQuery] int? categoryId, [FromQuery] bool? forSale, [FromQuery] string? searchTerm,
             [FromQuery] string? sort = "name-asc", [FromQuery] int page = 1, [FromQuery] int pageSize = 9)
@@ -28,7 +37,7 @@ namespace Api.Controllers
                     return BadRequest("The category id must be a positive integer.  Please enter the correct details.");
                 }
 
-                var (products, totalCount) = await productRepository.GetProducts(categoryId, forSale, searchTerm, sort, page, pageSize);
+                var (products, totalCount) = await _productRepository.GetProducts(categoryId, forSale, searchTerm, sort, page, pageSize);
 
                 return Ok(
                     new
@@ -40,7 +49,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting a list of products.");
+                _logger.LogError(ex, "There was an error getting a list of products.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }            
         }
@@ -51,7 +60,7 @@ namespace Api.Controllers
         {
             try
             {
-                var product = await productRepository.GetProduct(id);
+                var product = await _productRepository.GetProduct(id);
 
                 return product == null
                     ? NotFound()
@@ -59,7 +68,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting the product with id {ProductId}.", id);
+                _logger.LogError(ex, "There was an error getting the product with id {ProductId}.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

@@ -3,30 +3,41 @@ using Api.Repositories;
 
 namespace Api.Services
 {
-    public class BackgroundOrderUpdateService(IServiceProvider serviceProvider, ILogger<BackgroundOrderUpdateService> logger, BackgroundOrderQueue queue) : BackgroundService
+    public class BackgroundOrderUpdateService : BackgroundService
     {
+        private readonly IServiceProvider _serviceProvider;
+        private readonly ILogger<BackgroundOrderUpdateService> _logger;
+        private readonly BackgroundOrderQueue _queue;
+
+        public BackgroundOrderUpdateService(IServiceProvider serviceProvider, ILogger<BackgroundOrderUpdateService> logger, BackgroundOrderQueue queue)
+        {
+            _serviceProvider = serviceProvider;
+            _logger = logger;
+            _queue = queue;
+        }
+
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
             var rnd = new Random();
 
-            logger.LogInformation("Background order processor started.");
+            _logger.LogInformation("Background order processor started.");
 
             while (!cancellationToken.IsCancellationRequested)
             {
                 try
                 {
-                    var orderId = await queue.DequeueAsync(cancellationToken);
+                    var orderId = await _queue.DequeueAsync(cancellationToken);
 
                     var delay = rnd.Next(1000, 5000);
                     await Task.Delay(delay, cancellationToken);
 
-                    logger.LogInformation($"Processing order: {orderId}");
+                    _logger.LogInformation($"Processing order: {orderId}");
 
                     await SimulateOrderUpdates(orderId, cancellationToken);
                 }
                 catch (Exception ex)
                 {
-                    logger.LogInformation($"Error processing order: {ex.Message}");
+                    _logger.LogInformation($"Error processing order: {ex.Message}");
                 }
             }
         }
@@ -39,14 +50,14 @@ namespace Api.Services
 
             try
             {
-                using var scope = serviceProvider.CreateScope();
+                using var scope = _serviceProvider.CreateScope();
                 var orderRepository = scope.ServiceProvider.GetRequiredService<OrderRepository>();
 
                 var order = await orderRepository.GetOrder(orderId);
 
                 if (order == null)
                 {
-                    logger.LogWarning($"Order {orderId} not found.");
+                    _logger.LogWarning($"Order {orderId} not found.");
                     return;
                 }
 
@@ -58,7 +69,7 @@ namespace Api.Services
 
                     var status = orderStates[count];
 
-                    logger.LogInformation($"Order {orderId} status updated to: {status}");
+                    _logger.LogInformation($"Order {orderId} status updated to: {status}");
 
                     switch (status)
                     {
@@ -111,7 +122,7 @@ namespace Api.Services
                             break;
                     }
 
-                    logger.LogInformation($"Order {orderId} tracking update created: {status}");
+                    _logger.LogInformation($"Order {orderId} tracking update created: {status}");
                 }
 
                 if(HasOrderFailed(order))
@@ -145,7 +156,7 @@ namespace Api.Services
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Error updating order {orderId}: {ex.Message}");
+                _logger.LogError(ex, $"Error updating order {orderId}: {ex.Message}");
             }
         }
 

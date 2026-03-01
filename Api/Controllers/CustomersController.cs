@@ -8,9 +8,20 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CustomersController(CustomerRepository customerRepository, UserRepository userRepository, 
-        ILogger<CustomersController> logger) : ControllerBase
+    public class CustomersController : ControllerBase
     {
+        private readonly CustomerRepository _customerRepository;
+        private readonly UserRepository _userRepository;
+        private readonly ILogger<CustomersController> _logger;
+
+        public CustomersController(CustomerRepository customerRepository, UserRepository userRepository, 
+            ILogger<CustomersController> logger)
+        {
+            _customerRepository = customerRepository;
+            _userRepository = userRepository;
+            _logger = logger;
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetCustomer()
         {
@@ -23,7 +34,7 @@ namespace Api.Controllers
                     return Unauthorized();
                 }
 
-                var customer = await customerRepository.GetCustomerByEmail(email);
+                var customer = await _customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
                 {
@@ -34,7 +45,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error retrieving customer details.");
+                _logger.LogError(ex, "There was an error retrieving customer details.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -51,7 +62,7 @@ namespace Api.Controllers
                     return Unauthorized();
                 }
 
-                var customer = await customerRepository.GetCustomerByEmail(email);
+                var customer = await _customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
                 {
@@ -63,7 +74,7 @@ namespace Api.Controllers
                     return BadRequest("The entered customer details do not match the system records.  Please provide the correct details.");
                 }
 
-                var user = await userRepository.GetUserByUsername(email);
+                var user = await _userRepository.GetUserByUsername(email);
 
                 if (user == null)
                 {
@@ -94,7 +105,7 @@ namespace Api.Controllers
                         Country = request.ShippingCountry
                     };
 
-                    shippingAddress = await customerRepository.CreateAddress(shippingAddress);
+                    shippingAddress = await _customerRepository.CreateAddress(shippingAddress);
                     customer.ShippingAddress = shippingAddress;
                 }
                 else
@@ -105,7 +116,7 @@ namespace Api.Controllers
                     customer.ShippingAddress.County = request.ShippingCounty;
                     customer.ShippingAddress.PostCode = request.ShippingPostCode;
                     customer.ShippingAddress.Country = request.ShippingCountry;
-                    await customerRepository.UpdateAddress(customer.ShippingAddress);
+                    await _customerRepository.UpdateAddress(customer.ShippingAddress);
                 }           
 
                 if (createBillingAddress)
@@ -120,7 +131,7 @@ namespace Api.Controllers
                         Country = request.BillingCountry
                     };
 
-                    billingAddress = await customerRepository.CreateAddress(billingAddress);
+                    billingAddress = await _customerRepository.CreateAddress(billingAddress);
                     customer.BillingAddress = billingAddress;
                 }
                 else
@@ -131,16 +142,16 @@ namespace Api.Controllers
                     customer.BillingAddress.County = request.BillingCounty;
                     customer.BillingAddress.PostCode = request.BillingPostCode;
                     customer.BillingAddress.Country = request.BillingCountry;
-                    await customerRepository.UpdateAddress(customer.BillingAddress);
+                    await _customerRepository.UpdateAddress(customer.BillingAddress);
                 }
 
-                await customerRepository.UpdateCustomer(customer);
+                await _customerRepository.UpdateCustomer(customer);
 
                 return NoContent();
             }
             catch(Exception ex)
             {
-                logger.LogError(ex, "There was an error updating the customers account with id {CustomerId}.", id);
+                _logger.LogError(ex, "There was an error updating the customers account with id {CustomerId}.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

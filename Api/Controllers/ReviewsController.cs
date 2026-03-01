@@ -8,14 +8,25 @@ namespace Api.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class ReviewsController(CustomerRepository customerRepository, ProductRepository productRepository, ILogger<ReviewsController> logger) : ControllerBase
+    public class ReviewsController : ControllerBase
     {
+        private readonly CustomerRepository _customerRepository;
+        private readonly ProductRepository _productRepository;
+        private readonly ILogger<ReviewsController> _logger;
+
+        public ReviewsController(CustomerRepository customerRepository, ProductRepository productRepository, ILogger<ReviewsController> logger)
+        {
+            _customerRepository = customerRepository;
+            _productRepository = productRepository;
+            _logger = logger;
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetReviews([FromQuery] int productId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             try
             {
-                var (reviews, totalCount) = await customerRepository.GetReviews(productId, page, pageSize);
+                var (reviews, totalCount) = await _customerRepository.GetReviews(productId, page, pageSize);
 
                 return Ok(
                     new
@@ -27,7 +38,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting reviews for product with id {Product}.", productId);
+                _logger.LogError(ex, "There was an error getting reviews for product with id {Product}.", productId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -37,7 +48,7 @@ namespace Api.Controllers
         {
             try
             {
-                var averageRating = await customerRepository.GetAverageRating(productId);
+                var averageRating = await _customerRepository.GetAverageRating(productId);
 
                 return Ok(
                     new
@@ -48,7 +59,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error getting product review stats for product with id {Product}", productId);
+                _logger.LogError(ex, "There was an error getting product review stats for product with id {Product}", productId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -65,14 +76,14 @@ namespace Api.Controllers
                     return Unauthorized("The user was not found.  Please ensure the customer is logged in.");
                 }
 
-                var customer = await customerRepository.GetCustomerByEmail(email);
+                var customer = await _customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
                 {
                     return NotFound("The customer was not found.  Please ensure the customer is logged in.");
                 }
 
-                var product = await productRepository.GetProduct(request.ProductId);
+                var product = await _productRepository.GetProduct(request.ProductId);
 
                 if (product == null)
                 {
@@ -90,13 +101,13 @@ namespace Api.Controllers
                     CreatedAt = DateTime.UtcNow
                 };
 
-                var createdReview = await customerRepository.CreateReview(review);
+                var createdReview = await _customerRepository.CreateReview(review);
 
                 return Ok(createdReview);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "There was an error creating a review for product with id {Product}.", request.ProductId);
+                _logger.LogError(ex, "There was an error creating a review for product with id {Product}.", request.ProductId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
