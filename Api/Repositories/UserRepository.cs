@@ -41,12 +41,13 @@ namespace Api.Repositories
         {
             var now = DateTime.UtcNow;
             var passwordHash = HashPassword(password);
+
             var user = new User
             {
                 Username = username,
-                PasswordHash = HashPassword(password),
+                PasswordHash = passwordHash,
                 IsAdmin = isAdmin,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = now
             };
 
             var query =
