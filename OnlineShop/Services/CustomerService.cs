@@ -21,13 +21,11 @@ namespace OnlineShopUI.Services
         {
             var response = await GetClientFactory().PutAsJsonAsync($"api/customers/{request.Id}", request);
 
-            if (response.IsSuccessStatusCode)
+            if (!response.IsSuccessStatusCode)
             {
-                return response.IsSuccessStatusCode;
+                var responseContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("There was an error updating the customers details with id {Customer}.  The API responded with '{ResponseContent}'", request.Id, responseContent);
             }
-
-            var responseContent = await response.Content.ReadAsStringAsync();
-            _logger.LogError("There was an error updating the customers details with id {Customer}.  The API responded with '{ResponseContent}'", request.Id, responseContent);
 
             return response.IsSuccessStatusCode;
         }

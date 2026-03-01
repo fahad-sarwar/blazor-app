@@ -188,18 +188,9 @@ namespace Api.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            try
-            {
-                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                return Ok();
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "There was an error whilst logging out user.");
-                return StatusCode(500, "Error whilst logging out the user.");
-            }
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return Ok();
         }
-
         private async Task SignInUserAsync(User user, Customer customer)
         {
             var claims = new List<Claim>
