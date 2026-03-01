@@ -1,33 +1,42 @@
-﻿@using OnlineShopUI.ViewModels
-
-<footer class="bg-dark text-white mt-5 py-4">
+﻿<footer class="bg-dark text-white mt-5 py-4">
     <div class="container">
         <div class="row text-center text-md-start">
-
-            @foreach (var footerSection in _footerSections)
-            {
-                <div class="col-md-4">
-                    <div class="card text-white bg-dark mb-4 h-100">
-                        <div class="card-header">@footerSection.Key</div>
-                        <div class="card-body">
-                            <ul class="list-unstyled">
-                                @foreach (var link in footerSection.Value)
-                                {
-                                    @if (link.IsExternal)
-                                    {
-                                        <li><NavLink class="text-white" href="@link.Url" target="_blank" rel="noopener noreferrer">@link.Text</NavLink></li>
-                                    }
-                                    else
-                                    {
-                                        <li><NavLink class="text-white" href="@link.Url">@link.Text</NavLink></li>
-                                    }
-                                }
-                            </ul>
-                        </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-dark mb-4 h-100">
+                    <div class="card-header">Customer Service</div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li><NavLink class="text-white" href="/faqs">FAQs</NavLink></li>
+                            <li><NavLink class="text-white" href="/orders-and-payments">Orders and Payments</NavLink></li>
+                            <li><NavLink class="text-white" href="/delivery-and-returns">Delivery and Returns</NavLink></li>
+                            <li><NavLink class="text-white" href="/track-order">Track Order</NavLink></li>
+                        </ul>
                     </div>
                 </div>
-            }
-
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-dark mb-4 h-100">
+                    <div class="card-header">About us</div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li><NavLink class="text-white" href="/contact">Contact Us</NavLink></li>
+                            <li><NavLink class="text-white" href="/terms-and-conditions">Terms and Conditions</NavLink></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-white bg-dark mb-4 h-100">
+                    <div class="card-header">Follow us</div>
+                    <div class="card-body">
+                        <ul class="list-unstyled">
+                            <li><NavLink class="text-white" href="https://www.instagram.com/dawoodf_08" target="_blank" rel="noopener noreferrer">Instagram</NavLink></li>
+                            <li><NavLink class="text-white" href="@_tiktokUrl" target="_blank" rel="noopener noreferrer">TikTok</NavLink></li>
+                            <li><NavLink class="text-white" href="https://twitter.com/dawoodf_08" target="_blank" rel="noopener noreferrer">Twitter</NavLink></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
         <div class="text-center mt-3">
             <small>© @DateTime.Now.Year Bob Kart. All rights reserved.</small>
@@ -36,25 +45,5 @@
 </footer>
 
 @code {
-    private Dictionary<string, List<NavLinkItemViewModel>> _footerSections = new()
-        {
-            ["Customer Service"] = new List<NavLinkItemViewModel>
-                                    {
-                                        new() { Text = "FAQs", Url = "/faqs" },
-                                        new() { Text = "Orders and Payments", Url = "/orders-and-payments" },
-                                        new() { Text = "Delivery and Returns", Url = "/delivery-and-returns" },
-                                        new() { Text = "Track Order", Url = "/track-order" }
-                                    },
-            ["About us"] = new List<NavLinkItemViewModel>
-                                    {
-                                        new() { Text = "Contact Us", Url = "/contact" },
-                                        new() { Text = "Terms and Conditions", Url = "/terms-and-conditions" }
-                                    },
-            ["Follow us"] = new List<NavLinkItemViewModel>
-                                    {
-                                        new() { Text = "Instagram", Url = "https://www.instagram.com/dawoodf_08", IsExternal = true },
-                                        new() { Text = "TikTok", Url = "https://www.tiktok.com/@dawoodf_8", IsExternal = true },
-                                        new() { Text = "Twitter", Url = "https://twitter.com/dawoodf_08", IsExternal = true }
-                                    }
-        };
+    private string _tiktokUrl = "https://www.tiktok.com/@dawoodf_8";
 }
