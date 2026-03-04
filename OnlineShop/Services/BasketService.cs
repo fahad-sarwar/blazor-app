@@ -6,13 +6,11 @@ namespace OnlineShopUI.Services
     {
         private readonly AnonymousUserService _anonymousUserService;
         private readonly BasketCountService _basketCountService;
-        private readonly ILogger<BasketService> _logger;
 
-        public BasketService(IHttpClientFactory httpClientFactory, AnonymousUserService anonymousUserService, BasketCountService basketCountService, ILogger<BasketService> logger) : base(httpClientFactory)
+        public BasketService(IHttpClientFactory httpClientFactory, AnonymousUserService anonymousUserService, BasketCountService basketCountService) : base(httpClientFactory)
         {
             _anonymousUserService = anonymousUserService;
             _basketCountService = basketCountService;
-            _logger = logger;
         }
 
         public async Task<BasketViewModel?> GetBasket()
@@ -27,7 +25,6 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "There was an error getting the customers basket.");
                 return null;
             }
         }
