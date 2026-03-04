@@ -206,12 +206,12 @@ else
         {
             await RefreshAuthenticationState();
 
-            _successMessage = "Your profile has been updated successfully!";
+            _successMessage = "Saved.";
             StateHasChanged();
         }
         else
         {
-            _errorMessage = "Failed to update your profile. Please try again.";
+            _errorMessage = "Something went wrong updating your profile.";
         }
 
         _isSubmitting = false;
@@ -223,7 +223,7 @@ else
 
         if (!result)
         {
-            _errorMessage = "Failed to refresh authentication state. Please log out and log back in to see the changes.";
+            _errorMessage = "Refresh auth state failed.";
         }
     }
 

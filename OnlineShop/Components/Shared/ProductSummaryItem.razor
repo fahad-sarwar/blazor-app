@@ -71,7 +71,7 @@
 
         _errorMessage = result
             ? null
-            : "Failed to add item to basket. Please try again.";
+            : "Couldn't add to basket.";
     }
 
     private async Task AddToWishlist()
@@ -88,7 +88,7 @@
         }
         else
         {
-            _errorMessage = "Failed to add item to wishlist. Please try again.";
+            _errorMessage = "Couldn't add to wishlist.";
         }
     }
 
@@ -103,7 +103,7 @@
         }
         else
         {
-            _errorMessage = "Failed to remove product from the wishlist. Please try again.";
+            _errorMessage = "Couldn't remove from wishlist.";
         }
     }
 

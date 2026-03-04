@@ -93,12 +93,12 @@
 
         if (success)
         {
-            _successMessage = "Thank you for your message! We'll get back to you within 24 hours.";
+            _successMessage = "Message sent!";
             _messageModel = new SendMessageViewModel();
         }
         else
         {
-            _errorMessage = "Failed to send your message. Please try again or contact us directly.";
+            _errorMessage = "Message failed to send.";
         }
     }
 }
