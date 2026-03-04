@@ -151,18 +151,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
         await LoadCurrentUser();
-    }
-
-    public void Dispose()
-    {
-        CustomAuthenticationStateProvider.OnUserInfoChanged -= OnAuthStateChanged;
-    }
-
-    private async Task OnAuthStateChanged()
-    {
-        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadCurrentUser()

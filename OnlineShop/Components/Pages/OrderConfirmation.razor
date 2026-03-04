@@ -67,8 +67,6 @@ else
     {
         _loading = true;
 
-        CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
-
         _order = await OrderService.GetOrderById(OrderId);
 
         if (_order != null)
@@ -83,15 +81,5 @@ else
         }
 
         _loading = false;
-    }
-
-    public void Dispose()
-    {
-        CustomAuthenticationStateProvider.OnUserInfoChanged -= OnAuthStateChanged;
-    }
-
-    private async Task OnAuthStateChanged()
-    {
-        await InvokeAsync(StateHasChanged);
     }
 }

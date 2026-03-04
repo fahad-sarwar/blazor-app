@@ -62,18 +62,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
         _isOnWishlist = await WishlistService.IsOnWishlist(Product.Id);
-    }
-
-    public void Dispose()
-    {
-        CustomAuthenticationStateProvider.OnUserInfoChanged -= OnAuthStateChanged;
-    }
-
-    private async Task OnAuthStateChanged()
-    {
-        await InvokeAsync(StateHasChanged);
     }
 
     private async Task AddToBasket()
