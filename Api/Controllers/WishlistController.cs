@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Api.Models;
 using Api.Models.DTOs;
 using Api.Repositories;
 using Microsoft.AspNetCore.Authorization;
@@ -27,14 +28,7 @@ namespace Api.Controllers
         {
             try
             {
-                var email = User.FindFirst(ClaimTypes.Email)?.Value;
-
-                if (string.IsNullOrEmpty(email))
-                {
-                    return Unauthorized("The user was not found.  Please ensure the customer is logged in.");
-                }
-
-                var customer = await _customerRepository.GetCustomerByEmail(email);
+                var customer = await GetCustomer();
 
                 if (customer == null)
                 {
@@ -63,14 +57,7 @@ namespace Api.Controllers
         {
             try
             {
-                var email = User.FindFirst(ClaimTypes.Email)?.Value;
-
-                if (string.IsNullOrEmpty(email))
-                {
-                    return Unauthorized("The user was not found.  Please ensure the customer is logged in.");
-                }
-
-                var customer = await _customerRepository.GetCustomerByEmail(email);
+                var customer = await GetCustomer();
 
                 if (customer == null)
                 {
@@ -79,8 +66,8 @@ namespace Api.Controllers
 
                 var exists = await _customerRepository.IsProductInWishlist(customer.Id, productId);
 
-                return exists 
-                    ? Ok() 
+                return exists
+                    ? Ok()
                     : NotFound();
             }
             catch (Exception ex)
@@ -95,14 +82,7 @@ namespace Api.Controllers
         {
             try
             {
-                var email = User.FindFirst(ClaimTypes.Email)?.Value;
-
-                if (string.IsNullOrEmpty(email))
-                {
-                    return Unauthorized("The user was not found.  Please ensure the customer is logged in.");
-                }
-
-                var customer = await _customerRepository.GetCustomerByEmail(email);
+                var customer = await GetCustomer();
 
                 if (customer == null)
                 {
@@ -139,14 +119,7 @@ namespace Api.Controllers
         {
             try
             {
-                var email = User.FindFirst(ClaimTypes.Email)?.Value;
-
-                if (string.IsNullOrEmpty(email))
-                {
-                    return Unauthorized("The user was not found.  Please ensure the customer is logged in.");
-                }
-
-                var customer = await _customerRepository.GetCustomerByEmail(email);
+                var customer = await GetCustomer();
 
                 if (customer == null)
                 {
@@ -169,6 +142,18 @@ namespace Api.Controllers
                 _logger.LogError(ex, "There was an error removing the product was id {Product} from the customers wishlist.", productId);
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
+        }
+
+        private async Task<Customer?> GetCustomer()
+        {
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+
+            if (string.IsNullOrEmpty(email))
+            {
+                return null;
+            }
+
+            return await _customerRepository.GetCustomerByEmail(email);
         }
     }
 }
