@@ -11,7 +11,7 @@ namespace Api.Repositories
             var query =
                 "INSERT INTO Message (Name, Email, Subject, Content, Processed, CreatedAt) " +
                 "VALUES (@name, @email, @subject, @content, @processed, @createdAt); " +
-                "SELECT last_insert_rowid() FROM Message LIMIT 1;";
+                "SELECT last_insert_rowid();";
 
             await using var conn = new SqliteConnection(ConnectionString);
 

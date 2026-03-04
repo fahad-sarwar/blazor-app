@@ -41,9 +41,9 @@ namespace Api.Services
 
             var stateNotes = new Dictionary<string, string>
             {
-                { "Pending", "Order being processed by our team." },
-                { "Inventory check", "Logistics are checking our stock." },
-                { "Packed", "Items have been packed." },
+                { "Pending", "Order received." },
+                { "Inventory check", "Checking stock levels." },
+                { "Packed", "Items packed and ready to be shipped." },
                 { "Shipped", "Order is on its way to the hub." },
                 { "In transit", "Order on its way to the local depot." },
                 { "At local depot", "Order is at the local depot." },

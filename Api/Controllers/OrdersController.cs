@@ -84,7 +84,7 @@ namespace Api.Controllers
 
                 if (customer == null)
                 {
-                    return NotFound("Customr not found.");
+                    return NotFound("Customer not found.");
                 }
 
                 var order = await _orderRepository.GetOrder(id, customer.Id);
