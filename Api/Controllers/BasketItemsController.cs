@@ -57,19 +57,19 @@ namespace Api.Controllers
 
                 if (taxRate == null)
                 {
-                    return BadRequest("There was no valid tax rate found in the system.");
+                    return BadRequest("No tax rate found.");
                 }
 
                 var product = await _productRepository.GetProduct(addBasketItem.ProductId);
 
                 if (product == null)
                 {
-                    return BadRequest("The product added by the user was not found.");
+                    return BadRequest("Product not found.");
                 }
 
                 if (addBasketItem.Quantity <= 0)
                 {
-                    return BadRequest("The quantity entered must be greater than zero.");
+                    return BadRequest("Quantity must be more than 0.");
                 }
 
                 if (string.IsNullOrEmpty(addBasketItem.AnonymousId) && !addBasketItem.CustomerId.HasValue)
@@ -83,7 +83,7 @@ namespace Api.Controllers
 
                     if (customer == null)
                     {
-                        return BadRequest("The customer was not found.  Please provide the correct customer details.");
+                        return BadRequest("Customer not found.");
                     }
                 }
 
@@ -91,7 +91,7 @@ namespace Api.Controllers
 
                 if (basket == null)
                 {
-                    return BadRequest("The system was unable to find or create a basket.");
+                    return BadRequest("Can't find or create basket.");
                 }
 
                 var basketItem = new BasketItem

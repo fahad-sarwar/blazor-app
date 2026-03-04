@@ -73,21 +73,21 @@ namespace Api.Controllers
 
                 if (string.IsNullOrEmpty(email))
                 {
-                    return Unauthorized("The user was not found.  Please ensure the customer is logged in.");
+                    return Unauthorized("User not found.");
                 }
 
                 var customer = await _customerRepository.GetCustomerByEmail(email);
 
                 if (customer == null)
                 {
-                    return NotFound("The customer was not found.  Please ensure the customer is logged in.");
+                    return NotFound("Customer not found.");
                 }
 
                 var product = await _productRepository.GetProduct(request.ProductId);
 
                 if (product == null)
                 {
-                    return NotFound("The specified product was not found.  Please enter the correct product.");
+                    return NotFound("Product not found.");
                 }
 
                 var review = new Review

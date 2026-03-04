@@ -32,7 +32,7 @@ namespace Api.Controllers
 
                 if (customer == null)
                 {
-                    return NotFound("The customer was not found.  Please provide the correct details.");
+                    return NotFound("Customer not found.");
                 }
 
                 var (products, totalCount) = await _customerRepository.GetWishlistProducts(customer.Id, page, pageSize);
@@ -61,7 +61,7 @@ namespace Api.Controllers
 
                 if (customer == null)
                 {
-                    return NotFound("The customer was not found.  Please ensure the customer is logged in.");
+                    return NotFound("Customer not found.");
                 }
 
                 var exists = await _customerRepository.IsProductInWishlist(customer.Id, productId);
@@ -86,21 +86,21 @@ namespace Api.Controllers
 
                 if (customer == null)
                 {
-                    return NotFound("The customer was not found.  Please ensure the customer is logged in.");
+                    return NotFound("Customer not found.");
                 }
 
                 var product = await _productRepository.GetProduct(request.ProductId);
 
                 if (product == null)
                 {
-                    return NotFound("The entered product was not found.  Please provide the correct details.");
+                    return NotFound("Product not found.");
                 }
 
                 var exists = await _customerRepository.IsProductInWishlist(customer.Id, request.ProductId);
 
                 if (exists)
                 {
-                    return BadRequest("The product is already on the customers wishlist.  Please try again with another product.");
+                    return BadRequest("Already on wishlist.");
                 }
 
                 await _customerRepository.AddToWishlist(customer.Id, request.ProductId);
@@ -123,14 +123,14 @@ namespace Api.Controllers
 
                 if (customer == null)
                 {
-                    return NotFound("The customer was not found.  Please ensure the customer is logged in.");
+                    return NotFound("Customer not found.");
                 }
 
                 var exists = await _customerRepository.IsProductInWishlist(customer.Id, productId);
 
                 if (!exists)
                 {
-                    return NotFound("The specified product is not on the customers wishlist.");
+                    return NotFound("Not on wishlist.");
                 }
 
                 await _customerRepository.RemoveFromWishlist(customer.Id, productId);

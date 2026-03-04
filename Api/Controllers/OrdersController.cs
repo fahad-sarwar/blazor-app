@@ -48,7 +48,7 @@ namespace Api.Controllers
 
                 if (customer == null)
                 {
-                    return NotFound("The customer was not found.  Please ensure the customer is logged in.");
+                    return NotFound("Customer not found");
                 }
 
                 var (orders, totalCount) = await _orderRepository.GetOrdersByCustomerId(customer.Id, orderNumber, page, pageSize);
@@ -84,7 +84,7 @@ namespace Api.Controllers
 
                 if (customer == null)
                 {
-                    return NotFound("The customers account was not found.  Please ensure the customer is logged in.");
+                    return NotFound("Customr not found.");
                 }
 
                 var order = await _orderRepository.GetOrder(id, customer.Id);
@@ -109,26 +109,26 @@ namespace Api.Controllers
 
                 if (basket == null)
                 {
-                    return BadRequest("The basket was not found.  Please ensure the correct basket id is provided.");
+                    return BadRequest("Basket not found.");
                 }
 
                 if (basket.Items.Count == 0)
                 {
-                    return BadRequest("The basket is currently empty.  Please add some products before checking out.");
+                    return BadRequest("Basket is empty.");
                 }
 
                 var taxRate = await _taxRateRepository.GetCurrentTaxRate();
 
                 if (taxRate == null)
                 {
-                    return BadRequest("A valid tax rate was not found.");
+                    return BadRequest("No tax rate found.");
                 }
 
                 var customer = await _customerRepository.GetCustomerById(createOrderRequest.Customer.Id);
 
                 if (customer == null)
                 {
-                    return BadRequest("The customers account was not found.  Please ensure the customer is logged in.");
+                    return BadRequest("Customer not found");
                 }
 
                 if (customer.BillingAddress == null && customer.ShippingAddress == null)

@@ -38,7 +38,7 @@ namespace Api.Controllers
 
                 if (customer == null)
                 {
-                    return NotFound("The system was unable to find the customer.");
+                    return NotFound("Customer not found.");
                 }
 
                 return Ok(customer);
@@ -66,24 +66,24 @@ namespace Api.Controllers
 
                 if (customer == null)
                 {
-                    return NotFound("The system was unable to find the Customer.  Please provide the correct details.");
+                    return NotFound("Customer not found.");
                 }
 
                 if (id != customer.Id)
                 {
-                    return BadRequest("The entered customer details do not match the system records.  Please provide the correct details.");
+                    return BadRequest("Customer doesn't match.");
                 }
 
                 var user = await _userRepository.GetUserByUsername(email);
 
                 if (user == null)
                 {
-                    return NotFound("A user matching the email was not found.  Please provide the correct customer details.");
+                    return NotFound("User not found");
                 }
 
                 if (user.Username != customer.Email)
                 {
-                    return BadRequest("The user details do not match the customer email.  Please provide the correct customer details.");
+                    return BadRequest("User doesn't match customer.");
                 }
 
                 customer.FirstName = request.FirstName;
