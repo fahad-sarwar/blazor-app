@@ -8,20 +8,13 @@
 @layout MainLayout
 @rendermode InteractiveServer
 
-@if (!string.IsNullOrEmpty(_errorMessage))
-{
-    <div class="alert alert-danger">
-        @_errorMessage
-    </div>
-}
-
 <CarouselBanner />
 
 @if (_products == null)
 {
     <p>Loading...</p>
 }
-else if (_products != null && _products.Count > 0)
+else if (_products.Count > 0)
 {
     <h3>Sale Items</h3>
 
@@ -35,7 +28,6 @@ else if (_products != null && _products.Count > 0)
 
 @code {
     private List<ProductViewModel>? _products;
-    private string? _errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
@@ -48,7 +40,6 @@ else if (_products != null && _products.Count > 0)
         else
         {
             _products = new List<ProductViewModel>();
-            _errorMessage = "Failed to load products.";
         }
     }
 }

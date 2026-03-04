@@ -9,13 +9,6 @@
 @inject CustomAuthenticationStateService CustomAuthenticationStateProvider
 @rendermode InteractiveServer
 
-@if (!string.IsNullOrEmpty(_errorMessage))
-{
-    <div class="alert alert-danger">
-        @_errorMessage
-    </div>
-}
-
 @if (_product == null)
 {
     <p>Loading product details...</p>
@@ -100,6 +93,11 @@ else
                         }
                     </div>
 
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <div class="alert alert-danger">@_errorMessage</div>
+                    }
+
                     @if (_product.Stock == 0)
                     {
                         <div class="alert alert-warning">
@@ -140,10 +138,6 @@ else
         if (_product != null)
         {
             _isOnWishlist = await WishlistService.IsOnWishlist(_product.Id);
-        }
-        else
-        {
-            _errorMessage = "Failed to load product details. Please try again.";
         }
     }
 
