@@ -82,7 +82,7 @@ else
 }
 
 @code {
-    private readonly List<OrderViewModel> _orders = new();
+    private readonly List<OrderViewModel> _orders = new List<OrderViewModel>();
     private bool _isLoading = true;
     private bool _isLoadingMore;
     private int _currentPage = 1;
@@ -92,18 +92,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
         await LoadOrders(reset: true);
-    }
-
-    public void Dispose()
-    {
-        CustomAuthenticationStateProvider.OnUserInfoChanged -= OnAuthStateChanged;
-    }
-
-    private async Task OnAuthStateChanged()
-    {
-        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadOrders(bool reset = false)
