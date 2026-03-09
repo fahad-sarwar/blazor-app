@@ -18,7 +18,7 @@ namespace Api.Repositories
             _paymentRepository = paymentRepository;
         }
 
-        public async Task<(List<Order> Orders, int TotalCount)> GetOrdersByCustomerId(int customerId, string? orderNumber = null, int page = 1, int pageSize = 10)
+        public async Task<List<Order>> GetOrdersByCustomerId(int customerId, string? orderNumber = null)
         {
             var whereConditions = new List<string> { "CustomerId = @customerId" };
             var parameters = new DynamicParameters();
@@ -32,22 +32,14 @@ namespace Api.Repositories
 
             var whereClause = "WHERE " + string.Join(" AND ", whereConditions);
 
-            var countQuery = $"SELECT COUNT(*) FROM [Order] {whereClause}";
-
             var dataQuery =
                 "SELECT Id, OrderNumber, CustomerId, BillingAddressId, ShippingAddressId, TotalPrice, VATRate, Status, PaymentId, DeliveryMethod, " +
                 "EstimatedDelivery, ContactPhoneNumber, CreatedAt, UpdatedAt " +
                 "FROM [Order] " +
                 $"{whereClause} " +
-                "ORDER BY CreatedAt DESC " +
-                "LIMIT @pageSize OFFSET @offset";
-
-            parameters.Add("pageSize", pageSize);
-            parameters.Add("offset", (page - 1) * pageSize);
+                "ORDER BY CreatedAt DESC";
 
             await using var conn = new SqliteConnection(ConnectionString);
-
-            var totalCount = await conn.QuerySingleAsync<int>(countQuery, parameters);
 
             var orderData = await conn.QueryAsync<dynamic>(dataQuery, parameters);
 
@@ -75,7 +67,7 @@ namespace Api.Repositories
                 order.Customer = customer;
             }
 
-            return (orders, totalCount);
+            return orders;
         }
 
         public async Task<Order?> GetOrder(int orderId, int customerId)

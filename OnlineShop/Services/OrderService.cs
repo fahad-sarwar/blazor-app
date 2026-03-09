@@ -11,15 +11,15 @@ namespace OnlineShopUI.Services
             _logger = logger;
         }
 
-        public async Task<PagedOrderResultViewModel?> GetOrders(int page, int pageSize)
+        public async Task<List<OrderViewModel>> GetOrders()
         {
-            var response = await GetClientFactory().GetFromJsonAsync<PagedOrderResultViewModel>($"api/orders?page={page}&pageSize={pageSize}");
+            var response = await GetClientFactory().GetFromJsonAsync<List<OrderViewModel>>($"api/orders");
             return response;
         }
 
-        public async Task<PagedOrderResultViewModel?> GetOrderByOrderNumber(string orderNumber)
+        public async Task<List<OrderViewModel>?> GetOrderByOrderNumber(string orderNumber)
         {
-            var response = await GetClientFactory().GetFromJsonAsync<PagedOrderResultViewModel>($"api/orders?orderNumber={orderNumber}");
+            var response = await GetClientFactory().GetFromJsonAsync<List<OrderViewModel>>($"api/orders?orderNumber={orderNumber}");
             return response;
         }
 

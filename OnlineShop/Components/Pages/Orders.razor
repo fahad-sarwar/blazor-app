@@ -26,11 +26,7 @@
                 </a>
             </div>
 
-            @if (_isLoading)
-            {
-                <p>Loading order...</p>
-            }
-            else if (_orders.Count == 0)
+            @if (_orders.Count == 0)
             {
                 <p>You haven't placed any orders yet. Start shopping to see your orders here!</p>
             }
@@ -65,13 +61,6 @@
                         </tbody>
                     </table>
                 </div>
-
-                @if (HasMore())
-                {
-                    <div class="text-center mt-4">
-                        <button class="btn btn-outline-primary" @onclick="LoadMore" disabled="@_isLoadingMore">Load More</button>
-                    </div>
-                }
             }
         </div>
     </div>
@@ -82,12 +71,7 @@ else
 }
 
 @code {
-    private readonly List<OrderViewModel> _orders = new List<OrderViewModel>();
-    private bool _isLoading = true;
-    private bool _isLoadingMore;
-    private int _currentPage = 1;
-    private readonly int _pageSize = 10;
-    private int _totalCount = 0;
+    private List<OrderViewModel> _orders = new List<OrderViewModel>();
     private string? _errorMessage;
 
     protected override async Task OnInitializedAsync()
@@ -99,41 +83,11 @@ else
     {
         if (reset)
         {
-            _isLoading = true;
             _orders.Clear();
-            _currentPage = 1;
-        }
-        else
-        {
-            _isLoadingMore = true;
         }
 
         _errorMessage = null;
 
-        var result = await OrderService.GetOrders(_currentPage, _pageSize);
-
-        if (result != null)
-        {
-            _orders.AddRange(result.Orders);
-            _totalCount = result.TotalCount;
-        }
-        else
-        {
-            _errorMessage = "Failed to load orders.";
-        }
-
-        _isLoading = false;
-        _isLoadingMore = false;
-    }
-
-    private bool HasMore()
-    {
-        return _orders.Count < _totalCount;
-    }
-
-    private async Task LoadMore()
-    {
-        _currentPage++;
-        await LoadOrders();
+        _orders = await OrderService.GetOrders();
     }
 }

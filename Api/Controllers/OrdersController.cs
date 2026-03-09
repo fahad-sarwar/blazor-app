@@ -32,7 +32,7 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetOrders([FromQuery] string? orderNumber, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetOrders([FromQuery] string? orderNumber)
         {
             var email = User.FindFirst(ClaimTypes.Email)?.Value;
 
@@ -48,15 +48,9 @@ namespace Api.Controllers
                 return NotFound("Customer not found");
             }
 
-            var (orders, totalCount) = await _orderRepository.GetOrdersByCustomerId(customer.Id, orderNumber, page, pageSize);
+            var orders = await _orderRepository.GetOrdersByCustomerId(customer.Id, orderNumber);
 
-            return Ok(
-                new
-                {
-                    Orders = orders,
-                    TotalCount = totalCount
-                }
-            );
+            return Ok(orders);
         }
 
         [HttpGet("{id}")]

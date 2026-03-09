@@ -93,9 +93,9 @@ else
             _errorMessage = $"Order '{_trackingModel.OrderNumber}' not found. Please check your order number and try again.";
             _trackingModel.OrderNumber = string.Empty;
         }
-        else if (result.TotalCount == 1)
+        else if (result.Count == 1)
         {
-            var order = result.Orders.First();
+            var order = result.First();
             _successMessage = "Order found! Redirecting to order details...";
             Navigation.NavigateTo($"/order-details/{order.Id}");
         }
