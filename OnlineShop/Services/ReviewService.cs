@@ -11,9 +11,9 @@ namespace OnlineShopUI.Services
             _logger = logger;
         }
 
-        public async Task<PagedReviewResultViewModel?> GetPagedReviews(int productId, int page, int pageSize)
+        public async Task<List<ReviewViewModel>> GetPagedReviews(int productId)
         {
-            var response = await GetClientFactory().GetFromJsonAsync<PagedReviewResultViewModel>($"api/reviews?productId={productId}&page={page}&pageSize={pageSize}");
+            var response = await GetClientFactory().GetFromJsonAsync<List<ReviewViewModel>>($"api/reviews?productId={productId}");
             return response;
         }
 

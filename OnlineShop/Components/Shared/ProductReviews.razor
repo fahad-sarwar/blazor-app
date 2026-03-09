@@ -4,13 +4,7 @@
 @inject CustomAuthenticationStateService CustomAuthenticationStateProvider
 @rendermode InteractiveServer
 
-@if (_isLoading)
-{
-    <div class="text-center p-4">
-        <p>Loading reviews...</p>
-    </div>
-}
-else if (Reviews.Count > 0)
+@if (Reviews.Count > 0)
 {
     <div class="reviews-section">
         <h4 class="mb-4">Customer Reviews</h4>
@@ -36,13 +30,6 @@ else if (Reviews.Count > 0)
                 </div>
             </div>
         }
-
-        @if (HasMore())
-        {
-            <div class="text-center mt-4">
-                <button class="btn btn-outline-primary" @onclick="LoadMore">Load More Reviews</button>
-            </div>
-        }
     </div>
 }
 else
@@ -61,10 +48,6 @@ else
     [Parameter] public int ProductId { get; set; }
 
     private List<ReviewViewModel> Reviews { get; set; } = new();
-    private bool _isLoading = true;
-    private int _currentPage = 1;
-    private int _pageSize = 5;
-    private int _totalCount = 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -73,37 +56,12 @@ else
 
     private async Task LoadReviews(bool reset = false)
     {
-        _isLoading = true;
 
         if (reset)
         {
             Reviews.Clear();
-            _currentPage = 1;
         }
 
-        var result = await ReviewService.GetPagedReviews(ProductId, _currentPage, _pageSize);
-
-        if (result != null)
-        {
-            Reviews.AddRange(result.Reviews);
-            _totalCount = result.TotalCount;
-        }
-        else
-        {
-            Reviews = new List<ReviewViewModel>();
-        }
-
-        _isLoading = false;
-    }
-
-    private bool HasMore()
-    {
-        return Reviews.Count < _totalCount;
-    }
-
-    private async Task LoadMore()
-    {
-        _currentPage++;
-        await LoadReviews();
+        Reviews = await ReviewService.GetPagedReviews(ProductId);
     }
 }

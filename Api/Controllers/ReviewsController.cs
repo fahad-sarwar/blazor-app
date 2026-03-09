@@ -22,19 +22,13 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetReviews([FromQuery] int productId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetReviews([FromQuery] int productId)
         {
             try
             {
-                var (reviews, totalCount) = await _customerRepository.GetReviews(productId, page, pageSize);
+                var reviews = await _customerRepository.GetReviews(productId);
 
-                return Ok(
-                    new
-                    {
-                        Reviews = reviews,
-                        TotalCount = totalCount
-                    }
-                );
+                return Ok(reviews);
             }
             catch (Exception ex)
             {

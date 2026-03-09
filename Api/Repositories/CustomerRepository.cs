@@ -241,27 +241,17 @@ namespace Api.Repositories
             await conn.ExecuteAsync(query, new { customerId, productId });
         }
 
-        public async Task<(List<Review> Reviews, int TotalCount)> GetReviews(int productId, int page = 1, int pageSize = 10)
+        public async Task<List<Review>> GetReviews(int productId)
         {
-            var countQuery = "SELECT COUNT(*) FROM Review WHERE ProductId = @productId AND Status = 'Approved'";
-
             var reviewsQuery =
                 "SELECT r.Id, r.Subject, r.Rating, r.Comment, r.Status, r.ProductId, r.CustomerId, r.CreatedAt " +
                 "FROM Review r " +
                 "WHERE r.ProductId = @productId AND r.Status = 'Approved' " +
-                "ORDER BY r.CreatedAt DESC " +
-                "LIMIT @pageSize OFFSET @offset";
+                "ORDER BY r.CreatedAt DESC";
 
             await using var conn = new SqliteConnection(ConnectionString);
 
-            var totalCount = await conn.QuerySingleAsync<int>(countQuery, new { productId });
-
-            var reviewData = await conn.QueryAsync<dynamic>(reviewsQuery, new
-            {
-                productId,
-                pageSize,
-                offset = (page - 1) * pageSize
-            });
+            var reviewData = await conn.QueryAsync<dynamic>(reviewsQuery, new { productId });
 
             var reviews = new List<Review>();
 
@@ -284,7 +274,7 @@ namespace Api.Repositories
                 reviews.Add(r);
             }
 
-            return (reviews, totalCount);
+            return reviews;
         }
 
         public async Task<double?> GetAverageRating(int productId)
