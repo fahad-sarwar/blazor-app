@@ -20,11 +20,7 @@
 
 @if (CustomAuthenticationStateProvider.IsUserAuthenticated())
 {
-    @if (!_loaded)
-    {
-        <p>Loading basket...</p>
-    }
-    else if (_basket == null || !_basket.Items.Any())
+    @if (_basket == null || !_basket.Items.Any())
     {
         <div class="alert alert-warning">Your basket is empty.</div>
     }
@@ -54,7 +50,6 @@ else
 
 @code {
     private BasketViewModel? _basket;
-    private bool _loaded;
     private string? _errorMessage;
 
     private CheckoutViewModel _checkoutModel = new();
@@ -85,7 +80,6 @@ else
             _basket = new BasketViewModel();
         }
 
-        _loaded = true;
         StateHasChanged();
     }
 

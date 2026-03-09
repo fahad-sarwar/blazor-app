@@ -23,11 +23,7 @@
 
     <h3 class="mb-4">My Profile</h3>
 
-    @if (_isLoading)
-    {
-        <p>Loading your profile...</p>
-    }
-    else if (_updateModel != null)
+    @if (_updateModel != null)
     {
         <EditForm Model="_updateModel" OnValidSubmit="HandleSubmit" Context="editContext">
             <DataAnnotationsValidator />
@@ -144,7 +140,6 @@ else
 
 @code {
     private UpdateCustomerViewModel? _updateModel;
-    private bool _isLoading = true;
     private bool _isSubmitting = false;
     private string? _successMessage;
     private string? _errorMessage;
@@ -156,7 +151,6 @@ else
 
     private async Task LoadCurrentUser()
     {
-        _isLoading = true;
         var customer = await CustomerService.GetCustomer();
 
         if (customer != null)
@@ -185,8 +179,6 @@ else
         {
             _errorMessage = "Unable to load your profile information.";
         }
-
-        _isLoading = false;
     }
 
     private async Task HandleSubmit()
