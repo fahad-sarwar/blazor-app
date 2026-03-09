@@ -14,20 +14,16 @@ namespace Api.Controllers
     {
         private readonly ProductRepository _productRepository;
         private readonly CustomerRepository _customerRepository;
-        private readonly ILogger<WishlistController> _logger;
 
-        public WishlistController(ProductRepository productRepository, CustomerRepository customerRepository, ILogger<WishlistController> logger)
+        public WishlistController(ProductRepository productRepository, CustomerRepository customerRepository)
         {
             _productRepository = productRepository;
             _customerRepository = customerRepository;
-            _logger = logger;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetWishlist([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            try
-            {
                 var customer = await GetCustomer();
 
                 if (customer == null)
@@ -44,19 +40,11 @@ namespace Api.Controllers
                         TotalCount = totalCount
                     }
                 );
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "There was an error getting the customers wishlist.");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
         }
 
         [HttpGet("{productId}/exists")]
         public async Task<IActionResult> IsOnWishlist(int productId)
         {
-            try
-            {
                 var customer = await GetCustomer();
 
                 if (customer == null)
@@ -69,19 +57,11 @@ namespace Api.Controllers
                 return exists
                     ? Ok()
                     : NotFound();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "There was an error checking if the product with id of {Product} is on the wishlist.", productId);
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
         }
 
         [HttpPost("")]
         public async Task<IActionResult> AddToWishlist(AddToWishListDTO request)
         {
-            try
-            {
                 var customer = await GetCustomer();
 
                 if (customer == null)
@@ -106,19 +86,11 @@ namespace Api.Controllers
                 await _customerRepository.AddToWishlist(customer.Id, request.ProductId);
 
                 return Ok();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "There was an error adding product with id {Product} to the customers wishlist.", request.ProductId);
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
         }
 
         [HttpDelete("{productId}")]
         public async Task<IActionResult> RemoveFromWishlist(int productId)
         {
-            try
-            {
                 var customer = await GetCustomer();
 
                 if (customer == null)
@@ -136,12 +108,6 @@ namespace Api.Controllers
                 await _customerRepository.RemoveFromWishlist(customer.Id, productId);
 
                 return Ok();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "There was an error removing the product was id {Product} from the customers wishlist.", productId);
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
         }
 
         private async Task<Customer?> GetCustomer()

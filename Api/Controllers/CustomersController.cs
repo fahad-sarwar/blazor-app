@@ -14,7 +14,7 @@ namespace Api.Controllers
         private readonly UserRepository _userRepository;
         private readonly ILogger<CustomersController> _logger;
 
-        public CustomersController(CustomerRepository customerRepository, UserRepository userRepository, 
+        public CustomersController(CustomerRepository customerRepository, UserRepository userRepository,
             ILogger<CustomersController> logger)
         {
             _customerRepository = customerRepository;
@@ -25,29 +25,21 @@ namespace Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetCustomer()
         {
-            try
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+
+            if (string.IsNullOrEmpty(email))
             {
-                var email = User.FindFirst(ClaimTypes.Email)?.Value;
-
-                if (string.IsNullOrEmpty(email))
-                {
-                    return Unauthorized();
-                }
-
-                var customer = await _customerRepository.GetCustomerByEmail(email);
-
-                if (customer == null)
-                {
-                    return NotFound("Customer not found.");
-                }
-
-                return Ok(customer);
+                return Unauthorized();
             }
-            catch (Exception ex)
+
+            var customer = await _customerRepository.GetCustomerByEmail(email);
+
+            if (customer == null)
             {
-                _logger.LogError(ex, "There was an error retrieving customer details.");
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                return NotFound("Customer not found.");
             }
+
+            return Ok(customer);
         }
 
         [HttpPut("{id}")]
@@ -117,7 +109,7 @@ namespace Api.Controllers
                     customer.ShippingAddress.PostCode = request.ShippingPostCode;
                     customer.ShippingAddress.Country = request.ShippingCountry;
                     await _customerRepository.UpdateAddress(customer.ShippingAddress);
-                }           
+                }
 
                 if (createBillingAddress)
                 {
@@ -149,7 +141,7 @@ namespace Api.Controllers
 
                 return NoContent();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "There was an error updating the customers account with id {CustomerId}.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError);

@@ -8,69 +8,51 @@ namespace Api.Controllers
     public class ProductsController : ControllerBase
     {
         private readonly ProductRepository _productRepository;
-        private readonly ILogger<ProductsController> _logger;
 
-        public ProductsController(ProductRepository productRepository, ILogger<ProductsController> logger)
+        public ProductsController(ProductRepository productRepository)
         {
             _productRepository = productRepository;
-            _logger = logger;
         }
 
         [HttpGet]
         public async Task<IActionResult> GetProducts([FromQuery] int? categoryId, [FromQuery] bool? forSale, [FromQuery] string? searchTerm,
             [FromQuery] string? sort = "name-asc", [FromQuery] int page = 1, [FromQuery] int pageSize = 9)
         {
-            try
+            if (!categoryId.HasValue && !forSale.HasValue && string.IsNullOrWhiteSpace(searchTerm))
             {
-                if (!categoryId.HasValue && !forSale.HasValue && string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    return BadRequest("At least one of the following filters must be provided: category, forSale, or searchTerm.");
-                }
-
-                if (page < 1 || pageSize < 1)
-                {
-                    return BadRequest("The page and pageSize fields must be greater than 0.");
-                }
-
-                if (categoryId.HasValue && categoryId < 0)
-                {
-                    return BadRequest("The category id must be a positive integer.  Please enter the correct details.");
-                }
-
-                var (products, totalCount) = await _productRepository.GetProducts(categoryId, forSale, searchTerm, sort, page, pageSize);
-
-                return Ok(
-                    new
-                    {
-                        Products = products,
-                        TotalCount = totalCount
-                    }
-                );
+                return BadRequest("At least one of the following filters must be provided: category, forSale, or searchTerm.");
             }
-            catch (Exception ex)
+
+            if (page < 1 || pageSize < 1)
             {
-                _logger.LogError(ex, "There was an error getting a list of products.");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }            
+                return BadRequest("The page and pageSize fields must be greater than 0.");
+            }
+
+            if (categoryId.HasValue && categoryId < 0)
+            {
+                return BadRequest("The category id must be a positive integer.  Please enter the correct details.");
+            }
+
+            var (products, totalCount) = await _productRepository.GetProducts(categoryId, forSale, searchTerm, sort, page, pageSize);
+
+            return Ok(
+                new
+                {
+                    Products = products,
+                    TotalCount = totalCount
+                }
+            );
         }
 
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProduct(int id)
         {
-            try
-            {
-                var product = await _productRepository.GetProduct(id);
+            var product = await _productRepository.GetProduct(id);
 
-                return product == null
-                    ? NotFound()
-                    : Ok(product);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "There was an error getting the product with id {ProductId}.", id);
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            return product == null
+                ? NotFound()
+                : Ok(product);
         }
     }
 }

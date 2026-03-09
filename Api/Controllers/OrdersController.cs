@@ -34,69 +34,53 @@ namespace Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetOrders([FromQuery] string? orderNumber, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            try
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+
+            if (string.IsNullOrEmpty(email))
             {
-                var email = User.FindFirst(ClaimTypes.Email)?.Value;
-
-                if (string.IsNullOrEmpty(email))
-                {
-                    return Unauthorized();
-                }
-
-                var customer = await _customerRepository.GetCustomerByEmail(email);
-
-                if (customer == null)
-                {
-                    return NotFound("Customer not found");
-                }
-
-                var (orders, totalCount) = await _orderRepository.GetOrdersByCustomerId(customer.Id, orderNumber, page, pageSize);
-
-                return Ok(
-                    new
-                    {
-                        Orders = orders,
-                        TotalCount = totalCount
-                    }
-                );
+                return Unauthorized();
             }
-            catch (Exception ex)
+
+            var customer = await _customerRepository.GetCustomerByEmail(email);
+
+            if (customer == null)
             {
-                _logger.LogError(ex, "There was an error getting a list of orders.");
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                return NotFound("Customer not found");
             }
+
+            var (orders, totalCount) = await _orderRepository.GetOrdersByCustomerId(customer.Id, orderNumber, page, pageSize);
+
+            return Ok(
+                new
+                {
+                    Orders = orders,
+                    TotalCount = totalCount
+                }
+            );
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOrder(int id)
         {
-            try
+            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+
+            if (string.IsNullOrEmpty(email))
             {
-                var email = User.FindFirst(ClaimTypes.Email)?.Value;
-
-                if (string.IsNullOrEmpty(email))
-                {
-                    return Unauthorized();
-                }
-
-                var customer = await _customerRepository.GetCustomerByEmail(email);
-
-                if (customer == null)
-                {
-                    return NotFound("Customer not found.");
-                }
-
-                var order = await _orderRepository.GetOrder(id, customer.Id);
-
-                return order == null
-                    ? NotFound()
-                    : Ok(order);
+                return Unauthorized();
             }
-            catch (Exception ex)
+
+            var customer = await _customerRepository.GetCustomerByEmail(email);
+
+            if (customer == null)
             {
-                _logger.LogError(ex, "There was an error getting an order with id {OrderId}.", id);
-                return StatusCode(StatusCodes.Status500InternalServerError);
+                return NotFound("Customer not found.");
             }
+
+            var order = await _orderRepository.GetOrder(id, customer.Id);
+
+            return order == null
+                ? NotFound()
+                : Ok(order);
         }
 
         [HttpPost]
