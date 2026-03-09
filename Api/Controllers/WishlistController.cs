@@ -24,84 +24,84 @@ namespace Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetWishlist()
         {
-                var customer = await GetCustomer();
+            var customer = await GetCustomer();
 
-                if (customer == null)
-                {
-                    return NotFound("Customer not found.");
-                }
+            if (customer == null)
+            {
+                return NotFound("Customer not found.");
+            }
 
-                var products = await _customerRepository.GetWishlistProducts(customer.Id);
+            var products = await _customerRepository.GetWishlistProducts(customer.Id);
 
-                return Ok(products);
+            return Ok(products);
         }
 
         [HttpGet("{productId}/exists")]
         public async Task<IActionResult> IsOnWishlist(int productId)
         {
-                var customer = await GetCustomer();
+            var customer = await GetCustomer();
 
-                if (customer == null)
-                {
-                    return NotFound("Customer not found.");
-                }
+            if (customer == null)
+            {
+                return NotFound("Customer not found.");
+            }
 
-                var exists = await _customerRepository.IsProductInWishlist(customer.Id, productId);
+            var exists = await _customerRepository.IsProductInWishlist(customer.Id, productId);
 
-                return exists
-                    ? Ok()
-                    : NotFound();
+            return exists
+                ? Ok()
+                : NotFound();
         }
 
         [HttpPost("")]
         public async Task<IActionResult> AddToWishlist(AddToWishListDTO request)
         {
-                var customer = await GetCustomer();
+            var customer = await GetCustomer();
 
-                if (customer == null)
-                {
-                    return NotFound("Customer not found.");
-                }
+            if (customer == null)
+            {
+                return NotFound("Customer not found.");
+            }
 
-                var product = await _productRepository.GetProduct(request.ProductId);
+            var product = await _productRepository.GetProduct(request.ProductId);
 
-                if (product == null)
-                {
-                    return NotFound("Product not found.");
-                }
+            if (product == null)
+            {
+                return NotFound("Product not found.");
+            }
 
-                var exists = await _customerRepository.IsProductInWishlist(customer.Id, request.ProductId);
+            var exists = await _customerRepository.IsProductInWishlist(customer.Id, request.ProductId);
 
-                if (exists)
-                {
-                    return BadRequest("Already on wishlist.");
-                }
+            if (exists)
+            {
+                return BadRequest("Already on wishlist.");
+            }
 
-                await _customerRepository.AddToWishlist(customer.Id, request.ProductId);
+            await _customerRepository.AddToWishlist(customer.Id, request.ProductId);
 
-                return Ok();
+            return Ok();
         }
 
         [HttpDelete("{productId}")]
         public async Task<IActionResult> RemoveFromWishlist(int productId)
         {
-                var customer = await GetCustomer();
+            var customer = await GetCustomer();
 
-                if (customer == null)
-                {
-                    return NotFound("Customer not found.");
-                }
+            if (customer == null)
+            {
+                return NotFound("Customer not found.");
+            }
 
-                var exists = await _customerRepository.IsProductInWishlist(customer.Id, productId);
+            var exists = await _customerRepository.IsProductInWishlist(customer.Id, productId);
 
-                if (!exists)
-                {
-                    return NotFound("Not on wishlist.");
-                }
+            if (!exists)
+            {
+                return NotFound("Not on wishlist.");
+            }
 
-                await _customerRepository.RemoveFromWishlist(customer.Id, productId);
+            await _customerRepository.RemoveFromWishlist(customer.Id, productId);
 
-                return Ok();
+            return Ok();
         }
 
         private async Task<Customer?> GetCustomer()
