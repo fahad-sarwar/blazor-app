@@ -17,25 +17,21 @@ namespace OnlineShopUI.Services
             return _userInfoViewModel;
         }
 
-        public bool IsUserAuthenticated()
+        public async Task<bool> IsUserAuthenticated()
         {
             if (_userInfoViewModel == null)
             {
                 return false;
             }
 
-            var response = GetClientFactory().GetAsync("api/auth/user")
-                .GetAwaiter()
-                .GetResult();
+            var response = await GetClientFactory().GetAsync("api/auth/user");
 
             if (response.IsSuccessStatusCode)
             {
                 return true;
             }
 
-            ClearUserInfoDetails()
-                .GetAwaiter()
-                .GetResult();
+            await ClearUserInfoDetails();
 
             return false;
         }

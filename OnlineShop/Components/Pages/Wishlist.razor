@@ -9,7 +9,7 @@
 
 <h3>My Wishlist</h3>
 
-@if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+@if (_isUserAuthenticated)
 {
     if (_products.Count == 0)
     {
@@ -32,10 +32,12 @@ else
 
 @code {
     private List<ProductViewModel> _products = new();
+    private bool _isUserAuthenticated;
 
     protected override async Task OnInitializedAsync()
     {
         CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
+        _isUserAuthenticated = await CustomAuthenticationStateProvider.IsUserAuthenticated();
 
         await LoadWishlist();
     }

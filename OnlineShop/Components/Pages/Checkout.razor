@@ -18,7 +18,7 @@
 
 <h3 class="mb-4">Checkout</h3>
 
-@if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+@if (_isUserAuthenticated)
 {
     @if (_basket == null || !_basket.Items.Any())
     {
@@ -51,11 +51,13 @@ else
 @code {
     private BasketViewModel? _basket;
     private string? _errorMessage;
+    private bool _isUserAuthenticated;
 
     private CheckoutViewModel _checkoutModel = new();
 
     protected override async Task OnInitializedAsync()
     {
+        _isUserAuthenticated = await CustomAuthenticationStateProvider.IsUserAuthenticated();
         await LoadBasketAsync();
         await CreateDummyCheckoutModel();
     }

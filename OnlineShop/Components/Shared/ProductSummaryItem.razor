@@ -28,7 +28,7 @@
                 <a class="btn btn-primary" href="/product/@Product.Id">View</a>
                 <button class="btn btn-secondary" @onclick="AddToBasket">Add to Basket</button>
 
-                @if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+                @if (_isUserAuthenticated)
                 {
                     @if (ShowRemoveButton.HasValue && !ShowRemoveButton.Value)
                     {
@@ -57,11 +57,13 @@
     [Parameter] public bool? ShowRemoveButton { get; set; } = false;
     [Parameter] public EventCallback<int> OnProductRemovedFromWishlist { get; set; }
 
+    private bool _isUserAuthenticated;
     private string? _errorMessage;
     private bool _isOnWishlist;
 
     protected override async Task OnInitializedAsync()
     {
+        _isUserAuthenticated = await CustomAuthenticationStateProvider.IsUserAuthenticated();
         _isOnWishlist = await WishlistService.IsOnWishlist(Product.Id);
     }
 

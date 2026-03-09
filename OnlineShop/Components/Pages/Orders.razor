@@ -7,7 +7,7 @@
 @inject CustomAuthenticationStateService CustomAuthenticationStateProvider
 @rendermode InteractiveServer
 
-@if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+@if (_isUserAuthenticated)
 {
     <div class="row row-cols-1 g-4">
         <div class="col-12">
@@ -73,9 +73,11 @@ else
 @code {
     private List<OrderViewModel> _orders = new List<OrderViewModel>();
     private string? _errorMessage;
+    private bool _isUserAuthenticated;
 
     protected override async Task OnInitializedAsync()
     {
+        _isUserAuthenticated = await CustomAuthenticationStateProvider.IsUserAuthenticated();
         await LoadOrders(reset: true);
     }
 

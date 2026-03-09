@@ -85,7 +85,7 @@ else
                             Add to Basket
                         </button>
 
-                        @if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+                        @if (_isUserAuthenticated)
                         {
                             <button class="btn @GetWishlistButtonClass()" @onclick="AddToWishlist" disabled="@_isOnWishlist">
                                 @(_isOnWishlist ? "In Wishlist" : "Add to Wishlist")
@@ -128,11 +128,13 @@ else
     private ProductViewModel? _product;
     private string? _errorMessage;
     private bool _isOnWishlist;
+    private bool _isUserAuthenticated;
 
     protected override async Task OnInitializedAsync()
     {
         CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
 
+        _isUserAuthenticated = await CustomAuthenticationStateProvider.IsUserAuthenticated();
         _product = await ProductService.GetProduct(Id);
 
         if (_product != null)

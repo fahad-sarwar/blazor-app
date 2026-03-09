@@ -39,7 +39,7 @@ else
     </div>
 }
 
-@if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+@if (_isUserAuthenticated)
 {
     <CreateProductReview ProductId="@ProductId" />
 }
@@ -47,10 +47,12 @@ else
 @code {
     [Parameter] public int ProductId { get; set; }
 
+    private bool _isUserAuthenticated;
     private List<ReviewViewModel> Reviews { get; set; } = new();
 
     protected override async Task OnInitializedAsync()
     {
+        _isUserAuthenticated = await CustomAuthenticationStateProvider.IsUserAuthenticated();
         await LoadReviews(reset: true);
     }
 

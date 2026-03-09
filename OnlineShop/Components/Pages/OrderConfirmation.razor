@@ -23,7 +23,7 @@
 
 <h3>Order Confirmation</h3>
 
-@if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+@if (_isUserAuthenticated)
 {
     @if (_loading)
     {
@@ -58,6 +58,7 @@ else
 @code {
     [Parameter] public int OrderId { get; set; }
 
+    private bool _isUserAuthenticated;
     private OrderViewModel? _order;
     private string? _errorMessage;
     private bool _loading = true;
@@ -65,6 +66,8 @@ else
 
     protected override async Task OnInitializedAsync()
     {
+        _isUserAuthenticated = await CustomAuthenticationStateProvider.IsUserAuthenticated();
+
         _loading = true;
 
         _order = await OrderService.GetOrderById(OrderId);

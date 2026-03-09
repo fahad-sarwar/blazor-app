@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using OnlineShopUI.Components;
 using OnlineShopUI.Services;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,9 +11,20 @@ builder.Host.ConfigureLogging(logging =>
     logging.AddConsole();
 });
 
-builder.Services.AddHttpClient("Api", client =>
+var cookieContainer = new CookieContainer();
+
+builder.Services
+    .AddHttpClient("Api", client =>
     {
         client.BaseAddress = new Uri("http://localhost:5110/");
+    })
+    .ConfigurePrimaryHttpMessageHandler(() =>
+    {
+        return new HttpClientHandler
+        {
+            CookieContainer = cookieContainer,
+            UseCookies = true
+        };
     });
 
 builder.Services.AddRazorComponents().AddInteractiveServerComponents();

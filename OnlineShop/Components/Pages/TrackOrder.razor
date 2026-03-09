@@ -9,7 +9,7 @@
 @inject NavigationManager Navigation
 @rendermode InteractiveServer
 
-@if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+@if (_isUserAuthenticated)
 {
     @if (!string.IsNullOrEmpty(_errorMessage))
     {
@@ -58,10 +58,12 @@ else
     private bool _isSearching = false;
     private string? _errorMessage;
     private string? _successMessage;
+    private bool _isUserAuthenticated;
 
     protected override async Task OnInitializedAsync()
     {
         CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
+        _isUserAuthenticated = await CustomAuthenticationStateProvider.IsUserAuthenticated();
     }
 
     public void Dispose()

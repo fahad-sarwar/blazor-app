@@ -18,7 +18,7 @@
             </NavLink>
         </li>
 
-        @if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+        @if (_isUserAuthenticated)
         {
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
@@ -46,10 +46,12 @@
 
 @code {
     private int _basketCount;
+    private bool _isUserAuthenticated;
 
     protected override async Task OnInitializedAsync()
     {
         CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
+        _isUserAuthenticated = await CustomAuthenticationStateProvider.IsUserAuthenticated();
         BasketCountService.OnChange += UpdateCount;
         _basketCount = BasketCountService.ItemCount;
     }

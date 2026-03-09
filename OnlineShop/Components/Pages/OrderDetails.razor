@@ -7,7 +7,7 @@
 @inject CustomAuthenticationStateService CustomAuthenticationStateProvider
 @rendermode InteractiveServer
 
-@if (CustomAuthenticationStateProvider.IsUserAuthenticated())
+@if (_isUserAuthenticated)
 {
     @if (!string.IsNullOrEmpty(_errorMessage))
     {
@@ -47,11 +47,13 @@ else
 @code {
     [Parameter] public int OrderId { get; set; }
 
+    private bool _isUserAuthenticated;
     private OrderViewModel? _order;
     private string? _errorMessage;
 
     protected override async Task OnInitializedAsync()
     {
+        _isUserAuthenticated = await CustomAuthenticationStateProvider.IsUserAuthenticated();
         await LoadOrderDetails();
     }
 
