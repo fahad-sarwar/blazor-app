@@ -2,18 +2,20 @@
 
 namespace OnlineShopUI.Services
 {
-    public class ProductService : ServiceBase
+    public class ProductService
     {
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<ProductService> _logger;
 
-        public ProductService(IHttpClientFactory httpClientFactory, ILogger<ProductService> logger) : base(httpClientFactory)
+        public ProductService(IHttpClientFactory httpClientFactory, ILogger<ProductService> logger)
         {
+            _httpClientFactory = httpClientFactory;
             _logger = logger;
         }
 
         public async Task<PagedProductResultViewModel?> GetProducts(string searchTerm, string selectedSort, int currentPage, int pageSize)
         {
-            var pagedProductResult = await GetClientFactory().GetFromJsonAsync<PagedProductResultViewModel>(
+            var pagedProductResult = await _httpClientFactory.CreateClient("Api").GetFromJsonAsync<PagedProductResultViewModel>(
                 $"api/products?searchTerm={searchTerm}&sort={selectedSort}&page={currentPage}&pageSize={pageSize}");
 
             return pagedProductResult;
@@ -21,7 +23,7 @@ namespace OnlineShopUI.Services
 
         public async Task<PagedProductResultViewModel?> GetProducts(string selectedSort, int currentPage, int pageSize)
         {
-            var pagedProductResult = await GetClientFactory().GetFromJsonAsync<PagedProductResultViewModel>(
+            var pagedProductResult = await _httpClientFactory.CreateClient("Api").GetFromJsonAsync<PagedProductResultViewModel>(
                 $"api/products?forSale=true&sort={selectedSort}&page={currentPage}&pageSize={pageSize}");
 
             return pagedProductResult;
@@ -35,7 +37,7 @@ namespace OnlineShopUI.Services
                 return null;
             }
 
-            var pagedProductResult = await GetClientFactory().GetFromJsonAsync<PagedProductResultViewModel>(
+            var pagedProductResult = await _httpClientFactory.CreateClient("Api").GetFromJsonAsync<PagedProductResultViewModel>(
                 $"api/products?categoryId={categoryId}&sort={selectedSort}&page={currentPage}&pageSize={pageSize}");
 
             return pagedProductResult;
@@ -43,9 +45,9 @@ namespace OnlineShopUI.Services
 
         public async Task<ProductViewModel> GetProduct(int productId)
         {
-            var response = await GetClientFactory().GetFromJsonAsync<ProductViewModel>($"api/products/{productId}");
+            var response = await _httpClientFactory.CreateClient("Api").GetFromJsonAsync<ProductViewModel>($"api/products/{productId}");
 
-            var ratingResponse = await GetClientFactory().GetFromJsonAsync<ProductReviewStatsViewModel>($"api/reviews/stats?productId={productId}");
+            var ratingResponse = await _httpClientFactory.CreateClient("Api").GetFromJsonAsync<ProductReviewStatsViewModel>($"api/reviews/stats?productId={productId}");
 
             response.AverageRating = ratingResponse?.AverageRating ?? 0;
 

@@ -2,18 +2,20 @@
 
 namespace OnlineShopUI.Services
 {
-    public class CategoryService : ServiceBase
+    public class CategoryService
     {
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly ILogger<CategoryService> _logger;
 
-        public CategoryService(IHttpClientFactory httpClientFactory, ILogger<CategoryService> logger) : base(httpClientFactory)
+        public CategoryService(IHttpClientFactory httpClientFactory, ILogger<CategoryService> logger)
         {
+            _httpClientFactory = httpClientFactory;
             _logger = logger;
         }
 
         public async Task<List<CategoryViewModel>?> GetCategories()
         {
-            var response = await GetClientFactory().GetFromJsonAsync<List<CategoryViewModel>>("api/categories");
+            var response = await _httpClientFactory.CreateClient("Api").GetFromJsonAsync<List<CategoryViewModel>>("api/categories");
 
             return response;
         }
@@ -26,7 +28,7 @@ namespace OnlineShopUI.Services
                 return null;
             }
 
-            var response = await GetClientFactory().GetFromJsonAsync<CategoryViewModel>($"api/categories/{categoryId}");
+            var response = await _httpClientFactory.CreateClient("Api").GetFromJsonAsync<CategoryViewModel>($"api/categories/{categoryId}");
 
             return response;
         }
