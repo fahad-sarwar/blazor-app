@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Api.Models;
 using Api.Models.DTOs;
 using Api.Repositories;

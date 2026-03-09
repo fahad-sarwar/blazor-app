@@ -18,24 +18,22 @@ namespace Api.Services
 
         protected override async Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Background order processor started.");
-
             while (!cancellationToken.IsCancellationRequested)
             {
-                var orderId = await _queue.DequeueAsync(cancellationToken);
+                var orderId = _queue.Dequeue();
 
-                if (orderId > 0)
+                if (orderId != null)
                 {
                     _logger.LogInformation($"Processing order: {orderId}");
 
-                    await SimulateOrderUpdates(orderId, cancellationToken);
+                    await ProcessOrder(orderId.Value, cancellationToken);
                 }
 
                 await Task.Delay(2000, cancellationToken);
             }
         }
 
-        private async Task SimulateOrderUpdates(int orderId, CancellationToken ct)
+        private async Task ProcessOrder(int orderId, CancellationToken ct)
         {
             var orderStates = new[] { "Pending", "Inventory check", "Packed", "Shipped", "In transit", "At local depot", "Out for delivery", "Delivered" };
 
@@ -106,7 +104,7 @@ namespace Api.Services
                         break;
                 }
 
-                if (status == "Delivered" && HasOrderFailed(order))
+                if (status == "Delivered" && order.Id % 2 == 0)
                     break;
 
                 await orderRepository.UpdateOrderStatus(orderId, status, deliveryMethod, estimatedDelivery);
@@ -115,7 +113,7 @@ namespace Api.Services
                 _logger.LogInformation($"Order {orderId} tracking update created: {status}");
             }
 
-            if (HasOrderFailed(order))
+            if (order.Id % 2 == 0)
             {
                 while (failedOrderStack.Count > 0)
                 {
@@ -140,11 +138,6 @@ namespace Api.Services
                 UpdatedBy = "System",
                 CreatedAt = DateTime.UtcNow
             });
-        }
-
-        private bool HasOrderFailed(Order order)
-        {
-            return order.Id % 2 == 0;
         }
     }
 }

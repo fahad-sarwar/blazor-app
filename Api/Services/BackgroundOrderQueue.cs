@@ -1,20 +1,22 @@
-﻿using System.Collections.Concurrent;
-
-namespace Api.Services
+﻿namespace Api.Services
 {
     public class BackgroundOrderQueue
     {
-        private readonly ConcurrentQueue<int> _orders = new();
+        private readonly Queue<int> _orders = new();
 
         public void Enqueue(int orderId)
         {
             _orders.Enqueue(orderId);
         }
 
-        public async Task<int> DequeueAsync(CancellationToken cancellationToken)
+        public int? Dequeue()
         {
-            _orders.TryDequeue(out var orderId);
-            return orderId;
+            if (_orders.Count == 0)
+            {
+                return null;
+            }
+            
+            return _orders.Dequeue();
         }
     }
 }
