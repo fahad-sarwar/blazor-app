@@ -22,7 +22,7 @@ namespace Api.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetWishlist([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetWishlist()
         {
                 var customer = await GetCustomer();
 
@@ -31,15 +31,9 @@ namespace Api.Controllers
                     return NotFound("Customer not found.");
                 }
 
-                var (products, totalCount) = await _customerRepository.GetWishlistProducts(customer.Id, page, pageSize);
+                var products = await _customerRepository.GetWishlistProducts(customer.Id);
 
-                return Ok(
-                    new
-                    {
-                        Products = products,
-                        TotalCount = totalCount
-                    }
-                );
+                return Ok(products);
         }
 
         [HttpGet("{productId}/exists")]

@@ -11,11 +11,7 @@
 
 @if (CustomAuthenticationStateProvider.IsUserAuthenticated())
 {
-    @if (_isLoading)
-    {
-        <p>Loading wishlist...</p>
-    }
-    else if (_products.Count == 0)
+    if (_products.Count == 0)
     {
         <p>Your wishlist is empty.</p>
     }
@@ -27,13 +23,6 @@
                 <ProductSummaryItem Product="product" ShowRemoveButton="true" OnProductRemovedFromWishlist="HandleItemRemoved" />
             }
         </div>
-
-        @if (HasMore())
-        {
-            <div class="text-center mt-4">
-                <button class="btn btn-outline-primary" @onclick="LoadMore">Load More</button>
-            </div>
-        }
     }
 }
 else
@@ -43,20 +32,12 @@ else
 
 @code {
     private List<ProductViewModel> _products = new();
-    private bool _isLoading = false;
-    private int _currentPage = 1;
-    private readonly int _pageSize = 9;
-    private int _totalProducts = 0;
 
     protected override async Task OnInitializedAsync()
     {
         CustomAuthenticationStateProvider.OnUserInfoChanged += OnAuthStateChanged;
 
-        _isLoading = true;
-
         await LoadWishlist();
-
-        _isLoading = false;
     }
 
     public void Dispose()
@@ -71,29 +52,16 @@ else
 
     private async Task LoadWishlist()
     {
-        var pagedProductResult = await WishlistService.GetWishlist(_currentPage, _pageSize);
+        var result = await WishlistService.GetWishlist();
 
-        if (pagedProductResult != null)
+        if (result != null)
         {
-            _products.AddRange(pagedProductResult.Products);
-            _totalProducts = pagedProductResult.TotalCount;
+            _products.AddRange(result);
         }
         else
         {
             _products = new List<ProductViewModel>();
-            _totalProducts = 0;
         }
-    }
-
-    private bool HasMore()
-    {
-        return _currentPage * _pageSize < _totalProducts;
-    }
-
-    private async Task LoadMore()
-    {
-        _currentPage += 1;
-        await LoadWishlist();
     }
 
     private async Task HandleItemRemoved(int productId)

@@ -11,9 +11,9 @@ namespace OnlineShopUI.Services
             _logger = logger;
         }
 
-        public async Task<PagedProductResultViewModel?> GetWishlist(int page, int pageSize)
+        public async Task<List<ProductViewModel>?> GetWishlist()
         {
-            var response = await GetClientFactory().GetFromJsonAsync<PagedProductResultViewModel>($"api/wishlist?page={page}&pageSize={pageSize}");
+            var response = await GetClientFactory().GetFromJsonAsync<List<ProductViewModel>>($"api/wishlist");
             return response;
         }
 

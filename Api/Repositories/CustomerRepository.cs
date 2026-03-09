@@ -177,27 +177,17 @@ namespace Api.Repositories
             });
         }
 
-        public async Task<(List<Product> Products, int TotalCount)> GetWishlistProducts(int customerId, int page = 1, int pageSize = 10)
+        public async Task<List<Product>> GetWishlistProducts(int customerId)
         {
-            var countQuery = "SELECT COUNT(*) FROM Wishlist WHERE CustomerId = @customerId";
-
             var wishlistQuery =
                 "SELECT ProductId " +
                 "FROM Wishlist " +
                 "WHERE CustomerId = @customerId " +
-                "ORDER BY CreatedAt DESC " +
-                "LIMIT @pageSize OFFSET @offset";
+                "ORDER BY CreatedAt DESC";
 
             await using var conn = new SqliteConnection(ConnectionString);
 
-            var totalCount = await conn.QuerySingleAsync<int>(countQuery, new { customerId });
-
-            var productIds = await conn.QueryAsync<int>(wishlistQuery, new
-            {
-                customerId,
-                pageSize,
-                offset = (page - 1) * pageSize
-            });
+            var productIds = await conn.QueryAsync<int>(wishlistQuery, new { customerId });
 
             var products = new List<Product>();
 
@@ -210,7 +200,7 @@ namespace Api.Repositories
                 }
             }
 
-            return (products, totalCount);
+            return products;
         }
 
         public async Task<bool> IsProductInWishlist(int customerId, int productId)
