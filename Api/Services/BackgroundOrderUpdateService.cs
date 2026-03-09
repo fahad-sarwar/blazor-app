@@ -35,7 +35,7 @@ namespace Api.Services
 
         private async Task ProcessOrder(int orderId, CancellationToken ct)
         {
-            var orderStates = new[] { "Pending", "Inventory check", "Packed", "Shipped", "In transit", "At local depot", "Out for delivery", "Delivered" };
+            var orderStates = new[] { "Pending", "Inventory check", "Packed", "Shipped", "In transit", "At local post office", "Out for delivery", "Delivered" };
 
             var stateNotes = new Dictionary<string, string>
             {
@@ -43,8 +43,8 @@ namespace Api.Services
                 { "Inventory check", "Checking stock levels." },
                 { "Packed", "Items packed and ready to be shipped." },
                 { "Shipped", "Order is on its way to the hub." },
-                { "In transit", "Order on its way to the local depot." },
-                { "At local depot", "Order is at the local depot." },
+                { "In transit", "Order on its way to the local post office." },
+                { "At local post office", "Order is at the local post office." },
                 { "Out for delivery", "Package is on its way to the customer." },
                 { "Delivered", "Order has been delivered!" }
             };
@@ -52,7 +52,7 @@ namespace Api.Services
             var failedStateNotes = new Dictionary<string, string>
             {
                 { "Delivery failed", "Customer not home or unavailable." },
-                { "Return to depot", "Package is being returned to the local depot." },
+                { "Return to post office", "Package is being returned to the local post office." },
                 { "Back in warehouse", "Items have been returned back to the warehouse waiting to be processed." },
                 { "Unpacked", "Items have been checked and unpacked" },
                 { "Add to inventory", "Items have been added back to the inventory." },
@@ -95,8 +95,8 @@ namespace Api.Services
                         failedOrderStack.Push("Back in warehouse");
                         break;
 
-                    case "At local depot":
-                        failedOrderStack.Push("Return to depot");
+                    case "At local post office":
+                        failedOrderStack.Push("Return to post office");
                         break;
 
                     case "Out for delivery":
