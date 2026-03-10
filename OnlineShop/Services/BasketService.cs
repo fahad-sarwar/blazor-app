@@ -25,6 +25,7 @@ namespace OnlineShopUI.Services
             }
             catch (Exception ex)
             {
+                // TODO should log error 
                 return null;
             }
         }
