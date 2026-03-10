@@ -143,7 +143,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "There was an error updating the customers account with id {CustomerId}.", id);
+                _logger.LogError(ex, "Customer update failed");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }

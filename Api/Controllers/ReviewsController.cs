@@ -32,7 +32,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "There was an error getting reviews for product with id {Product}.", productId);
+                _logger.LogError(ex, "Something went wrong getting reviews");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -101,7 +101,7 @@ namespace Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "There was an error creating a review for product with id {Product}.", request.ProductId);
+                _logger.LogError(ex, "Failed to create review");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
