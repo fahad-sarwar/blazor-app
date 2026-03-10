@@ -25,6 +25,7 @@ namespace Api.Repositories
             return await GetBasketByField("CustomerId", customerId);
         }
 
+        // this methods get a basket by using different columns
         private async Task<Basket?> GetBasketByField(string fieldName, object fieldValue)
         {
             var query =

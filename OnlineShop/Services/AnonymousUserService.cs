@@ -13,6 +13,7 @@ namespace OnlineShopUI.Services
 
         private const string AnonymousUserIdKey = "anonymous_user_id";
 
+        // get or creates a user if stored in the browser session
         public async Task<string> GetOrCreateAnonymousId()
         {
             var result = await _protectedSessionStorage.GetAsync<string>(AnonymousUserIdKey);

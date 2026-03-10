@@ -124,6 +124,7 @@ namespace Api.Controllers
 
                 await _customerRepository.UpdateCustomer(customer);
 
+                // this works out the total price of the order
                 var totalPrice = basket.Items.Sum(bi => bi.TotalPrice);
 
                 var orderBillingAddress = await _customerRepository.CreateAddress(CopyAddress(createOrderRequest.Customer.BillingAddress));

@@ -31,6 +31,7 @@ else if (_products.Count > 0)
 
     protected override async Task OnInitializedAsync()
     {
+        // get 6 products that are on sale
         var pagedProductResult = await ProductService.GetProducts("name-asc", 1, 6);
 
         if (pagedProductResult != null)
