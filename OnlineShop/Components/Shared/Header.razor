@@ -75,6 +75,11 @@
 
     private string GetFirstName()
     {
-        return CustomAuthenticationStateProvider.GetUserInfoDetails().FirstName;
+        var userInfo = CustomAuthenticationStateProvider.GetUserInfoDetails();
+
+        if (userInfo == null)
+            return "Customer";
+
+        return userInfo.FirstName;
     }
 }
