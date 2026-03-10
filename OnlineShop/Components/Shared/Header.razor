@@ -22,7 +22,7 @@
         {
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                    Hello, @GetFirstName()
+                    Hello @GetFirstName()
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end">
                     <li><NavLink class="dropdown-item" href="/profile">My Profile</NavLink></li>
@@ -64,6 +64,7 @@
 
     private async Task OnAuthStateChanged()
     {
+        _isUserAuthenticated = await CustomAuthenticationStateProvider.IsUserAuthenticated();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -78,7 +79,7 @@
         var userInfo = CustomAuthenticationStateProvider.GetUserInfoDetails();
 
         if (userInfo == null)
-            return "Customer";
+            return "";
 
         return userInfo.FirstName;
     }
