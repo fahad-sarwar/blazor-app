@@ -110,7 +110,7 @@ namespace Api.Controllers
             }
             catch(Exception ex)
             {
-                _logger.LogError(ex, "Error adding product to basket");
+                _logger.LogError(ex, "Error adding item to basket");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
