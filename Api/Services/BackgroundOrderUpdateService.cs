@@ -35,7 +35,7 @@ namespace Api.Services
 
         private async Task ProcessOrder(int orderId, CancellationToken ct)
         {
-            List<StatusUpdate> _successStateUpdates = new List<StatusUpdate>
+            List<StatusUpdate> successStateUpdates = new List<StatusUpdate>
             {
                 new StatusUpdate { State = "Inventory check", Note = "Checking stock levels." },
                 new StatusUpdate { State = "Shipped", Note = "Order is on its way to the hub." },
@@ -43,7 +43,7 @@ namespace Api.Services
                 new StatusUpdate { State = "Delivered", Note = "Order has been delivered!" }
             };
 
-            List<StatusUpdate> _failedStateUpdates = new List<StatusUpdate>
+            List<StatusUpdate> failedStateUpdates = new List<StatusUpdate>
             {
                 new StatusUpdate { State = "Add to inventory", Note = "Items added back to inventory." },
                 new StatusUpdate { State = "Back in warehouse", Note = "Items have been returned" },
@@ -66,27 +66,27 @@ namespace Api.Services
                 return;
             }
 
-            for (var i = 0; i < _successStateUpdates.Count; i++)
+            for (var i = 0; i < successStateUpdates.Count; i++)
             {
                 await Task.Delay(3000, ct);
 
-                failedOrderStack.Push(_failedStateUpdates[i]);
+                failedOrderStack.Push(failedStateUpdates[i]);
 
-                if (_successStateUpdates[i].State == "Delivered" && order.Id % 2 == 0)
+                if (successStateUpdates[i].State == "Delivered" && order.Id % 2 == 0)
                     break;
 
-                if (_successStateUpdates[i].State == "Shipped")
+                if (successStateUpdates[i].State == "Shipped")
                 {
-                    await orderRepository.UpdateOrderStatus(orderId, _successStateUpdates[i].State, "Standard Shipping", DateTime.UtcNow.AddDays(3));
+                    await orderRepository.UpdateOrderStatus(orderId, successStateUpdates[i].State, "Standard Shipping", DateTime.UtcNow.AddDays(3));
                 }
                 else
                 {
-                    await orderRepository.UpdateOrderStatus(orderId, _successStateUpdates[i].State);
+                    await orderRepository.UpdateOrderStatus(orderId, successStateUpdates[i].State);
                 }
 
-                await AddNote(orderRepository, orderId, _successStateUpdates[i].State, _successStateUpdates[i].Note);
+                await AddNote(orderRepository, orderId, successStateUpdates[i].State, successStateUpdates[i].Note);
 
-                _logger.LogInformation($"Order {orderId} tracking update created: {_successStateUpdates[i].State}");
+                _logger.LogInformation($"Order {orderId} tracking update created: {successStateUpdates[i].State}");
             }
 
             // simulating failed delivery on some orders
@@ -120,7 +120,7 @@ namespace Api.Services
 
     public class StatusUpdate
     {
-        public string State { get; set; } = string.Empty;
-        public string Note { get; set; } = string.Empty;
+        public string State { get; set; }
+        public string Note { get; set; }
     }
 }
