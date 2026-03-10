@@ -15,7 +15,7 @@
 @code {
     [Parameter] public OrderViewModel? Order { get; set; }
 
-    private readonly string[] _statusMilestones = new[] { "Pending", "Inventory check", "Packed", "Shipped", "In transit", "At local post office", "Out for delivery", "Delivered" };
+    private readonly string[] _statusMilestones = new[] { "Inventory check", "Shipped", "At local post office", "Delivered" };
 
     private string GetMilestone(string status)
     {

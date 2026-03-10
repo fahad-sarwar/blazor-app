@@ -35,30 +35,25 @@ namespace Api.Services
 
         private async Task ProcessOrder(int orderId, CancellationToken ct)
         {
-            var orderStates = new[] { "Pending", "Inventory check", "Packed", "Shipped", "In transit", "At local post office", "Out for delivery", "Delivered" };
-
-            var stateNotes = new Dictionary<string, string>
+            List<StatusUpdate> _successStateUpdates = new List<StatusUpdate>
             {
-                { "Pending", "Order received." },
-                { "Inventory check", "Checking stock levels." },
-                { "Packed", "Items packed and ready to be shipped." },
-                { "Shipped", "Order is on its way to the hub." },
-                { "In transit", "Order on its way to the local post office." },
-                { "At local post office", "Order is at the local post office." },
-                { "Out for delivery", "Package is on its way to the customer." },
-                { "Delivered", "Order has been delivered!" }
+                new StatusUpdate { State = "Inventory check", Note = "Checking stock levels." },
+                new StatusUpdate { State = "Shipped", Note = "Order is on its way to the hub." },
+                new StatusUpdate { State = "At local post office", Note = "Order is at the local post office." },
+                new StatusUpdate { State = "Delivered", Note = "Order has been delivered!" }
             };
 
-            var failedStateNotes = new Dictionary<string, string>
+            List<StatusUpdate> _failedStateUpdates = new List<StatusUpdate>
             {
-                { "Delivery failed", "Customer not home or unavailable." },
-                { "Return to post office", "Package is being returned to the local post office." },
-                { "Back in warehouse", "Items have been returned back to the warehouse waiting to be processed." },
-                { "Unpacked", "Items have been checked and unpacked" },
-                { "Add to inventory", "Items have been added back to the inventory." },
+                new StatusUpdate { State = "Add to inventory", Note = "Items added back to inventory." },
+                new StatusUpdate { State = "Back in warehouse", Note = "Items have been returned" },
+                new StatusUpdate { State = "Return to post office", Note = "Package returned to the local post office." },
+                new StatusUpdate { State = "Delivery failed", Note = "Customer not home." },
             };
 
-            var failedOrderStack = new Stack<string>();
+
+            // using a stack to keep track of steps if something goes wrong
+            var failedOrderStack = new Stack<StatusUpdate>();
 
             using var scope = _serviceProvider.CreateScope();
             var orderRepository = scope.ServiceProvider.GetRequiredService<OrderRepository>();
@@ -71,57 +66,39 @@ namespace Api.Services
                 return;
             }
 
-            for (var i = 0; i < orderStates.Length; i++)
+            for (var i = 0; i < _successStateUpdates.Count; i++)
             {
                 await Task.Delay(3000, ct);
 
-                string? deliveryMethod = null;
-                DateTime? estimatedDelivery = null;
-                var status = orderStates[i];
+                failedOrderStack.Push(_failedStateUpdates[i]);
 
-                switch (status)
-                {
-                    case "Inventory check":
-                        failedOrderStack.Push("Add to inventory");
-                        break;
-
-                    case "Packed":
-                        failedOrderStack.Push("Unpacked");
-                        break;
-
-                    case "Shipped":
-                        deliveryMethod = "Standard Shipping";
-                        estimatedDelivery = DateTime.UtcNow.AddDays(3);
-                        failedOrderStack.Push("Back in warehouse");
-                        break;
-
-                    case "At local post office":
-                        failedOrderStack.Push("Return to post office");
-                        break;
-
-                    case "Out for delivery":
-                        failedOrderStack.Push("Delivery failed");
-                        break;
-                }
-
-                if (status == "Delivered" && order.Id % 2 == 0)
+                if (_successStateUpdates[i].State == "Delivered" && order.Id % 2 == 0)
                     break;
 
-                await orderRepository.UpdateOrderStatus(orderId, status, deliveryMethod, estimatedDelivery);
-                await AddNote(orderRepository, orderId, status, stateNotes[status]);
+                if (_successStateUpdates[i].State == "Shipped")
+                {
+                    await orderRepository.UpdateOrderStatus(orderId, _successStateUpdates[i].State, "Standard Shipping", DateTime.UtcNow.AddDays(3));
+                }
+                else
+                {
+                    await orderRepository.UpdateOrderStatus(orderId, _successStateUpdates[i].State);
+                }
 
-                _logger.LogInformation($"Order {orderId} tracking update created: {status}");
+                await AddNote(orderRepository, orderId, _successStateUpdates[i].State, _successStateUpdates[i].Note);
+
+                _logger.LogInformation($"Order {orderId} tracking update created: {_successStateUpdates[i].State}");
             }
 
+            // simulating failed delivery on some orders
             if (order.Id % 2 == 0)
             {
                 while (failedOrderStack.Count > 0)
                 {
-                    var status = failedOrderStack.Pop();
+                    var failedStatusUpdate = failedOrderStack.Pop();
 
                     await Task.Delay(2000, ct);
 
-                    await AddNote(orderRepository, orderId, status, failedStateNotes[status]);
+                    await AddNote(orderRepository, orderId, failedStatusUpdate.State, failedStatusUpdate.Note);
                 }
 
                 await orderRepository.UpdateOrderStatus(orderId, "Cancelled");
@@ -139,5 +116,11 @@ namespace Api.Services
                 CreatedAt = DateTime.UtcNow
             });
         }
+    }
+
+    public class StatusUpdate
+    {
+        public string State { get; set; } = string.Empty;
+        public string Note { get; set; } = string.Empty;
     }
 }
