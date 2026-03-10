@@ -106,7 +106,7 @@ namespace Api.Controllers
 
         private async Task<Customer?> GetCustomer()
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var email = User.FindFirst("Email")?.Value;
 
             if (string.IsNullOrEmpty(email))
             {

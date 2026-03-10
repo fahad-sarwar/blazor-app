@@ -34,7 +34,7 @@ namespace Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetOrders([FromQuery] string? orderNumber)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var email = User.FindFirst("Email")?.Value;
 
             if (string.IsNullOrEmpty(email))
             {
@@ -56,7 +56,7 @@ namespace Api.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOrder(int id)
         {
-            var email = User.FindFirst(ClaimTypes.Email)?.Value;
+            var email = User.FindFirst("Email")?.Value;
 
             if (string.IsNullOrEmpty(email))
             {

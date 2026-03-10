@@ -63,7 +63,7 @@ namespace Api.Controllers
         {
             try
             {
-                var email = User.FindFirst(ClaimTypes.Email)?.Value;
+                var email = User.FindFirst("Email")?.Value;
 
                 if (string.IsNullOrEmpty(email))
                 {

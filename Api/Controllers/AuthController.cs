@@ -195,10 +195,10 @@ namespace Api.Controllers
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.Name, customer.FirstName),
-                new Claim(ClaimTypes.Email, customer.Email),
-                new Claim(ClaimTypes.GivenName, customer.FirstName),
-                new Claim(ClaimTypes.Surname, customer.LastName),
+                new Claim("Name", customer.FirstName),
+                new Claim("Email", customer.Email),
+                new Claim("GivenName", customer.FirstName),
+                new Claim("Surname", customer.LastName),
                 new Claim("UserId", user.Id.ToString()),
                 new Claim("CustomerId", customer.Id.ToString()),
                 new Claim("IsAdmin", user.IsAdmin.ToString())
