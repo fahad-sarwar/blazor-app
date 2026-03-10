@@ -24,38 +24,22 @@ namespace Api.Controllers
         [HttpGet]
         public async Task<IActionResult> GetReviews([FromQuery] int productId)
         {
-            try
-            {
-                var reviews = await _customerRepository.GetReviews(productId);
+            var reviews = await _customerRepository.GetReviews(productId);
 
-                return Ok(reviews);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Something went wrong getting reviews");
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            return Ok(reviews);
         }
 
         [HttpGet("stats")]
         public async Task<IActionResult> GetReviewStats([FromQuery] int productId)
         {
-            try
-            {
-                var averageRating = await _customerRepository.GetAverageRating(productId);
+            var averageRating = await _customerRepository.GetAverageRating(productId);
 
-                return Ok(
-                    new
-                    {
-                        AverageRating = averageRating
-                    }
-                );
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "There was an error getting product review stats for product with id {Product}", productId);
-                return StatusCode(StatusCodes.Status500InternalServerError);
-            }
+            return Ok(
+                new
+                {
+                    AverageRating = averageRating
+                }
+            );
         }
 
         [HttpPost]
