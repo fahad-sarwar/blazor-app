@@ -1,4 +1,5 @@
-﻿using OnlineShopUI.ViewModels;
+﻿using System.Text.Json;
+using OnlineShopUI.ViewModels;
 
 namespace OnlineShopUI.Services
 {
@@ -47,9 +48,12 @@ namespace OnlineShopUI.Services
         {
             var response = await _httpClientFactory.CreateClient("Api").GetFromJsonAsync<ProductViewModel>($"api/products/{productId}");
 
-            var ratingResponse = await _httpClientFactory.CreateClient("Api").GetFromJsonAsync<ProductReviewStatsViewModel>($"api/reviews/stats?productId={productId}");
+            var ratingResponse = await _httpClientFactory.CreateClient("Api").GetFromJsonAsync<JsonElement>($"api/reviews/stats?productId={productId}");
 
-            response.AverageRating = ratingResponse?.AverageRating ?? 0;
+            if (ratingResponse.TryGetProperty("averageRating", out var ratingValue) && ratingValue.ValueKind != JsonValueKind.Null)
+            {
+                response.AverageRating = ratingValue.GetDouble();
+            }
 
             return response;
         }

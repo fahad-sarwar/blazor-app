@@ -1,4 +1,4 @@
-﻿using OnlineShopUI.ViewModels;
+﻿using Api.Models;
 
 namespace OnlineShopUI.Services
 {
@@ -11,7 +11,7 @@ namespace OnlineShopUI.Services
             _logger = logger;
         }
 
-        public async Task<bool> SendMessage(SendMessageViewModel message)
+        public async Task<bool> SendMessage(Message message)
         {
             var response = await GetClientFactory().PostAsJsonAsync("api/messages", message);
             return response.IsSuccessStatusCode;

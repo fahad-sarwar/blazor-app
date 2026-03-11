@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components.Authorization;
+﻿using Api.Models.DTOs;
+using Microsoft.AspNetCore.Components.Authorization;
 using OnlineShopUI.ViewModels;
 
 namespace OnlineShopUI.Services
@@ -17,7 +18,7 @@ namespace OnlineShopUI.Services
             _logger = logger;
         }
 
-        public async Task<bool> Register(RegisterViewModel registerModel)
+        public async Task<bool> Register(RegisterDTO registerModel)
         {
             var result = await GetClientFactory().PostAsJsonAsync("api/auth/register", registerModel);
 
@@ -32,7 +33,7 @@ namespace OnlineShopUI.Services
             return false;
         }
 
-        public async Task<bool> Login(LoginViewModel loginModel)
+        public async Task<bool> Login(LoginDTO loginModel)
         {
             var result = await GetClientFactory().PostAsJsonAsync("api/auth/login", loginModel);
 

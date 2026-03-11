@@ -1,4 +1,5 @@
-﻿using OnlineShopUI.ViewModels;
+﻿using Api.Models.DTOs;
+using OnlineShopUI.ViewModels;
 
 namespace OnlineShopUI.Services
 {
@@ -17,7 +18,7 @@ namespace OnlineShopUI.Services
             return response;
         }
 
-        public async Task<bool> UpdateCustomer(UpdateCustomerViewModel request)
+        public async Task<bool> UpdateCustomer(UpdateCustomerDTO request)
         {
             var response = await GetClientFactory().PutAsJsonAsync($"api/customers/{request.Id}", request);
 

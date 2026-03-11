@@ -1,5 +1,6 @@
 ﻿@page "/categories/{Id:int}"
 
+@using Api.Models
 @using OnlineShopUI.Components.Shared
 @using OnlineShopUI.Services
 @using OnlineShopUI.ViewModels
@@ -7,13 +8,13 @@
 @inject ProductService ProductService
 @rendermode InteractiveServer
 
-@if (_categoryViewModel == null)
+@if (_category == null)
 {
     <p>Loading...</p>
 }
-else if (!string.IsNullOrEmpty(_categoryViewModel?.Name))
+else if (!string.IsNullOrEmpty(_category?.Name))
 {
-    <p><strong>@_categoryViewModel.Name</strong></p>
+    <p><strong>@_category.Name</strong></p>
 }
 
 @if (_products.Count > 0)
@@ -58,7 +59,7 @@ else
 @code {
     [Parameter] public int? Id { get; set; }
 
-    private CategoryViewModel? _categoryViewModel;
+    private Category? _category;
     private List<ProductViewModel> _products = [];
     private int _currentPage = 1;
     private int _pageSize = 9;
@@ -89,9 +90,9 @@ else
 
     private async Task GetCategory()
     {
-        _categoryViewModel = await CategoryService.GetCategory(Id);
+        _category = await CategoryService.GetCategory(Id);
 
-        if (_categoryViewModel == null)
+        if (_category == null)
         {
             _products = [];
             _totalProducts = 0;

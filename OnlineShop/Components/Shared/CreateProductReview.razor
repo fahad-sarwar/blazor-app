@@ -1,5 +1,5 @@
-﻿@using OnlineShopUI.Services
-@using OnlineShopUI.ViewModels
+﻿@using Api.Models.DTOs
+@using OnlineShopUI.Services
 @inject ReviewService ReviewService
 @rendermode InteractiveServer
 
@@ -73,7 +73,7 @@
 @code {
     [Parameter] public int ProductId { get; set; }
 
-    private CreateReviewViewModel NewReview { get; set; } = new() { Rating = 5 };
+    private CreateReviewDTO NewReview { get; set; } = new() { Rating = 5 };
     private bool _showForm;
     private bool _disableSubmitButton;
     private string? _successMessage;
@@ -83,7 +83,7 @@
     {
         _showForm = true;
         _disableSubmitButton = false;
-        NewReview = new CreateReviewViewModel { Rating = 5 };
+        NewReview = new CreateReviewDTO { Rating = 5 };
         _successMessage = null;
         _errorMessage = null;
     }
@@ -92,7 +92,7 @@
     {
         _showForm = false;
         _disableSubmitButton = false;
-        NewReview = new CreateReviewViewModel { Rating = 5 };
+        NewReview = new CreateReviewDTO { Rating = 5 };
         _successMessage = null;
         _errorMessage = null;
     }

@@ -19,9 +19,9 @@ namespace Api.Models.DTOs
         public string PhoneNumber { get; set; } = string.Empty;
 
         [Required]
-        public CreateAddressDTO ShippingAddress { get; set; } = new();
+        public Models.Address ShippingAddress { get; set; } = new();
 
         [Required]
-        public CreateAddressDTO BillingAddress { get; set; } = new();
+        public Models.Address BillingAddress { get; set; } = new();
     }
 }

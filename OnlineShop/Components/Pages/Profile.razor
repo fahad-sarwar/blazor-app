@@ -1,6 +1,6 @@
 ﻿@page "/profile"
 
-@using OnlineShopUI.ViewModels
+@using Api.Models.DTOs
 @using OnlineShopUI.Services
 @using OnlineShopUI.Components.Shared
 @inject CustomAuthenticationStateService CustomAuthenticationStateProvider
@@ -23,65 +23,65 @@
 
     <h3 class="mb-4">My Profile</h3>
 
-    @if (_updateModel != null)
+    @if (_updateCustomer != null)
     {
-        <EditForm Model="_updateModel" OnValidSubmit="HandleSubmit" Context="editContext">
+        <EditForm Model="_updateCustomer" OnValidSubmit="HandleSubmit" Context="editContext">
             <DataAnnotationsValidator />
 
             <h5 class="mb-3">Personal Information</h5>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="firstName" class="form-label fw-semibold">First Name</label>
-                    <InputText id="firstName" class="form-control" @bind-Value="_updateModel.FirstName" />
-                    <ValidationMessage For="@(() => _updateModel.FirstName)" class="text-danger" />
+                    <InputText id="firstName" class="form-control" @bind-Value="_updateCustomer.FirstName" />
+                    <ValidationMessage For="@(() => _updateCustomer.FirstName)" class="text-danger" />
                 </div>
 
                 <div class="col-md-6 mb-3">
                     <label for="lastName" class="form-label fw-semibold">Last Name</label>
-                    <InputText id="lastName" class="form-control" @bind-Value="_updateModel.LastName" />
-                    <ValidationMessage For="@(() => _updateModel.LastName)" class="text-danger" />
+                    <InputText id="lastName" class="form-control" @bind-Value="_updateCustomer.LastName" />
+                    <ValidationMessage For="@(() => _updateCustomer.LastName)" class="text-danger" />
                 </div>
             </div>
 
             <div class="mb-4">
                 <label for="phoneNumber" class="form-label fw-semibold">Phone Number</label>
-                <InputText id="phoneNumber" class="form-control" @bind-Value="_updateModel.PhoneNumber" placeholder="Enter your phone number" />
-                <ValidationMessage For="@(() => _updateModel.PhoneNumber)" class="text-danger" />
+                <InputText id="phoneNumber" class="form-control" @bind-Value="_updateCustomer.PhoneNumber" placeholder="Enter your phone number" />
+                <ValidationMessage For="@(() => _updateCustomer.PhoneNumber)" class="text-danger" />
             </div>
 
             <h5 class="mb-3">Shipping Address</h5>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="shippingAddressLineOne" class="form-label fw-semibold">Address Line 1</label>
-                    <InputText id="shippingAddressLineOne" class="form-control" @bind-Value="_updateModel.ShippingAddressLineOne" />
-                    <ValidationMessage For="@(() => _updateModel.ShippingAddressLineOne)" class="text-danger" />
+                    <InputText id="shippingAddressLineOne" class="form-control" @bind-Value="_updateCustomer.ShippingAddressLineOne" />
+                    <ValidationMessage For="@(() => _updateCustomer.ShippingAddressLineOne)" class="text-danger" />
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="shippingAddressLineTwo" class="form-label fw-semibold">Address Line 2</label>
-                    <InputText id="shippingAddressLineTwo" class="form-control" @bind-Value="_updateModel.ShippingAddressLineTwo" />
+                    <InputText id="shippingAddressLineTwo" class="form-control" @bind-Value="_updateCustomer.ShippingAddressLineTwo" />
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="shippingTown" class="form-label fw-semibold">Town</label>
-                    <InputText id="shippingTown" class="form-control" @bind-Value="_updateModel.ShippingTown" />
-                    <ValidationMessage For="@(() => _updateModel.ShippingTown)" class="text-danger" />
+                    <InputText id="shippingTown" class="form-control" @bind-Value="_updateCustomer.ShippingTown" />
+                    <ValidationMessage For="@(() => _updateCustomer.ShippingTown)" class="text-danger" />
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="shippingCounty" class="form-label fw-semibold">County</label>
-                    <InputText id="shippingCounty" class="form-control" @bind-Value="_updateModel.ShippingCounty" />
+                    <InputText id="shippingCounty" class="form-control" @bind-Value="_updateCustomer.ShippingCounty" />
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="shippingPostCode" class="form-label fw-semibold">Postcode</label>
-                    <InputText id="shippingPostCode" class="form-control" @bind-Value="_updateModel.ShippingPostCode" />
-                    <ValidationMessage For="@(() => _updateModel.ShippingPostCode)" class="text-danger" />
+                    <InputText id="shippingPostCode" class="form-control" @bind-Value="_updateCustomer.ShippingPostCode" />
+                    <ValidationMessage For="@(() => _updateCustomer.ShippingPostCode)" class="text-danger" />
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="shippingCountry" class="form-label fw-semibold">Country</label>
-                    <InputText id="shippingCountry" class="form-control" @bind-Value="_updateModel.ShippingCountry" />
-                    <ValidationMessage For="@(() => _updateModel.ShippingCountry)" class="text-danger" />
+                    <InputText id="shippingCountry" class="form-control" @bind-Value="_updateCustomer.ShippingCountry" />
+                    <ValidationMessage For="@(() => _updateCustomer.ShippingCountry)" class="text-danger" />
                 </div>
             </div>
 
@@ -89,35 +89,35 @@
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="billingAddressLineOne" class="form-label fw-semibold">Address Line 1</label>
-                    <InputText id="billingAddressLineOne" class="form-control" @bind-Value="_updateModel.BillingAddressLineOne" />
-                    <ValidationMessage For="@(() => _updateModel.BillingAddressLineOne)" class="text-danger" />
+                    <InputText id="billingAddressLineOne" class="form-control" @bind-Value="_updateCustomer.BillingAddressLineOne" />
+                    <ValidationMessage For="@(() => _updateCustomer.BillingAddressLineOne)" class="text-danger" />
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="billingAddressLineTwo" class="form-label fw-semibold">Address Line 2</label>
-                    <InputText id="billingAddressLineTwo" class="form-control" @bind-Value="_updateModel.BillingAddressLineTwo" />
+                    <InputText id="billingAddressLineTwo" class="form-control" @bind-Value="_updateCustomer.BillingAddressLineTwo" />
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="billingTown" class="form-label fw-semibold">Town</label>
-                    <InputText id="billingTown" class="form-control" @bind-Value="_updateModel.BillingTown" />
-                    <ValidationMessage For="@(() => _updateModel.BillingTown)" class="text-danger" />
+                    <InputText id="billingTown" class="form-control" @bind-Value="_updateCustomer.BillingTown" />
+                    <ValidationMessage For="@(() => _updateCustomer.BillingTown)" class="text-danger" />
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="billingCounty" class="form-label fw-semibold">County</label>
-                    <InputText id="billingCounty" class="form-control" @bind-Value="_updateModel.BillingCounty" />
+                    <InputText id="billingCounty" class="form-control" @bind-Value="_updateCustomer.BillingCounty" />
                 </div>
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label for="billingPostCode" class="form-label fw-semibold">Postcode</label>
-                    <InputText id="billingPostCode" class="form-control" @bind-Value="_updateModel.BillingPostCode" />
-                    <ValidationMessage For="@(() => _updateModel.BillingPostCode)" class="text-danger" />
+                    <InputText id="billingPostCode" class="form-control" @bind-Value="_updateCustomer.BillingPostCode" />
+                    <ValidationMessage For="@(() => _updateCustomer.BillingPostCode)" class="text-danger" />
                 </div>
                 <div class="col-md-6 mb-3">
                     <label for="billingCountry" class="form-label fw-semibold">Country</label>
-                    <InputText id="billingCountry" class="form-control" @bind-Value="_updateModel.BillingCountry" />
-                    <ValidationMessage For="@(() => _updateModel.BillingCountry)" class="text-danger" />
+                    <InputText id="billingCountry" class="form-control" @bind-Value="_updateCustomer.BillingCountry" />
+                    <ValidationMessage For="@(() => _updateCustomer.BillingCountry)" class="text-danger" />
                 </div>
             </div>
 
@@ -139,7 +139,7 @@ else
 }
 
 @code {
-    private UpdateCustomerViewModel? _updateModel;
+    private UpdateCustomerDTO? _updateCustomer;
     private bool _isSubmitting = false;
     private string? _successMessage;
     private string? _errorMessage;
@@ -157,7 +157,7 @@ else
 
         if (customer != null)
         {
-            _updateModel = new UpdateCustomerViewModel
+            _updateCustomer = new UpdateCustomerDTO
                 {
                     Id = customer.Id,
                     FirstName = customer.FirstName,
@@ -185,7 +185,7 @@ else
 
     private async Task HandleSubmit()
     {
-        if (_updateModel == null)
+        if (_updateCustomer == null)
         {
             return;
         }
@@ -194,7 +194,7 @@ else
         _errorMessage = null;
         _successMessage = null;
 
-        var success = await CustomerService.UpdateCustomer(_updateModel);
+        var success = await CustomerService.UpdateCustomer(_updateCustomer);
 
         if (success)
         {

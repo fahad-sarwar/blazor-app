@@ -110,11 +110,8 @@ namespace Api.Controllers
 
                 if (customer.BillingAddress == null && customer.ShippingAddress == null)
                 {
-                    var customerBillingAddress = CopyAddress(createOrderRequest.Customer.BillingAddress);
-                    var customerShippingAddress = CopyAddress(createOrderRequest.Customer.ShippingAddress);
-
-                    customer.BillingAddress = await _customerRepository.CreateAddress(customerBillingAddress);
-                    customer.ShippingAddress = await _customerRepository.CreateAddress(customerShippingAddress);
+                    customer.BillingAddress = await _customerRepository.CreateAddress(createOrderRequest.Customer.BillingAddress);
+                    customer.ShippingAddress = await _customerRepository.CreateAddress(createOrderRequest.Customer.ShippingAddress);
                 }
 
                 if (string.IsNullOrEmpty(customer.PhoneNumber))
@@ -127,8 +124,8 @@ namespace Api.Controllers
                 // this works out the total price of the order
                 var totalPrice = basket.Items.Sum(bi => bi.TotalPrice);
 
-                var orderBillingAddress = await _customerRepository.CreateAddress(CopyAddress(createOrderRequest.Customer.BillingAddress));
-                var orderShippingAddress = await _customerRepository.CreateAddress(CopyAddress(createOrderRequest.Customer.ShippingAddress));
+                var orderBillingAddress = await _customerRepository.CreateAddress(createOrderRequest.Customer.BillingAddress);
+                var orderShippingAddress = await _customerRepository.CreateAddress(createOrderRequest.Customer.ShippingAddress);
 
                 var payment = await _paymentRepository.CreatePayment(new Payment
                 {
@@ -194,19 +191,6 @@ namespace Api.Controllers
                 _logger.LogError(ex, "There was an error creating the order.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
-        }
-
-        private static Address CopyAddress(CreateAddressDTO addressDto)
-        {
-            return new Address
-            {
-                AddressLineOne = addressDto.AddressLineOne,
-                AddressLineTwo = addressDto.AddressLineTwo,
-                Town = addressDto.Town,
-                County = addressDto.County,
-                PostCode = addressDto.PostCode,
-                Country = addressDto.Country,
-            };
         }
     }
 }

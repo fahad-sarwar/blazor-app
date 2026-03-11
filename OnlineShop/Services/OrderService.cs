@@ -1,4 +1,5 @@
-﻿using OnlineShopUI.ViewModels;
+﻿using Api.Models;
+using OnlineShopUI.ViewModels;
 
 namespace OnlineShopUI.Services
 {
@@ -40,7 +41,7 @@ namespace OnlineShopUI.Services
                     LastName = checkoutViewModel.LastName,
                     Email = checkoutViewModel.Email,
                     PhoneNumber = checkoutViewModel.PhoneNumber,
-                    BillingAddress = new AddressViewModel
+                    BillingAddress = new Address
                     {
                         AddressLineOne = checkoutViewModel.BillingAddressLineOne,
                         AddressLineTwo = checkoutViewModel.BillingAddressLineTwo,
@@ -49,7 +50,7 @@ namespace OnlineShopUI.Services
                         PostCode = checkoutViewModel.BillingPostCode,
                         Country = checkoutViewModel.BillingCountry
                     },
-                    ShippingAddress = new AddressViewModel
+                    ShippingAddress = new Address
                     {
                         AddressLineOne = checkoutViewModel.ShippingAddressLineOne,
                         AddressLineTwo = checkoutViewModel.ShippingAddressLineTwo,

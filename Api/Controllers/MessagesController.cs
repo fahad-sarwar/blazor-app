@@ -1,5 +1,4 @@
 ﻿using Api.Models;
-using Api.Models.DTOs;
 using Api.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,16 +16,8 @@ namespace Api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateMessage(SendMessageDTO request)
+        public async Task<IActionResult> CreateMessage(Message message)
         {
-            var message = new Message
-            {
-                Name = request.Name,
-                Email = request.Email,
-                Subject = request.Subject,
-                Content = request.Content,
-            };
-
             var createdMessage = await _messageRepository.CreateMessage(message);
 
             return Ok(createdMessage);

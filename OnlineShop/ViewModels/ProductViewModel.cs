@@ -1,4 +1,6 @@
-﻿namespace OnlineShopUI.ViewModels
+﻿using Api.Models;
+
+namespace OnlineShopUI.ViewModels
 {
     public class ProductViewModel
     {
@@ -10,7 +12,7 @@
         public int Stock { get; set; }
         public bool ForSale { get; set; }
         public double? SalePrice { get; set; }
-        public List<ProductAttributeViewModel> Attributes { get; set; }
+        public List<ProductAttribute> Attributes { get; set; }
         public double AverageRating { get; set; }
 
         public string FormattedAverageRating()

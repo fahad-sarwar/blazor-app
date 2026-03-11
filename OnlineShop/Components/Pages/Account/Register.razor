@@ -1,7 +1,7 @@
 ﻿@page "/account/register"
 
+@using Api.Models.DTOs
 @using OnlineShopUI.Services
-@using OnlineShopUI.ViewModels
 @inject NavigationManager Nav
 @inject AuthService AuthService
 @rendermode InteractiveServer
@@ -13,28 +13,28 @@
 
 <h3 class="mb-4">Create an Account</h3>
 
-<EditForm Model="@_registerViewModel" OnValidSubmit="HandleRegister">
+<EditForm Model="@_register" OnValidSubmit="HandleRegister">
     <DataAnnotationsValidator />
 
     <div class="mb-3">
         <label class="form-label">First Name</label>
-        <InputText class="form-control" @bind-Value="_registerViewModel.FirstName" />
-        <ValidationMessage For="@(() => _registerViewModel.FirstName)" />
+        <InputText class="form-control" @bind-Value="_register.FirstName" />
+        <ValidationMessage For="@(() => _register.FirstName)" />
     </div>
     <div class="mb-3">
         <label class="form-label">Last Name</label>
-        <InputText class="form-control" @bind-Value="_registerViewModel.LastName" />
-        <ValidationMessage For="@(() => _registerViewModel.LastName)" />
+        <InputText class="form-control" @bind-Value="_register.LastName" />
+        <ValidationMessage For="@(() => _register.LastName)" />
     </div>
     <div class="mb-3">
         <label class="form-label">Email</label>
-        <InputText class="form-control" @bind-Value="_registerViewModel.Email" type="email" />
-        <ValidationMessage For="@(() => _registerViewModel.Email)" />
+        <InputText class="form-control" @bind-Value="_register.Email" type="email" />
+        <ValidationMessage For="@(() => _register.Email)" />
     </div>
     <div class="mb-3">
         <label class="form-label">Password</label>
-        <InputText class="form-control" @bind-Value="_registerViewModel.Password" type="password" />
-        <ValidationMessage For="@(() => _registerViewModel.Password)" />
+        <InputText class="form-control" @bind-Value="_register.Password" type="password" />
+        <ValidationMessage For="@(() => _register.Password)" />
     </div>
 
     <button class="btn btn-success" disabled="@_isLoading">
@@ -47,7 +47,7 @@
     [SupplyParameterFromQuery]
     private string? ReturnUrl { get; set; }
 
-    private RegisterViewModel _registerViewModel = new();
+    private RegisterDTO _register = new();
     private string _errorMessage = string.Empty;
     private bool _isLoading;
 
@@ -56,7 +56,7 @@
         _isLoading = true;
         _errorMessage = string.Empty;
 
-        var success = await AuthService.Register(_registerViewModel);
+        var success = await AuthService.Register(_register);
 
         if (success)
         {

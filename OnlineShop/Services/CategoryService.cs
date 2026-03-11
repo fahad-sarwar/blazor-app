@@ -1,4 +1,4 @@
-﻿using OnlineShopUI.ViewModels;
+﻿using Api.Models;
 
 namespace OnlineShopUI.Services
 {
@@ -13,14 +13,14 @@ namespace OnlineShopUI.Services
             _logger = logger;
         }
 
-        public async Task<List<CategoryViewModel>?> GetCategories()
+        public async Task<List<Category>?> GetCategories()
         {
-            var response = await _httpClientFactory.CreateClient("Api").GetFromJsonAsync<List<CategoryViewModel>>("api/categories");
+            var response = await _httpClientFactory.CreateClient("Api").GetFromJsonAsync<List<Category>>("api/categories");
 
             return response;
         }
 
-        public async Task<CategoryViewModel?> GetCategory(int? categoryId)
+        public async Task<Category?> GetCategory(int? categoryId)
         {
             if (categoryId == null)
             {
@@ -28,7 +28,7 @@ namespace OnlineShopUI.Services
                 return null;
             }
 
-            var response = await _httpClientFactory.CreateClient("Api").GetFromJsonAsync<CategoryViewModel>($"api/categories/{categoryId}");
+            var response = await _httpClientFactory.CreateClient("Api").GetFromJsonAsync<Category>($"api/categories/{categoryId}");
 
             return response;
         }

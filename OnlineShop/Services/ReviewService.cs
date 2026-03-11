@@ -1,4 +1,5 @@
-﻿using OnlineShopUI.ViewModels;
+﻿using Api.Models.DTOs;
+using OnlineShopUI.ViewModels;
 
 namespace OnlineShopUI.Services
 {
@@ -17,9 +18,9 @@ namespace OnlineShopUI.Services
             return response;
         }
 
-        public async Task<bool> CreateReview(CreateReviewViewModel createReviewViewModel)
+        public async Task<bool> CreateReview(CreateReviewDTO createReviewDTO)
         {
-            var response = await GetClientFactory().PostAsJsonAsync("api/reviews", createReviewViewModel);
+            var response = await GetClientFactory().PostAsJsonAsync("api/reviews", createReviewDTO);
             return response.IsSuccessStatusCode;
         }
     }

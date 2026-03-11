@@ -4,16 +4,14 @@ namespace Api.Models.DTOs
 {
     public class CreateReviewDTO
     {
-        [Required]
+        [Required(ErrorMessage = "Subject is required")]
         public string Subject { get; set; } = string.Empty;
 
-        [Required]
         public int Rating { get; set; } // 1 to 5
 
-        [Required]
+        [Required(ErrorMessage = "Comment is required")]
         public string Comment { get; set; } = string.Empty;
 
-        [Required]
         public int ProductId { get; set; }
     }
 }

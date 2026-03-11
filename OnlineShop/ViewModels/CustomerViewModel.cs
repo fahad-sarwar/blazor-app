@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Api.Models;
 
 namespace OnlineShopUI.ViewModels
 {
@@ -20,9 +21,9 @@ namespace OnlineShopUI.ViewModels
         public string PhoneNumber { get; set; } = string.Empty;
 
         [Required]
-        public AddressViewModel ShippingAddress { get; set; } = new();
+        public Address ShippingAddress { get; set; } = new();
 
         [Required]
-        public AddressViewModel BillingAddress { get; set; } = new();
+        public Address BillingAddress { get; set; } = new();
     }
 }
