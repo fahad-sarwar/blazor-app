@@ -7,7 +7,7 @@
             <h5 class="mb-3">Order & Payment</h5>
             <p><strong>Paid With:</strong> @Order.Payment.PaymentMethod</p>
             <p><strong>Cardholder:</strong> @Order.Payment.CardName</p>
-            <p><strong>Card:</strong> @Order.Payment.MaskedCardNumber()</p>
+            <p><strong>Card:</strong> @MaskedCardNumber(Order.Payment.CardNumber)</p>
             <p><strong>Estimated Delivery:</strong> @Order.GetFormattedEstimatedDeliveryDate()</p>
         </div>
     </div>
@@ -45,4 +45,19 @@
 
 @code {
     [Parameter] public OrderViewModel? Order { get; set; }
+
+    private string MaskedCardNumber(string cardNumber)
+    {
+        if (string.IsNullOrEmpty(cardNumber))
+            return "-";
+
+        if (cardNumber.Length < 10)
+            return new string('*', cardNumber.Length);
+
+        var firstSix = cardNumber.Substring(0, 6);
+        var maskedSection = new string('*', cardNumber.Length - 10);
+        var lastFour = cardNumber.Substring(cardNumber.Length - 4, 4);
+
+        return firstSix + maskedSection + lastFour;
+    }
 }

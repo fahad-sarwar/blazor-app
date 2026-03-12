@@ -1,4 +1,5 @@
 ﻿using Api.Models;
+using Api.Models.DTOs;
 using OnlineShopUI.ViewModels;
 
 namespace OnlineShopUI.Services
@@ -32,9 +33,9 @@ namespace OnlineShopUI.Services
 
         public async Task<OrderViewModel?> CreateOrder(CheckoutViewModel checkoutViewModel, BasketViewModel? basketViewModel)
         {
-            var createOrderRequest = new CreateOrderRequest
+            var createOrderDTO = new CreateOrderDTO
             {
-                Customer = new CustomerViewModel
+                Customer = new CreateCustomerDTO
                 {
                     Id = checkoutViewModel.CustomerId,
                     FirstName = checkoutViewModel.FirstName,
@@ -61,7 +62,7 @@ namespace OnlineShopUI.Services
                     }
                 },
                 BasketId = basketViewModel.Id,
-                Payment = new PaymentDetails
+                Payment = new PaymentDTO
                 {
                     CardNumber = checkoutViewModel.CardNumber,
                     CardName = checkoutViewModel.CardName,
@@ -70,7 +71,7 @@ namespace OnlineShopUI.Services
                 }
             };
 
-            var response = await GetClientFactory().PostAsJsonAsync("api/orders", createOrderRequest);
+            var response = await GetClientFactory().PostAsJsonAsync("api/orders", createOrderDTO);
 
             if (response.IsSuccessStatusCode)
             {

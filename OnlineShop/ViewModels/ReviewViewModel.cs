@@ -1,4 +1,6 @@
-﻿namespace OnlineShopUI.ViewModels
+﻿using Api.Models.DTOs;
+
+namespace OnlineShopUI.ViewModels
 {
     public class ReviewViewModel
     {
@@ -7,7 +9,7 @@
         public int Rating { get; set; } // 1 to 5
         public string Comment { get; set; } = string.Empty;
         public string CustomerName => $"{Customer.FirstName} {Customer.LastName}";
-        public CustomerViewModel Customer { get; set; }
+        public CreateCustomerDTO Customer { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public string GetFormattedDate()

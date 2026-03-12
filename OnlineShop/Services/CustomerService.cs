@@ -1,5 +1,4 @@
 ﻿using Api.Models.DTOs;
-using OnlineShopUI.ViewModels;
 
 namespace OnlineShopUI.Services
 {
@@ -12,9 +11,9 @@ namespace OnlineShopUI.Services
             _logger = logger;
         }
 
-        public async Task<CustomerViewModel?> GetCustomer()
+        public async Task<CreateCustomerDTO?> GetCustomer()
         {
-            var response = await GetClientFactory().GetFromJsonAsync<CustomerViewModel>($"api/customers");
+            var response = await GetClientFactory().GetFromJsonAsync<CreateCustomerDTO>($"api/customers");
             return response;
         }
 

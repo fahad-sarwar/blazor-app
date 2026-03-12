@@ -15,7 +15,7 @@
                 <li class="mb-4">
                     <div class="fw-bold">@update.Status</div>
 
-                    <small class="text-muted">@update.GetFormattedCreatedAtDate() by @update.UpdatedBy</small>
+                    <small class="text-muted">@update.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm") by @update.UpdatedBy</small>
 
                     @if (!string.IsNullOrWhiteSpace(update.Note))
                     {
