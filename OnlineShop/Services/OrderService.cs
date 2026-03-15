@@ -35,7 +35,7 @@ namespace OnlineShopUI.Services
         {
             var createOrderDTO = new CreateOrderDTO
             {
-                Customer = new CreateCustomerDTO
+                Customer = new Customer
                 {
                     Id = checkoutViewModel.CustomerId,
                     FirstName = checkoutViewModel.FirstName,

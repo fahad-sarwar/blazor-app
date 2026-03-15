@@ -1,5 +1,5 @@
-﻿using Api.Models.DTOs;
-using OnlineShopUI.ViewModels;
+﻿using Api.Models;
+using Api.Models.DTOs;
 
 namespace OnlineShopUI.Services
 {
@@ -12,9 +12,9 @@ namespace OnlineShopUI.Services
             _logger = logger;
         }
 
-        public async Task<List<ReviewViewModel>> GetPagedReviews(int productId)
+        public async Task<List<Review>> GetPagedReviews(int productId)
         {
-            var response = await GetClientFactory().GetFromJsonAsync<List<ReviewViewModel>>($"api/reviews?productId={productId}");
+            var response = await GetClientFactory().GetFromJsonAsync<List<Review>>($"api/reviews?productId={productId}");
             return response;
         }
 

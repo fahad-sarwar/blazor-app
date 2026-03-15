@@ -5,7 +5,7 @@ namespace Api.Models.DTOs
     public class CreateOrderDTO
     {
         [Required]
-        public CreateCustomerDTO Customer { get; set; }
+        public Customer Customer { get; set; }
 
         [Required]
         public int BasketId { get; set; }

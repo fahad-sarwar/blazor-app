@@ -1,4 +1,5 @@
-﻿using Api.Models.DTOs;
+﻿using Api.Models;
+using Api.Models.DTOs;
 
 namespace OnlineShopUI.Services
 {
@@ -11,9 +12,9 @@ namespace OnlineShopUI.Services
             _logger = logger;
         }
 
-        public async Task<CreateCustomerDTO?> GetCustomer()
+        public async Task<Customer?> GetCustomer()
         {
-            var response = await GetClientFactory().GetFromJsonAsync<CreateCustomerDTO>($"api/customers");
+            var response = await GetClientFactory().GetFromJsonAsync<Customer>($"api/customers");
             return response;
         }
 

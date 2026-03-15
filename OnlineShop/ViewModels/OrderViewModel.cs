@@ -1,5 +1,4 @@
 ﻿using Api.Models;
-using Api.Models.DTOs;
 
 namespace OnlineShopUI.ViewModels
 {
@@ -13,11 +12,11 @@ namespace OnlineShopUI.ViewModels
         public string DeliveryMethod { get; set; } = string.Empty;
         public DateTime? EstimatedDelivery { get; set; }
         public DateTime CreatedAt { get; set; }
-        public CreateCustomerDTO Customer { get; set; }
+        public Customer Customer { get; set; }
         public Address ShippingAddress { get; set; } = new();
         public Address BillingAddress { get; set; } = new();
         public Payment Payment { get; set; }
-        public List<OrderItemViewModel> OrderItems { get; set; }
+        public List<OrderItem> OrderItems { get; set; }
         public List<OrderTrackingUpdate> TrackingUpdates { get; set; } = new List<OrderTrackingUpdate>(); 
         
         public double Vat()

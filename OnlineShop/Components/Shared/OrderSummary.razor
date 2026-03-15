@@ -15,7 +15,7 @@
         <tr>
             <td>@item.Product.Name</td>
             <td class="text-end">@item.Quantity</td>
-            <td class="text-end">@item.FormattedTotalPrice()</td>
+            <td class="text-end">@item.TotalPrice.ToString("C")</td>
         </tr>
     }
     </tbody>
